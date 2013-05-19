@@ -13,6 +13,8 @@
 #include <Inventor/SoDB.h>
 #include "PySceneObject.h"
 #include "PySceneManager.h"
+#include "PySensor.h"
+
 
 #ifndef _WINDOWS
 #include <unistd.h>
@@ -111,6 +113,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
 			PySceneObject::getFieldContainerType(),
 			PySceneObject::getNodeType(),
 			PySceneObject::getEngineType(),
+			PySensor::getType(),
 			NULL,
 		};
 
