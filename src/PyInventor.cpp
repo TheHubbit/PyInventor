@@ -16,7 +16,7 @@
 #include "PySensor.h"
 
 
-#ifndef _WINDOWS
+#ifndef _WIN32
 #include <unistd.h>
 #endif
 
@@ -32,7 +32,7 @@ static PyObject* iv_process_queues(PyObject * /*self*/, PyObject * args)
 		SoDB::getSensorManager()->processDelayQueue(idle ? TRUE : FALSE);
 		if (idle)
 		{
-			#ifndef _WINDOWS
+			#ifndef _WIN32
 			usleep(10000);
 			#else
 			::Sleep(10);
