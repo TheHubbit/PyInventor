@@ -37,10 +37,13 @@
 typedef std::map<std::string, PyTypeObject> WrapperTypes;
 
 
-// for Mercury initialization (preSoDBInit())
-#ifdef _INVENTOR_PORT_H
-#pragma comment ( lib, "IVInit" )
-void __declspec( dllimport ) preSoDBInit( void );
+// by defining PRESODBINIT an external initialization function can configured
+#ifdef PRESODBINIT
+#ifdef _WIN32
+void __declspec( dllimport ) PRESODBINIT();
+#endif
+#else
+#define PRESODBINIT() /* unused */
 #endif
 
 
@@ -410,7 +413,7 @@ void PySceneObject::initSoDB()
 {
 	if (!SoDB::isInitialized())
 	{
-		preSoDBInit();
+		PRESODBINIT();
 		SoDB::threadInit();
 		SoInteraction::threadInit();
 
