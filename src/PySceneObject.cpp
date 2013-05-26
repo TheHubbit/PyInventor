@@ -417,12 +417,8 @@ void PySceneObject::initSoDB()
 		SoDB::threadInit();
 		SoInteraction::threadInit();
 
-		// MZ 2009.06.24 OIV8.0 Integration
-		// needs to be done because some static inventor hardware check is done here, which makes GL context
-		// uncurrent, otherwise this would be done during first instantiation of SoGLRenderAction, which
-		// corrupts GL stack for render thread in first rendering
-		SbViewportRegion aVR(1, 1);
-		SoGLRenderAction aR(aVR);
+		// VSG inventor performs HW check in first call to SoGLRenderAction
+		SoGLRenderAction aR(SbViewportRegion(1, 1));
 	}
 }
 
@@ -502,12 +498,6 @@ int PySceneObject::tp_init(Object *self, PyObject *args, PyObject *kwds)
 		{
 			self->inventorObject = SoEngine::getByName(name);
 		}
-
-		/*/ scene unit?
-		if (!self->inventorObject)
-		{
-			self->inventorObject = AX::Proto::PythonPlugin::getInstance()->getSceneUnitRoot(name);
-		}*/
 
 		if (self->inventorObject)
 		{
