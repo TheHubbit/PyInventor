@@ -641,6 +641,27 @@ PyObject *PySceneObject::getField(SoField *field)
 		PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, (void*) ((SoSFMatrix *) field)->getValue().getValue());
 		return PyArray_Return(arr);
 	}
+	else if (field->isOfType(SoSFImage::getClassTypeId()))
+	{
+		SbVec2s size;
+		int nc;
+		const unsigned char *pixel = ((SoSFImage*) field)->getValue(size, nc);
+		if (pixel)
+		{
+			PyObject *obj = PyTuple_New(4);
+			PyTuple_SetItem(obj, 0, PyLong_FromLong(size[0]));
+			PyTuple_SetItem(obj, 1, PyLong_FromLong(size[1]));
+			PyTuple_SetItem(obj, 2, PyLong_FromLong(nc));
+
+			npy_intp dims[] = { size[0] * size[1] * nc };
+			PyTuple_SetItem(obj, 3, PyArray_SimpleNewFromData(1, dims, NPY_UBYTE, (void*) pixel));
+
+			return obj;
+		}
+
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	else if (field->isOfType(SoSFPlane::getClassTypeId()))
 	{
 		npy_intp dims[] = { 4 };
@@ -735,54 +756,7 @@ int PySceneObject::setField(SoField *field, PyObject *value)
 	initNumpy();
 	int result = 0;
 
-	SOFIELD_SET(Float, float, NPY_FLOAT32, field, value)
-	else SOFIELD_SET(Double, double, NPY_FLOAT64, field, value)
-	else SOFIELD_SET(Int32, int, NPY_INT32, field, value)
-	else SOFIELD_SET(UInt32, unsigned int, NPY_UINT32, field, value)
-	else SOFIELD_SET(Short, short, NPY_INT16, field, value)
-	else SOFIELD_SET(UShort, unsigned short, NPY_UINT16, field, value)
-	else SOFIELD_SET(Bool, int, NPY_INT32, field, value)
-	else SOFIELD_SET_N(Vec2f, float, NPY_FLOAT32, 2, field, value)
-	else SOFIELD_SET_N(Vec3f, float, NPY_FLOAT32, 3, field, value)
-	else SOFIELD_SET_N(Vec4f, float, NPY_FLOAT32, 4, field, value)
-	else SOFIELD_SET_N(Color, float, NPY_FLOAT32, 3, field, value)
-	else SOFIELD_SET_N(Rotation, float, NPY_FLOAT32, 4, field, value)
-	else SOFIELD_SET_N(Matrix, float, NPY_FLOAT32, 16, field, value)
-	else if (field->isOfType(SoSFTrigger::getClassTypeId()))
-	{
-		field->touch();
-	}
-	else if (field->isOfType(SoSFPlane::getClassTypeId()) || field->isOfType(SoMFPlane::getClassTypeId()))
-	{
-		PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(value, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
-		if (arr)
-		{
-			size_t n = PyArray_SIZE(arr);
-			float *data = (float *) PyArray_GETPTR1(arr, 0);
-
-			if (field->isOfType(SoSFPlane::getClassTypeId()))
-			{
-				if (n == 4)
-				{
-					((SoSFPlane*) field)->setValue(SbPlane(SbVec3f(data[0], data[1], data[2]), data[3]));
-				}
-			}
-			else if (field->isOfType(SoMFPlane::getClassTypeId()))
-			{
-				if ((n % 4) == 0)
-				{
-					((SoMFPlane*) field)->setNum(n / 4);
-					for (int i = 0; i < (n / 4); ++i)
-					{
-						float *p = data + (i * 3);
-						((SoMFPlane*) field)->set1Value(i, SbPlane(SbVec3f(p[0], p[1], p[2]), p[3]));
-					}
-				}
-			}
-			Py_DECREF(arr);
-		}
-	}
-	else if (field->isOfType(SoSFString::getClassTypeId()))
+	if (field->isOfType(SoSFString::getClassTypeId()))
 	{
 		PyObject *str = PyObject_Str(value);
 		if (str)
@@ -839,6 +813,83 @@ int PySceneObject::setField(SoField *field, PyObject *value)
 				Py_DECREF(str);
 			}
 		}
+	}
+	else if (field->isOfType(SoSFTrigger::getClassTypeId()))
+	{
+		field->touch();
+	}
+	else if (!PyUnicode_Check(value))
+	{
+		if (field->isOfType(SoSFImage::getClassTypeId()))
+		{
+			PyObject *pixelObj = 0;
+			int width = 0, height = 0, nc = 0;
+			if (PyArg_ParseTuple(value, "iii|O", &width, &height, &nc, &pixelObj))
+			{
+				if ((width * height * nc) > 0 )
+				{
+					PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(pixelObj, NPY_UBYTE, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
+					if (arr)
+					{
+						size_t n = PyArray_SIZE(arr);
+						if ((width * height * nc) <= n)
+						{
+							const unsigned char *data = (const unsigned char *) PyArray_GETPTR1(arr, 0);
+							((SoSFImage*) field)->setValue(SbVec2s(width, height), nc, data);
+						}
+
+						Py_DECREF(arr);
+					}
+				}
+				else
+				{
+					((SoSFImage*) field)->setValue(SbVec2s(0, 0), 0, 0);
+				}
+			}
+		}
+		else if (field->isOfType(SoSFPlane::getClassTypeId()) || field->isOfType(SoMFPlane::getClassTypeId()))
+		{
+			PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(value, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
+			if (arr)
+			{
+				size_t n = PyArray_SIZE(arr);
+				float *data = (float *) PyArray_GETPTR1(arr, 0);
+
+				if (field->isOfType(SoSFPlane::getClassTypeId()))
+				{
+					if (n == 4)
+					{
+						((SoSFPlane*) field)->setValue(SbPlane(SbVec3f(data[0], data[1], data[2]), data[3]));
+					}
+				}
+				else if (field->isOfType(SoMFPlane::getClassTypeId()))
+				{
+					if ((n % 4) == 0)
+					{
+						((SoMFPlane*) field)->setNum(n / 4);
+						for (int i = 0; i < (n / 4); ++i)
+						{
+							float *p = data + (i * 3);
+							((SoMFPlane*) field)->set1Value(i, SbPlane(SbVec3f(p[0], p[1], p[2]), p[3]));
+						}
+					}
+				}
+				Py_DECREF(arr);
+			}
+		}
+		else SOFIELD_SET(Float, float, NPY_FLOAT32, field, value)
+		else SOFIELD_SET(Double, double, NPY_FLOAT64, field, value)
+		else SOFIELD_SET(Int32, int, NPY_INT32, field, value)
+		else SOFIELD_SET(UInt32, unsigned int, NPY_UINT32, field, value)
+		else SOFIELD_SET(Short, short, NPY_INT16, field, value)
+		else SOFIELD_SET(UShort, unsigned short, NPY_UINT16, field, value)
+		else SOFIELD_SET(Bool, int, NPY_INT32, field, value)
+		else SOFIELD_SET_N(Vec2f, float, NPY_FLOAT32, 2, field, value)
+		else SOFIELD_SET_N(Vec3f, float, NPY_FLOAT32, 3, field, value)
+		else SOFIELD_SET_N(Vec4f, float, NPY_FLOAT32, 4, field, value)
+		else SOFIELD_SET_N(Color, float, NPY_FLOAT32, 3, field, value)
+		else SOFIELD_SET_N(Rotation, float, NPY_FLOAT32, 4, field, value)
+		else SOFIELD_SET_N(Matrix, float, NPY_FLOAT32, 16, field, value)
 	}
 	else
 	{
