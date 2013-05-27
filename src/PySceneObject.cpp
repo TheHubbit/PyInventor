@@ -47,6 +47,7 @@ void __declspec( dllimport ) PRESODBINIT();
 #endif
 
 
+// macro for setting numerical multi-field (SoMField)
 #define SOFIELD_SET_N(t, ct, nt, n, f, d) \
 	if (f->isOfType(SoSF ## t ::getClassTypeId())) \
 	{ \
@@ -78,6 +79,7 @@ void __declspec( dllimport ) PRESODBINIT();
 	}
 
 
+// macro for setting numerical single-field (SoSField)
 #define SOFIELD_SET(t, ct, nt, f, d) \
 	if (f->isOfType(SoSF ## t ::getClassTypeId())) \
 	{ \
@@ -97,6 +99,7 @@ void __declspec( dllimport ) PRESODBINIT();
 		} \
 	}
 
+// macro for getting floating point single-field
 #define SOFIELD_GETF(t, ct, nt, f) \
 	if (f->isOfType(SoSF ## t ::getClassTypeId())) \
 		return PyFloat_FromDouble(((SoSF ## t *) f)->getValue()); \
@@ -107,6 +110,7 @@ void __declspec( dllimport ) PRESODBINIT();
 		return PyArray_Return(arr); \
 	}
 
+// macro for getting integer single-field
 #define SOFIELD_GETL(t, ct, nt, f) \
 	if (f->isOfType(SoSF ## t ::getClassTypeId())) \
 		return PyLong_FromLong(((SoSF ## t *) f)->getValue()); \
@@ -117,6 +121,7 @@ void __declspec( dllimport ) PRESODBINIT();
 		return PyArray_Return(arr); \
 	}
 
+// macro for getting numerical multi-field (SoMField)
 #define SOFIELD_GET_N(t, ct, nt, n, f) \
 	if (f->isOfType(SoSF ## t ::getClassTypeId())) \
 	{ \
@@ -172,7 +177,7 @@ PyTypeObject *PySceneObject::getFieldContainerType()
 		(setattrofunc) tp_setattro,/* tp_setattro */
 		0,                         /* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT |
-			Py_TPFLAGS_BASETYPE,   /* tp_flags */
+		Py_TPFLAGS_BASETYPE,   /* tp_flags */
 		"Inventor scene object",   /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
@@ -248,7 +253,7 @@ PyTypeObject *PySceneObject::getNodeType()
 		0,                         /* tp_setattro */
 		0,                         /* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT |
-			Py_TPFLAGS_BASETYPE,   /* tp_flags */
+		Py_TPFLAGS_BASETYPE,   /* tp_flags */
 		"Inventor Node object",    /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
@@ -297,7 +302,7 @@ PyTypeObject *PySceneObject::getEngineType()
 		0,                         /* tp_setattro */
 		0,                         /* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT |
-			Py_TPFLAGS_BASETYPE,   /* tp_flags */
+		Py_TPFLAGS_BASETYPE,   /* tp_flags */
 		"Inventor engine object",  /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
@@ -352,7 +357,7 @@ PyTypeObject *PySceneObject::getWrapperType(const char *typeName, PyTypeObject *
 			0,                         /* tp_setattro */
 			0,                         /* tp_as_buffer */
 			Py_TPFLAGS_DEFAULT |
-				Py_TPFLAGS_BASETYPE,   /* tp_flags */
+			Py_TPFLAGS_BASETYPE,   /* tp_flags */
 			"Inventor scene object",   /* tp_doc */
 			0,                         /* tp_traverse */
 			0,                         /* tp_clear */
@@ -430,7 +435,7 @@ void PySceneObject::tp_dealloc(Object* self)
 		self->inventorObject->unref();
 	}
 
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 
@@ -438,13 +443,13 @@ PyObject* PySceneObject::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObject
 {
 	initSoDB();
 
-    Object *self = (Object *)type->tp_alloc(type, 0);
-    if (self != NULL) 
+	Object *self = (Object *)type->tp_alloc(type, 0);
+	if (self != NULL) 
 	{
 		self->inventorObject = 0;
-    }
+	}
 
-    return (PyObject *) self;
+	return (PyObject *) self;
 }
 
 
@@ -878,12 +883,12 @@ int PySceneObject::setField(SoField *field, PyObject *value)
 			}
 		}
 		else SOFIELD_SET(Float, float, NPY_FLOAT32, field, value)
-		else SOFIELD_SET(Double, double, NPY_FLOAT64, field, value)
-		else SOFIELD_SET(Int32, int, NPY_INT32, field, value)
-		else SOFIELD_SET(UInt32, unsigned int, NPY_UINT32, field, value)
-		else SOFIELD_SET(Short, short, NPY_INT16, field, value)
-		else SOFIELD_SET(UShort, unsigned short, NPY_UINT16, field, value)
-		else SOFIELD_SET(Bool, int, NPY_INT32, field, value)
+	else SOFIELD_SET(Double, double, NPY_FLOAT64, field, value)
+	else SOFIELD_SET(Int32, int, NPY_INT32, field, value)
+	else SOFIELD_SET(UInt32, unsigned int, NPY_UINT32, field, value)
+	else SOFIELD_SET(Short, short, NPY_INT16, field, value)
+	else SOFIELD_SET(UShort, unsigned short, NPY_UINT16, field, value)
+	else SOFIELD_SET(Bool, int, NPY_INT32, field, value)
 		else SOFIELD_SET_N(Vec2f, float, NPY_FLOAT32, 2, field, value)
 		else SOFIELD_SET_N(Vec3f, float, NPY_FLOAT32, 3, field, value)
 		else SOFIELD_SET_N(Vec4f, float, NPY_FLOAT32, 4, field, value)
@@ -990,8 +995,8 @@ PyObject * PySceneObject::sq_concat(Object *self, PyObject *item)
 		}
 	}
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -1028,8 +1033,8 @@ PyObject * PySceneObject::sq_inplace_concat(Object *self, PyObject *item)
 		Py_XDECREF(seq);
 	}
 
-    Py_INCREF(self);
-    return ((PyObject*) self);
+	Py_INCREF(self);
+	return ((PyObject*) self);
 }
 
 
@@ -1116,20 +1121,20 @@ int PySceneObject::sq_ass_item(Object *self, Py_ssize_t idx, PyObject *item)
 
 PyObject* PySceneObject::append(Object *self, PyObject *args)
 {
-    PyObject *item = 0;
-    if (PyArg_ParseTuple(args, "O", &item))
+	PyObject *item = 0;
+	if (PyArg_ParseTuple(args, "O", &item))
 	{
 		sq_inplace_concat(self, item);
 	}
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
 PyObject* PySceneObject::insert(Object *self, PyObject *args)
 {
-    PyObject *item = 0, *base = 0;
+	PyObject *item = 0, *base = 0;
 	int idx = 0;
 
 	if (self->inventorObject && PyArg_ParseTuple(args, "iO|O", &idx, &item, &base))
@@ -1196,8 +1201,8 @@ PyObject* PySceneObject::insert(Object *self, PyObject *args)
 		}
 	}
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -1205,7 +1210,7 @@ PyObject* PySceneObject::remove(Object *self, PyObject *args)
 {
 	if (self->inventorObject && self->inventorObject->isOfType(SoGroup::getClassTypeId()))
 	{
-	    PyObject *item = 0;
+		PyObject *item = 0;
 		if (PyArg_ParseTuple(args, "O", &item))
 		{
 			if (PyLong_Check(item))
@@ -1229,8 +1234,8 @@ PyObject* PySceneObject::remove(Object *self, PyObject *args)
 		}
 	}
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -1239,11 +1244,11 @@ PyObject* PySceneObject::setname(Object* self, PyObject *args)
 	char *name = 0;
 	if (self->inventorObject && PyArg_ParseTuple(args, "s", &name))
 	{
-	    self->inventorObject->setName(SbName(name));
+		self->inventorObject->setName(SbName(name));
 	}
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -1290,11 +1295,11 @@ PyObject* PySceneObject::touch(Object* self)
 {
 	if (self->inventorObject)
 	{
-	    self->inventorObject->touch();
+		self->inventorObject->touch();
 	}
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -1314,7 +1319,7 @@ PyObject* PySceneObject::enable_notify(Object* self, PyObject *args)
 		}
 	}
 
-    return PyBool_FromLong(enabled);
+	return PyBool_FromLong(enabled);
 }
 
 

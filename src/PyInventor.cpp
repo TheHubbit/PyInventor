@@ -26,7 +26,7 @@ static PyObject* iv_process_queues(PyObject * /*self*/, PyObject * args)
 	PySceneObject::initSoDB();
 
 	bool idle = true;
-    if (PyArg_ParseTuple(args, "|p", &idle))
+	if (PyArg_ParseTuple(args, "|p", &idle))
 	{
 		SoDB::getSensorManager()->processTimerQueue();
 		SoDB::getSensorManager()->processDelayQueue(idle ? TRUE : FALSE);
@@ -41,7 +41,7 @@ static PyObject* iv_process_queues(PyObject * /*self*/, PyObject * args)
 	}
 
 	Py_INCREF(Py_None);
-    return Py_None;
+	return Py_None;
 }
 
 
@@ -79,7 +79,7 @@ static PyObject* iv_create_classes(PyObject *self, PyObject * /*args*/)
 	}
 
 	Py_INCREF(Py_None);
-    return Py_None;
+	return Py_None;
 }
 
 
@@ -96,11 +96,11 @@ PyMODINIT_FUNC PyInit_inventor(void)
 
 	static struct PyModuleDef iv_module = 
 	{
-	   PyModuleDef_HEAD_INIT,
-	   "inventor",					/* name of module */
-	   "Open Inventor 3D Toolkit",	/* module documentation, may be NULL */
-	   -1,							/* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
-	   iv_methods
+		PyModuleDef_HEAD_INIT,
+		"inventor",					/* name of module */
+		"Open Inventor 3D Toolkit",	/* module documentation, may be NULL */
+		-1,							/* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+		iv_methods
 	};
 
 

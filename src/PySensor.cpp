@@ -60,7 +60,7 @@ PyTypeObject *PySensor::getType()
 		0, //(setattrofunc)tp_setattro, /* tp_setattro */
 		0,                         /* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT |
-			Py_TPFLAGS_BASETYPE,   /* tp_flags */
+		Py_TPFLAGS_BASETYPE,   /* tp_flags */
 		"Sensor object",           /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
@@ -94,7 +94,7 @@ void PySensor::tp_dealloc(Object* self)
 
 	Py_XDECREF(self->callback);
 
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 
@@ -102,14 +102,14 @@ PyObject* PySensor::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObject* /*k
 {
 	PySceneObject::initSoDB();
 
-    Object *self = (Object *)type->tp_alloc(type, 0);
-    if (self != NULL) 
+	Object *self = (Object *)type->tp_alloc(type, 0);
+	if (self != NULL) 
 	{
 		self->callback = 0;
 		self->sensor = 0;
 	}
 
-    return (PyObject *) self;
+	return (PyObject *) self;
 }
 
 
@@ -138,13 +138,13 @@ void PySensor::sensorCBFunc(void *userdata, SoSensor* /*sensor*/)
 
 PyObject* PySensor::attach(Object *self, PyObject *args)
 {
-    PyObject *node = 0;
+	PyObject *node = 0;
 	char *fieldName = 0;
-    if (PyArg_ParseTuple(args, "O|s", &node, &fieldName))
+	if (PyArg_ParseTuple(args, "O|s", &node, &fieldName))
 	{
 		SoFieldContainer *fc = 0;
 		SoField *field = 0;
-		
+
 		if (node && PyNode_Check(node))
 		{
 			fc = ((PySceneObject::Object*) node)->inventorObject;
@@ -175,9 +175,9 @@ PyObject* PySensor::attach(Object *self, PyObject *args)
 			}
 		}
 	}
-	
-    Py_INCREF(Py_None);
-    return Py_None;
+
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -189,15 +189,15 @@ PyObject* PySensor::detach(Object *self)
 		self->sensor = 0;
 	}
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
 PyObject* PySensor::setinterval(Object *self, PyObject *args)
 {
 	double interval = 0.;
-    if (PyArg_ParseTuple(args, "d", &interval))
+	if (PyArg_ParseTuple(args, "d", &interval))
 	{
 		if (self->sensor)
 		{
@@ -209,15 +209,15 @@ PyObject* PySensor::setinterval(Object *self, PyObject *args)
 		((SoTimerSensor*) self->sensor)->setInterval(SbTime(interval));
 	}
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
 PyObject* PySensor::settime(Object *self, PyObject *args)
 {
 	double time = 0.;
-    if (PyArg_ParseTuple(args, "d", &time))
+	if (PyArg_ParseTuple(args, "d", &time))
 	{
 		if (self->sensor)
 		{
@@ -230,7 +230,7 @@ PyObject* PySensor::settime(Object *self, PyObject *args)
 	}
 
 	Py_INCREF(Py_None);
-    return Py_None;
+	return Py_None;
 }
 
 
@@ -241,8 +241,8 @@ PyObject* PySensor::schedule(Object *self)
 		self->sensor->schedule();
 	}
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -254,7 +254,7 @@ PyObject* PySensor::unschedule(Object *self)
 	}
 
 	Py_INCREF(Py_None);
-    return Py_None;
+	return Py_None;
 }
 
 
@@ -267,6 +267,6 @@ PyObject* PySensor::isscheduled(Object *self)
 		val = self->sensor->isScheduled();
 	}
 
-    return PyBool_FromLong(val);
+	return PyBool_FromLong(val);
 }
 
