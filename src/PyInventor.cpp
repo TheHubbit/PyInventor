@@ -11,6 +11,7 @@
 
 
 #include <Inventor/SoDB.h>
+#include <Inventor/SoLists.h>
 #include "PySceneObject.h"
 #include "PySceneManager.h"
 #include "PySensor.h"

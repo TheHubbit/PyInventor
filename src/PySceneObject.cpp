@@ -23,6 +23,7 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInteraction.h>
 #include <map>
+#include <string>
 
 #include "PySceneObject.h"
 
@@ -419,9 +420,14 @@ void PySceneObject::initSoDB()
 	if (!SoDB::isInitialized())
 	{
 		PRESODBINIT();
+        
+#ifdef TGS_VERSION
 		SoDB::threadInit();
 		SoInteraction::threadInit();
-
+#else
+		SoDB::init();
+		SoInteraction::init();
+#endif
 		// VSG inventor performs HW check in first call to SoGLRenderAction
 		SoGLRenderAction aR(SbViewportRegion(1, 1));
 	}

@@ -13,8 +13,14 @@
 #include <Inventor/SoSceneManager.h>
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
-#include <Inventor/events/SoMouseWheelEvent.h>
 #include <Inventor/events/SoKeyboardEvent.h>
+#include <Inventor/nodes/SoNode.h>
+#include <Inventor/engines/SoEngine.h>
+#include <Inventor/SoDB.h>
+
+#ifdef TGS_VERSION
+#include <Inventor/events/SoMouseWheelEvent.h>
+#endif
 
 #include "PySceneManager.h"
 
@@ -212,7 +218,9 @@ PyObject* PySceneManager::mouse_button(Object *self, PyObject *args)
 	{
 		y = self->sceneManager->getWindowSize()[1] - y;
 
-		if (button > 2)
+        #ifdef TGS_VERSION
+		// Coin does not have wheel event (yet)
+        if (button > 2)
 		{
 			// wheel
 			SoMouseWheelEvent ev;
@@ -224,6 +232,7 @@ PyObject* PySceneManager::mouse_button(Object *self, PyObject *args)
 			}
 		}
 		else
+        #endif
 		{
 			SoMouseButtonEvent ev;
 			ev.setTime(SbTime::getTimeOfDay());

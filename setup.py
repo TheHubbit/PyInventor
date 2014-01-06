@@ -3,9 +3,9 @@ from distutils.sysconfig import *
 import os
 
 # Open Inventor paths and libraries:
-oivincpath = ''
-oivlibpath = ''
-oivlibs = []
+oivincpath = '/Library/Frameworks/Inventor.framework/Resources/include'
+oivlibpath = '/Library/Frameworks/Inventor.framework/Libraries'
+oivlibs = [ ]
 
 # numpy paths are generated automatically:
 numarrayinc = os.path.join(get_python_lib(plat_specific=1), 'numpy/numarray/include')

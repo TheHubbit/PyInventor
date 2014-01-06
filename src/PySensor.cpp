@@ -11,6 +11,7 @@
 
 
 #include <Inventor/sensors/SoSensors.h>
+#include <Inventor/fields/SoFieldContainer.h>
 #include "PySensor.h"
 
 #pragma warning ( disable : 4127 ) // conditional expression is constant in Py_DECREF
