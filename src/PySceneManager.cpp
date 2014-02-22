@@ -16,6 +16,7 @@
 #include <Inventor/events/SoKeyboardEvent.h>
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/engines/SoEngine.h>
+#include <Inventor/elements/SoGLLazyElement.h> // for GL.h, whose location is distribution specific under system/ or sys/
 #include <Inventor/SoDB.h>
 
 #ifdef TGS_VERSION
@@ -192,6 +193,9 @@ void PySceneManager::renderCBFunc(void *userdata, SoSceneManager * /*mgr*/)
 PyObject* PySceneManager::render(Object *self)
 {
 	self->sceneManager->render();
+    
+    // need to flush or nothing will be shown on OS X
+    glFlush();
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -203,7 +207,10 @@ PyObject* PySceneManager::resize(Object *self, PyObject *args)
     int width = 0, height = 0;
     if (PyArg_ParseTuple(args, "ii", &width, &height))
 	{
+        // for Coin both setWindowSize() and setSize() must be called
+        // in order to get correct rendering and event handling
 		self->sceneManager->setWindowSize(SbVec2s(width, height));
+        self->sceneManager->setSize(SbVec2s(width, height));
 	}
 
     Py_INCREF(Py_None);

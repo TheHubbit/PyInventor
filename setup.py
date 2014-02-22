@@ -5,7 +5,7 @@ import os
 # Open Inventor paths and libraries:
 oivincpath = '/Library/Frameworks/Inventor.framework/Resources/include'
 oivlibpath = '/Library/Frameworks/Inventor.framework/Libraries'
-oivlibs = [ ]
+oivlibs = [ 'Coin' ]
 
 # numpy paths are generated automatically:
 numarrayinc = os.path.join(get_python_lib(plat_specific=1), 'numpy/numarray/include')
