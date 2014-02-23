@@ -17,7 +17,7 @@ except ImportError:
 
 
 class Window(QtGui.QWidget):
-    """Main application windw"""
+    """Main application window"""
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         
@@ -28,10 +28,16 @@ class Window(QtGui.QWidget):
         self.setLayout(mainLayout)
         self.setWindowTitle(self.tr("Hello Inventor"))
 
+        # timer for inventor queue processing (delay, timer and idle queues)
+        self.idleTimer = QtCore.QTimer()
+        self.idleTimer.timeout.connect(iv.process_queues)
+        self.idleTimer.start()
+
 
 class GLWidget(QtOpenGL.QGLWidget):
     """OpenGL widget for displaying scene"""
 
+    # used to map Qt buttons to simple index
     qtButtonIndex = (QtCore.Qt.LeftButton, QtCore.Qt.MiddleButton, QtCore.Qt.RightButton)
 
     def __init__(self, parent=None):
