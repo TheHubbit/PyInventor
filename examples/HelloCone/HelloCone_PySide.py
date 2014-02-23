@@ -27,22 +27,26 @@ class Window(QtGui.QWidget):
         mainLayout.addWidget(self.glWidget)
         self.setLayout(mainLayout)
         self.setWindowTitle(self.tr("Hello Inventor"))
-
+        
         # timer for inventor queue processing (delay, timer and idle queues)
         self.idleTimer = QtCore.QTimer()
         self.idleTimer.timeout.connect(iv.process_queues)
         self.idleTimer.start()
+    
+    def loadScene(self, file):
+        self.glWidget.sceneManager.scene.read(file)
 
 
 class GLWidget(QtOpenGL.QGLWidget):
     """OpenGL widget for displaying scene"""
-
+    
     # used to map Qt buttons to simple index
     qtButtonIndex = (QtCore.Qt.LeftButton, QtCore.Qt.MiddleButton, QtCore.Qt.RightButton)
-
+    
     def __init__(self, parent=None):
         QtOpenGL.QGLWidget.__init__(self, parent)
-        self.sceneManager = 0
+        self.sceneManager = iv.SceneManager()
+        self.sceneManager.redisplay = self.updateGL
     
     def createScene(self):
         '''Returns a simple scene (light, camera, manip, material, cone)'''
@@ -62,10 +66,10 @@ class GLWidget(QtOpenGL.QGLWidget):
     
     def initializeGL(self):
         GL.glEnable(GL.GL_DEPTH_TEST)
-        self.sceneManager = iv.SceneManager()
-        self.sceneManager.redisplay = self.updateGL
-        self.sceneManager.scene = self.createScene()
-        self.sceneManager.scene.view_all()
+        # create default scene if none loaded
+        if (len(self.sceneManager.scene) == 0):
+            self.sceneManager.scene = self.createScene()
+            self.sceneManager.scene.view_all()
     
     def paintGL(self):
         self.sceneManager.render()
@@ -75,10 +79,10 @@ class GLWidget(QtOpenGL.QGLWidget):
     
     def mousePressEvent(self, event):
         self.sceneManager.mouse_button(self.qtButtonIndex.index(event.button()), 0, event.x(), event.y())
-
+    
     def mouseReleaseEvent(self, event):
         self.sceneManager.mouse_button(self.qtButtonIndex.index(event.button()), 1, event.x(), event.y())
-
+    
     def mouseMoveEvent(self, event):
         self.sceneManager.mouse_move(event.x(), event.y())
 
@@ -86,6 +90,9 @@ class GLWidget(QtOpenGL.QGLWidget):
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     window = Window()
+    if (len(app.arguments()) > 1):
+        # load scene from fiel if argument is given
+        window.loadScene(app.arguments()[1])
     window.show()
     sys.exit(app.exec_())
 
