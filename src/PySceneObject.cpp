@@ -1373,7 +1373,27 @@ PyObject* PySceneObject::read(Object *self, PyObject *args)
 			SoSeparator *root = SoDB::readAll(&in);
 			if (root)
 			{
-				setInstance(self, root);
+                if (self->inventorObject && self->inventorObject->isOfType(SoGroup::getClassTypeId()))
+                {
+                    // add children to existing instance if supported
+                    root->ref();
+                    
+                    SoGroup *groupNode = (SoGroup *) self->inventorObject;
+                    groupNode->removeAllChildren();
+                    for (int i = 0; i < root->getNumChildren(); ++i)
+                    {
+                        groupNode->addChild(root->getChild(i));
+                    }
+                    
+                    root->unref();
+                    root = 0;
+                }
+                else
+                {
+                    // set root as new instance if this wrapper has no scene object yet or is not a group
+                    setInstance(self, root);
+                }
+                
 				ok = 1;
 			}
 		}
