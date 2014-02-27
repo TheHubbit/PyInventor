@@ -126,8 +126,14 @@ PyObject* PySceneManager::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObjec
 }
 
 
-int PySceneManager::tp_init(Object *self, PyObject * /*args*/, PyObject * /*kwds*/)
+int PySceneManager::tp_init(Object *self, PyObject *args, PyObject *kwds)
 {
+	PyObject *background = 0;
+	static char *kwlist[] = { "background", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwlist, &background))
+        return -1;
+
 	self->scene = PySceneObject::createWrapper("Separator");
 	self->sceneManager = new SoSceneManager();
 	if (self->scene && self->sceneManager)
@@ -140,6 +146,32 @@ int PySceneManager::tp_init(Object *self, PyObject * /*args*/, PyObject * /*kwds
 	Py_INCREF(Py_None);
 	self->renderCallback = Py_None;
 
+    // configure background color
+	if (background && PySequence_Check(background))
+	{
+		PyObject *seq = PySequence_Fast(background, "expected a sequence");
+		size_t n = PySequence_Size(seq);
+        if (n == 3)
+        {
+            SbColor color(0, 0, 0);
+            for (int i = 0; i < 3; ++i)
+            {
+                PyObject *seqItem = PySequence_GetItem(seq, i);
+                if (seqItem)
+                {
+                    if (PyFloat_Check(seqItem))
+                        color[i] = (float) PyFloat_AsDouble(seqItem);
+                    else if (PyLong_Check(seqItem))
+                        color[i] = (float) PyLong_AsDouble(seqItem);
+                }
+            }
+            if (self->sceneManager)
+                self->sceneManager->setBackgroundColor(color);
+        }
+        
+		Py_XDECREF(seq);
+	}
+    
 	return 0;
 }
 
