@@ -14,9 +14,6 @@
 #include <Inventor/nodes/SoCamera.h>
 #include <Inventor/engines/SoEngine.h>
 #include <Inventor/fields/SoFields.h>
-#include <Inventor/fields/SoSFPlane.h>
-#include <Inventor/fields/SoSFMatrix.h>
-#include <Inventor/fields/SoSFRotation.h>
 #include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
@@ -645,9 +642,25 @@ PyObject *PySceneObject::getField(SoField *field)
 	initNumpy();
 	PyObject *result = NULL;
 
-	// special case for single matrix: return as [4][4] rather than [16]
-	if (field->isOfType(SoSFMatrix::getClassTypeId()))
+	if (field->isOfType(SoSFNode::getClassTypeId()))
 	{
+        SoSFNode *nodeField = (SoSFNode*) field;
+        SoNode *node = nodeField->getValue();
+        if (node)
+        {
+            PyObject *found = createWrapper(node->getTypeId().getName().getString());
+            if (found)
+            {
+                setInstance((Object*) found, node);
+                return found;
+            }
+        }
+        Py_INCREF(Py_None);
+        return Py_None;
+	}
+	else if (field->isOfType(SoSFMatrix::getClassTypeId()))
+	{
+        // special case for single matrix: return as [4][4] rather than [16]
 		npy_intp dims[] = { 4, 4 };
 		PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, (void*) ((SoSFMatrix *) field)->getValue().getValue());
 		return PyArray_Return(arr);
@@ -767,7 +780,23 @@ int PySceneObject::setField(SoField *field, PyObject *value)
 	initNumpy();
 	int result = 0;
 
-	if (field->isOfType(SoSFString::getClassTypeId()))
+	if (field->isOfType(SoSFNode::getClassTypeId()))
+	{
+        SoSFNode *nodeField = (SoSFNode*) field;
+        if (PyNode_Check(value))
+		{
+			Object *child = (Object *) value;
+			if (child->inventorObject && child->inventorObject->isOfType(SoNode::getClassTypeId()))
+			{
+                nodeField->setValue((SoNode*) child->inventorObject);
+			}
+		}
+        else
+        {
+            nodeField->setValue(0);
+        }
+	}
+	else if (field->isOfType(SoSFString::getClassTypeId()))
 	{
 		PyObject *str = PyObject_Str(value);
 		if (str)
