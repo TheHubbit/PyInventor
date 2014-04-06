@@ -27,4 +27,6 @@ setup (name = 'PyInventor',
        author_email = '',
        url = '',
        long_description = '''Python integration for Open Inventor toolkit.''',
-       ext_modules = [module1])
+       ext_modules = [module1],
+       package_dir={'PyInventor': 'packages'},
+       packages=['PyInventor', 'PyInventor.QtInventor'])
