@@ -17,6 +17,7 @@
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/engines/SoEngine.h>
 #include <Inventor/elements/SoGLLazyElement.h> // for GL.h, whose location is distribution specific under system/ or sys/
+#include <Inventor/fields/SoSFColor.h>
 #include <Inventor/SoDB.h>
 
 #ifdef TGS_VERSION
@@ -36,6 +37,7 @@ PyTypeObject *PySceneManager::getType()
 	{
 		{"scene", T_OBJECT_EX, offsetof(Object, scene), 0, "scene graph"},
 		{"redisplay", T_OBJECT_EX, offsetof(Object, renderCallback), 0, "render callback"},
+		{"background", T_OBJECT_EX, offsetof(Object, backgroundColor), 0, "background color"},
 		{NULL}  /* Sentinel */
 	};
 
@@ -203,6 +205,16 @@ int PySceneManager::tp_setattro(Object* self, PyObject *attrname, PyObject *valu
 			PyErr_SetString(PyExc_IndexError, "Scene must be of type Node");
 		}
 	}
+	else if (attr && (strcmp(attr, "background") == 0))
+	{
+        SoSFColor tmp;
+        tmp.setValue(SbColor(0, 0, 0));
+        if (PySceneObject::setField(&tmp, value) == 0)
+        {
+            self->sceneManager->setBackgroundColor(tmp.getValue());
+            self->sceneManager->scheduleRedraw();
+        }
+    }
 
 	return result;
 }

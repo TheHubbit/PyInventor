@@ -29,6 +29,7 @@ private:
 		SoSceneManager *sceneManager;
 		PyObject *scene;
 		PyObject *renderCallback;
+		PyObject *backgroundColor;
 	} Object;
 
 	// type implementations
