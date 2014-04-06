@@ -1,3 +1,11 @@
+# QIVWidget class implementation
+# Author: Thomas Moeller
+#
+# Copyright (C) the PyInventor contributors. All rights reserved.
+# This file is part of PyInventor, distributed under the BSD 3-Clause
+# License. For full terms see the included COPYING file.
+#
+
 from PySide import QtCore, QtGui, QtOpenGL
 from OpenGL import GL
 import inventor
