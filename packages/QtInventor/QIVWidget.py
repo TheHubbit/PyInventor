@@ -22,6 +22,7 @@ class QIVWidget(QtOpenGL.QGLWidget):
 
     def __init__(self, parent=None):
         QtOpenGL.QGLWidget.__init__(self, parent)
+        self.sizeHintValue = QtCore.QSize(512, 512)
         self.sceneManager = inventor.SceneManager()
         self.sceneManager.redisplay = self.updateGL
         # timer must be started from QThread
@@ -44,4 +45,13 @@ class QIVWidget(QtOpenGL.QGLWidget):
     
     def mouseMoveEvent(self, event):
         self.sceneManager.mouse_move(event.x(), event.y())
+
+    def sizeHint(self):
+        return self.sizeHintValue
+
+    def setSizeHint(self, size):
+        self.sizeHintValue = QtCore.QSize(size)
+
+    def setSizeHint(self, width, height):
+        self.sizeHintValue = QtCore.QSize(width, height)
 

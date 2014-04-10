@@ -167,10 +167,6 @@ class Window(QtGui.QWidget):
     def minimumSizeHint(self):
         return QtCore.QSize(100, 100)
 
-    def sizeHint(self):
-        return QtCore.QSize(512, 512)
-
-
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     window = Window()
