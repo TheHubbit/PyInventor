@@ -20,8 +20,8 @@ class QIVWidget(QtOpenGL.QGLWidget):
     idleTimer = QtCore.QTimer()
     idleTimer.timeout.connect(inventor.process_queues)
 
-    def __init__(self, parent=None):
-        QtOpenGL.QGLWidget.__init__(self, parent)
+    def __init__(self, parent=None, shareWidget=None):
+        QtOpenGL.QGLWidget.__init__(self, parent, shareWidget)
         self.sizeHintValue = QtCore.QSize(512, 512)
         self.sceneManager = inventor.SceneManager()
         self.sceneManager.redisplay = self.updateGL
