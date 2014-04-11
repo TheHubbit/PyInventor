@@ -25,6 +25,24 @@
 #include <Inventor/sys/SoGL.h>
 #endif
 
+#if defined (TGS_VERSION) && (SO_INVENTOR_VERSION >= 8500)
+#include <Inventor/devices/SoGLContext.h>
+#define SOGLCONTEXT_CREATE(ctx) if (!ctx) { \
+		HDC hDC = ::wglGetCurrentDC(); \
+		PIXELFORMATDESCRIPTOR pfd; \
+		::DescribePixelFormat(hDC, ::GetPixelFormat(hDC), sizeof(PIXELFORMATDESCRIPTOR), &pfd); \
+		ctx = new SoGLContext(hDC, &pfd, 0, ::wglGetCurrentContext()); }
+#define SOGLCONTEXT_UNREF(ctx) if (ctx) ctx->unref()
+#define SOGLCONTEXT_BIND(ctx) if (ctx) ctx->bind()
+#else
+class SoGLContext;
+#define SOGLCONTEXT_CREATE(ctx) 
+#define SOGLCONTEXT_UNREF(ctx) 
+#define SOGLCONTEXT_BIND(ctx) 
+#endif
+
+
+
 #include "PySceneManager.h"
 
 #pragma warning ( disable : 4127 ) // conditional expression is constant in Py_DECREF
@@ -106,6 +124,8 @@ void PySceneManager::tp_dealloc(Object* self)
 		delete self->sceneManager;
 	}
 
+	SOGLCONTEXT_UNREF(self->context);
+
 	Py_XDECREF(self->scene);
 	Py_XDECREF(self->renderCallback);
 
@@ -123,6 +143,7 @@ PyObject* PySceneManager::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObjec
 		self->scene = 0;
 		self->renderCallback = 0;
 		self->sceneManager = 0;
+		self->context = 0;
 	}
 
     return (PyObject *) self;
@@ -237,6 +258,9 @@ void PySceneManager::renderCBFunc(void *userdata, SoSceneManager * /*mgr*/)
 
 PyObject* PySceneManager::render(Object *self)
 {
+	SOGLCONTEXT_CREATE(self->context);
+	SOGLCONTEXT_BIND(self->context);
+
 	self->sceneManager->render();
     
     // need to flush or nothing will be shown on OS X

@@ -16,6 +16,9 @@
 
 class SoSceneManager;
 
+// for VSG Inventor use of context class is required
+class SoGLContext;
+
 
 class PySceneManager
 {
@@ -30,6 +33,7 @@ private:
 		PyObject *scene;
 		PyObject *renderCallback;
 		PyObject *backgroundColor;
+		SoGLContext *context;
 	} Object;
 
 	// type implementations
