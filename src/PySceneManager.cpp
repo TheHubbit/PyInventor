@@ -22,6 +22,7 @@
 
 #ifdef TGS_VERSION
 #include <Inventor/events/SoMouseWheelEvent.h>
+#include <Inventor/sys/SoGL.h>
 #endif
 
 #include "PySceneManager.h"
