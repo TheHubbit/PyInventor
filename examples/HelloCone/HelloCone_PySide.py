@@ -35,6 +35,11 @@ class Window(QtGui.QWidget):
     
     def loadScene(self, file):
         self.glWidget.sceneManager.scene.read(file)
+        if (len(self.glWidget.sceneManager.scene.search(type="Camera")) == 0):
+            self.glWidget.sceneManager.scene.insert(0, iv.OrthographicCamera())
+        if (len(self.glWidget.sceneManager.scene.search(type="DirectionalLight")) == 0):
+            self.glWidget.sceneManager.scene.insert(0, iv.DirectionalLight())
+        self.glWidget.sceneManager.scene.view_all()
 
 
 class GLWidget(QtOpenGL.QGLWidget):
@@ -92,7 +97,7 @@ if __name__ == '__main__':
     window = Window()
     if (len(app.arguments()) > 1):
         # load scene from fiel if argument is given
-        window.loadScene(app.arguments()[1])
+        window.loadScene(app.arguments()[2])
     window.show()
     sys.exit(app.exec_())
 
