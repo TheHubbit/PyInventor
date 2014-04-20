@@ -40,7 +40,7 @@ public:
 	static PyTypeObject *getEngineType();
 	static PyTypeObject *getWrapperType(const char *typeName, PyTypeObject *baseType = 0);
 	
-	static PyObject *createWrapper(const char *typeName);
+	static PyObject *createWrapper(const char *typeName, SoFieldContainer *instance = 0);
 
 	static PyObject *getField(SoField *field);
 	static int setField(SoField *field, PyObject *value);
@@ -92,12 +92,6 @@ private:
 	static PyObject* isconnected(Object *self, PyObject *args);
 	static PyObject* set(Object *self, PyObject *args);
 	static PyObject* get(Object *self, PyObject *args);
-
-	// action methods
-	static PyObject* view_all(Object *self);
-	static PyObject* read(Object *self, PyObject *args);
-	static PyObject* write(Object *self, PyObject *args);
-	static PyObject* search(Object *self, PyObject *args, PyObject *kwds);
 
 	// internal methods
 	static void setInstance(Object *self, SoFieldContainer *obj);

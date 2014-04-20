@@ -35,7 +35,7 @@ if __name__ == '__main__':
     
     # setup scene
     sm.scene = create_scene()
-    sm.scene.view_all()
+    sm.view_all()
     
     # running application main loop
     glutMainLoop()

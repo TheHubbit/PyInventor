@@ -156,7 +156,7 @@ class Window(QtGui.QWidget):
         widget = QtInventor.QIVWidget()
         widget.sceneManager.background = (0.3, 0.3, 0.3)
         widget.sceneManager.scene = makeSphericalHarmonicsScene(3)
-        widget.sceneManager.scene.view_all()
+        widget.sceneManager.view_all()
 
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.setContentsMargins(0, 0, 0, 0)

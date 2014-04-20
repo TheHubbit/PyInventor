@@ -34,12 +34,14 @@ class Window(QtGui.QWidget):
         self.idleTimer.start()
     
     def loadScene(self, file):
-        self.glWidget.sceneManager.scene.read(file)
-        if (len(self.glWidget.sceneManager.scene.search(type="Camera")) == 0):
-            self.glWidget.sceneManager.scene.insert(0, iv.OrthographicCamera())
-        if (len(self.glWidget.sceneManager.scene.search(type="DirectionalLight")) == 0):
-            self.glWidget.sceneManager.scene.insert(0, iv.DirectionalLight())
-        self.glWidget.sceneManager.scene.view_all()
+        root = iv.read(file)
+        if root:
+            self.glWidget.sceneManager.scene = root
+            if (len(iv.search(self.glWidget.sceneManager.scene, type="Camera")) == 0):
+                self.glWidget.sceneManager.scene.insert(0, iv.OrthographicCamera())
+            if (len(iv.search(self.glWidget.sceneManager.scene, type="DirectionalLight")) == 0):
+                self.glWidget.sceneManager.scene.insert(0, iv.DirectionalLight())
+            self.glWidget.sceneManager.view_all()
 
 
 class GLWidget(QtOpenGL.QGLWidget):
@@ -74,7 +76,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         # create default scene if none loaded
         if (len(self.sceneManager.scene) == 0):
             self.sceneManager.scene = self.createScene()
-            self.sceneManager.scene.view_all()
+            self.sceneManager.view_all()
     
     def paintGL(self):
         self.sceneManager.render()

@@ -15,9 +15,11 @@
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoKeyboardEvent.h>
 #include <Inventor/nodes/SoNode.h>
+#include <Inventor/nodes/SoCamera.h>
 #include <Inventor/engines/SoEngine.h>
 #include <Inventor/elements/SoGLLazyElement.h> // for GL.h, whose location is distribution specific under system/ or sys/
 #include <Inventor/fields/SoSFColor.h>
+#include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/SoDB.h>
 
 #ifdef TGS_VERSION
@@ -67,6 +69,7 @@ PyTypeObject *PySceneManager::getType()
 		{"mouse_button", (PyCFunction) mouse_button, METH_VARARGS, "Sends mouse button event into the scene for processing" },
 		{"mouse_move", (PyCFunction) mouse_move, METH_VARARGS, "Sends mouse move event into the scene for processing" },
 		{"key", (PyCFunction) key, METH_VARARGS, "Sends keyboard event into the scene for processing" },
+		{"view_all", (PyCFunction) view_all, METH_VARARGS, "Initializes camera so that the entire scene is visible" },
 		{NULL}  /* Sentinel */
 	};
 
@@ -401,4 +404,39 @@ PyObject* PySceneManager::key(Object *self, PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }
+
+
+PyObject* PySceneManager::view_all(Object *self, PyObject *args)
+{
+	long ok = 0;
+
+	PyObject *applyTo = NULL;
+	if (PyArg_ParseTuple(args, "|O", &applyTo))
+	{
+		if (!applyTo || PyNode_Check(applyTo))
+		{
+			SoNode *applyToNode = self->sceneManager->getSceneGraph();
+
+			PySceneObject::Object *sceneObj = (PySceneObject::Object *)	applyTo;
+			if (sceneObj && sceneObj->inventorObject)
+			{
+				applyToNode = (SoNode*) sceneObj->inventorObject;
+			}
+
+			SoSearchAction sa;
+			sa.setType(SoCamera::getClassTypeId());
+			sa.setInterest(SoSearchAction::FIRST);
+			sa.apply(applyToNode);
+			if (sa.getPath())
+			{
+				SbViewportRegion vp(512, 512);
+				((SoCamera*) sa.getPath()->getTail())->viewAll(applyToNode, vp);
+				ok = 1;
+			}
+		}
+	}
+
+	return PyBool_FromLong(ok);
+}
+
 

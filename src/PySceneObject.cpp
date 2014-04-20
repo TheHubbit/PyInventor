@@ -11,12 +11,10 @@
 
 
 #include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/nodes/SoCamera.h>
 #include <Inventor/nodekits/SoBaseKit.h>
 #include <Inventor/engines/SoEngine.h>
 #include <Inventor/fields/SoFields.h>
 #include <Inventor/actions/SoSearchAction.h>
-#include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInteraction.h>
@@ -211,10 +209,6 @@ PyTypeObject *PySceneObject::getNodeType()
 		{"insert", (PyCFunction) insert, METH_VARARGS, "Inserts a scene object into a group node" },
 		{"remove", (PyCFunction) remove, METH_VARARGS, "Removes a scene object from a group node" },
 		{"node_id", (PyCFunction) node_id, METH_NOARGS, "Return the unique node identifier" },
-		{"view_all", (PyCFunction) view_all, METH_NOARGS, "Initializes camera so that the entire scene is visible" },
-		{"read", (PyCFunction) read, METH_VARARGS, "Reads a scene graph" },
-		{"write", (PyCFunction) write, METH_VARARGS, "Writes scene graph to file" },
-		{"search", (PyCFunction) search, METH_VARARGS | METH_KEYWORDS, "Searches all children for a specific scene object" },
 		{NULL}  /* Sentinel */
 	};
 
@@ -385,7 +379,7 @@ PyTypeObject *PySceneObject::getWrapperType(const char *typeName, PyTypeObject *
 }
 
 
-PyObject *PySceneObject::createWrapper(const char *typeName)
+PyObject *PySceneObject::createWrapper(const char *typeName, SoFieldContainer *instance)
 {
 	PyObject *obj = 0;
 	if (getWrapperType(typeName))
@@ -398,6 +392,11 @@ PyObject *PySceneObject::createWrapper(const char *typeName)
 		PyTuple_SetItem(args, 0, PyUnicode_FromString(typeName));
 		obj = PyObject_CallObject((PyObject*) getNodeType(), args);
 		Py_DECREF(args);
+	}
+
+	if (obj && instance)
+	{
+		setInstance((Object*) obj, instance);
 	}
 
 	return obj;
@@ -660,10 +659,9 @@ PyObject *PySceneObject::getField(SoField *field)
         SoNode *node = nodeField->getValue();
         if (node)
         {
-            PyObject *found = createWrapper(node->getTypeId().getName().getString());
+            PyObject *found = createWrapper(node->getTypeId().getName().getString(), node);
             if (found)
             {
-                setInstance((Object*) found, node);
                 return found;
             }
         }
@@ -1076,10 +1074,9 @@ PyObject* PySceneObject::tp_getattro(Object* self, PyObject *attrname)
 				SoNode *node = baseKit->getPart(fieldName, TRUE);
 				if (node)
 				{
-					PyObject *obj = createWrapper(node->getTypeId().getName().getString());
+					PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
 					if (obj)
 					{
-						setInstance((Object*) obj, node);
 						return obj;
 					}
 				}
@@ -1206,10 +1203,9 @@ PyObject *PySceneObject::sq_item(Object *self, Py_ssize_t idx)
 		if (idx < ((SoGroup*) self->inventorObject)->getNumChildren())
 		{
 			SoNode *node = ((SoGroup*) self->inventorObject)->getChild(idx);
-			PyObject *obj = createWrapper(node->getTypeId().getName().getString());
+			PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
 			if (obj)
 			{
-				setInstance((Object*) obj, node);
 				return obj;
 			}
 		}
@@ -1468,170 +1464,6 @@ PyObject* PySceneObject::enable_notify(Object* self, PyObject *args)
 }
 
 
-PyObject* PySceneObject::view_all(Object *self)
-{
-	long ok = 0;
-
-	if (self->inventorObject && self->inventorObject->isOfType(SoNode::getClassTypeId()))
-	{
-		SoSearchAction sa;
-		sa.setType(SoCamera::getClassTypeId());
-		sa.setInterest(SoSearchAction::FIRST);
-		sa.apply((SoNode*) self->inventorObject);
-		if (sa.getPath())
-		{
-			SbViewportRegion vp(512, 512);
-			((SoCamera*) sa.getPath()->getTail())->viewAll((SoNode*) self->inventorObject, vp);
-			ok = 1;
-		}
-	}
-
-	return PyBool_FromLong(ok);
-}
-
-
-PyObject* PySceneObject::read(Object *self, PyObject *args)
-{
-	long ok = 0;
-
-	char *iv = 0;
-	if (PyArg_ParseTuple(args, "s", &iv))
-	{
-		if (iv)
-		{
-			SoInput in;
-			if (iv[0] == '#')
-			{
-				in.setBuffer(iv, strlen(iv));
-			}
-			else
-			{
-				in.openFile(iv);
-			}
-
-			SoSeparator *root = SoDB::readAll(&in);
-			if (root)
-			{
-                if (self->inventorObject && self->inventorObject->isOfType(SoGroup::getClassTypeId()))
-                {
-                    // add children to existing instance if supported
-                    root->ref();
-                    
-                    SoGroup *groupNode = (SoGroup *) self->inventorObject;
-                    groupNode->removeAllChildren();
-                    for (int i = 0; i < root->getNumChildren(); ++i)
-                    {
-                        groupNode->addChild(root->getChild(i));
-                    }
-                    
-                    root->unref();
-                    root = 0;
-                }
-                else
-                {
-                    // set root as new instance if this wrapper has no scene object yet or is not a group
-                    setInstance(self, root);
-                }
-                
-				ok = 1;
-			}
-		}
-	}
-
-	return PyBool_FromLong(ok);
-}
-
-
-PyObject* PySceneObject::write(Object *self, PyObject *args)
-{
-	char *iv = 0;
-	if (self->inventorObject && self->inventorObject->isOfType(SoNode::getClassTypeId()) && 
-		PyArg_ParseTuple(args, "|s", &iv))
-	{
-		if (iv)
-		{
-			SoOutput out;
-			out.openFile(iv);
-			SoWriteAction wa(&out);
-			wa.apply((SoNode*) self->inventorObject);
-		}
-		else
-		{
-			void *buffer = malloc(1024 * 1024);
-			SoOutput out;
-			out.setBuffer(buffer, 1024 * 1024, realloc);
-			SoWriteAction wa(&out);
-			wa.apply((SoNode*) self->inventorObject);
-
-			#ifdef getBuffer
-			#undef getBuffer
-			#endif
-			size_t n = 0;
-			if (out.getBuffer(buffer, n))
-			{
-				PyObject *s = PyUnicode_FromStringAndSize((const char*) buffer, n);
-				free(buffer);
-
-				return s;
-			}
-		}
-	}
-
-	Py_INCREF(Py_None);
-	return Py_None;
-}
-
-
-PyObject* PySceneObject::search(Object *self, PyObject *args, PyObject *kwds)
-{
-	char *type = NULL, *name = NULL;
-	bool searchAll = false, first = false;
-	static char *kwlist[] = { "type", "name", "searchAll", "first", NULL};
-
-	if (self->inventorObject && self->inventorObject->isOfType(SoNode::getClassTypeId()) &&
-		PyArg_ParseTupleAndKeywords(args, kwds, "|sspp", kwlist, &type, &name, &searchAll, &first))
-	{
-		SoSearchAction sa;
-		if (type) sa.setType(SoType::fromName(type));
-		if (name) sa.setName(name);
-		if (searchAll) sa.setSearchingAll(TRUE);
-		sa.setInterest(first ? SoSearchAction::FIRST : SoSearchAction::ALL);
-		sa.apply((SoNode*) self->inventorObject);
-
-		if (first)
-		{
-			if (sa.getPath())
-			{
-				PyObject *found = createWrapper(sa.getPath()->getTail()->getTypeId().getName().getString());
-				if (found)
-				{
-					setInstance((Object*) found, sa.getPath()->getTail());
-					return found;
-				}
-			}
-		}
-		else
-		{
-			SoPathList pl = sa.getPaths();
-			PyObject *found = PyList_New(pl.getLength());
-			for (int i = 0; i < pl.getLength(); ++i)
-			{
-				PyObject *obj = createWrapper(pl[i]->getTail()->getTypeId().getName().getString());
-				if (obj)
-				{
-					setInstance((Object*) obj, pl[i]->getTail());
-					PyList_SetItem(found, i, obj);
-				}
-			}
-			return found;
-		}
-	}
-
-	Py_INCREF(Py_None);
-	return Py_None;
-}
-
-
 PyObject* PySceneObject::connect(Object *self, PyObject *args)
 {
 	long connected = 0;
@@ -1742,10 +1574,9 @@ PyObject* PySceneObject::get(Object *self, PyObject *args)
 					SoNode *node = baseKit->getPart(name, createIfNeeded ? TRUE : FALSE);
 					if (node)
 					{
-						PyObject *obj = createWrapper(node->getTypeId().getName().getString());
+						PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
 						if (obj)
 						{
-							setInstance((Object*) obj, node);
 							return obj;
 						}
 					}

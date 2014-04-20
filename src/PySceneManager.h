@@ -48,6 +48,7 @@ private:
 	static PyObject* mouse_button(Object *self, PyObject *args);
 	static PyObject* mouse_move(Object *self, PyObject *args);
 	static PyObject* key(Object *self, PyObject *args);
+	static PyObject* view_all(Object *self, PyObject *args);
 
 	// internal
 	static void renderCBFunc(void *userdata, SoSceneManager *mgr);
