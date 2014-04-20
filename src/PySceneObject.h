@@ -44,6 +44,7 @@ public:
 
 	static PyObject *getField(SoField *field);
 	static int setField(SoField *field, PyObject *value);
+	static int setFields(SoFieldContainer *fieldContainer, char *value);
 
 	static bool initNumpy();
 	static void initSoDB();
@@ -62,6 +63,7 @@ private:
 	static int tp_init2(Object *self, PyObject *args, PyObject *kwds);
 	static PyObject* tp_getattro(Object *self, PyObject *attrname);
 	static int tp_setattro(Object *self, PyObject *attrname, PyObject *value);
+	static void initDictionary(Object *self);
 
 	// sequence implementation
 	static Py_ssize_t sq_length(Object *self);
@@ -84,10 +86,12 @@ private:
 	static PyObject* touch(Object *self);
 	static PyObject* enable_notify(Object *self, PyObject *args);
 
-	// connections
+	// field methods
 	static PyObject* connect(Object *self, PyObject *args);
 	static PyObject* disconnect(Object *self, PyObject *args);
 	static PyObject* isconnected(Object *self, PyObject *args);
+	static PyObject* set(Object *self, PyObject *args);
+	static PyObject* get(Object *self, PyObject *args);
 
 	// action methods
 	static PyObject* view_all(Object *self);

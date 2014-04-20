@@ -12,6 +12,7 @@
 
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoCamera.h>
+#include <Inventor/nodekits/SoBaseKit.h>
 #include <Inventor/engines/SoEngine.h>
 #include <Inventor/fields/SoFields.h>
 #include <Inventor/actions/SoSearchAction.h>
@@ -150,6 +151,8 @@ PyTypeObject *PySceneObject::getFieldContainerType()
 		{"connect", (PyCFunction) connect, METH_VARARGS, "Connects a field to another field or engine output" },
 		{"isconnected", (PyCFunction) isconnected, METH_VARARGS, "Returns True is field has a connection" },
 		{"disconnect", (PyCFunction) disconnect, METH_VARARGS, "Disconnects a field" },
+		{"set", (PyCFunction) set, METH_VARARGS, "Sets a field or leaf value" },
+		{"get", (PyCFunction) get, METH_VARARGS, "Returns a field or leaf value" },
 		{NULL}  /* Sentinel */
 	};
 
@@ -517,6 +520,14 @@ int PySceneObject::tp_init(Object *self, PyObject *args, PyObject *kwds)
 		}
 	}
 
+	initDictionary(self);
+
+	return 0;
+}
+
+
+void PySceneObject::initDictionary(Object *self)
+{
 	if (self->inventorObject)
 	{
 		SoFieldList lst;
@@ -530,8 +541,21 @@ int PySceneObject::tp_init(Object *self, PyObject *args, PyObject *kwds)
 			PyDict_SetItem(Py_TYPE(self)->tp_dict, PyUnicode_FromString(name.getString()), PyUnicode_FromString(descr.getString()));
 		}
 	}
+}
 
-	return 0;
+
+int PySceneObject::setFields(SoFieldContainer *fieldContainer, char *value)
+{
+	if (!fieldContainer) 
+		return FALSE;
+
+	if (fieldContainer->isOfType(SoBaseKit::getClassTypeId()))
+	{
+		SoBaseKit *kit = (SoBaseKit *) fieldContainer;
+		return kit->set(value);		
+	}
+
+	return fieldContainer->set(value);
 }
 
 
@@ -561,7 +585,7 @@ int PySceneObject::tp_init2(Object *self, PyObject *args, PyObject *kwds)
 				self->inventorObject = (SoFieldContainer *) ptr;
 				self->inventorObject->ref();
 				if (name && name[0]) self->inventorObject->setName(name);
-				if (init && init[0]) self->inventorObject->set(init);
+				if (init && init[0]) setFields(self->inventorObject, init);
 			}
 		}
 	}
@@ -586,7 +610,7 @@ int PySceneObject::tp_init2(Object *self, PyObject *args, PyObject *kwds)
 							(PyNode_Check(self) && self->inventorObject->isOfType(SoNode::getClassTypeId())) )
 						{
 							if (name && name[0]) self->inventorObject->setName(name);
-							if (init && init[0]) self->inventorObject->set(init);
+							if (init && init[0]) setFields(self->inventorObject, init);
 						}
 						else
 						{
@@ -603,19 +627,7 @@ int PySceneObject::tp_init2(Object *self, PyObject *args, PyObject *kwds)
 		Py_DECREF(classObj);
 	}
 
-	if (self->inventorObject)
-	{
-		SoFieldList lst;
-		self->inventorObject->getFields(lst);
-		for (int i = 0; i < lst.getLength(); ++i)
-		{
-			SbName name;
-			self->inventorObject->getFieldName(lst[i], name);
-			SbString descr("Field of type ");
-			descr += lst[i]->getTypeId().getName().getString();
-			PyDict_SetItem(Py_TYPE(self)->tp_dict, PyUnicode_FromString(name.getString()), PyUnicode_FromString(descr.getString()));
-		}
-	}
+	initDictionary(self);
 
 	return 0;
 }
@@ -788,6 +800,21 @@ int PySceneObject::setField(SoField *field, PyObject *value)
 			Object *child = (Object *) value;
 			if (child->inventorObject && child->inventorObject->isOfType(SoNode::getClassTypeId()))
 			{
+				if (field->getContainer() && field->getContainer()->isOfType(SoBaseKit::getClassTypeId()))
+				{
+					SoBaseKit *baseKit = (SoBaseKit *) field->getContainer();
+					SbName fieldName;
+					if (baseKit->getFieldName(field, fieldName))
+					{
+						if (baseKit->getNodekitCatalog()->isLeaf(fieldName))
+						{
+							// update part of a node kit
+							baseKit->setPart(fieldName, (SoNode*) child->inventorObject);
+							return result;
+						}
+					}
+				}
+
                 nodeField->setValue((SoNode*) child->inventorObject);
 			}
 		}
@@ -978,10 +1005,30 @@ PyObject* PySceneObject::tp_getattro(Object* self, PyObject *attrname)
 	const char *fieldName = PyUnicode_AsUTF8(attrname);
 	if (self->inventorObject && fieldName)
 	{
-		SoField *field = self->inventorObject->getField(fieldName);
-		if (field)
+		if (self->inventorObject->isOfType(SoBaseKit::getClassTypeId()))
 		{
-			return getField(field);
+			SoBaseKit *baseKit = (SoBaseKit *) self->inventorObject;
+			if (baseKit->getNodekitCatalog()->isLeaf(fieldName))
+			{
+				SoNode *node = baseKit->getPart(fieldName, TRUE);
+				if (node)
+				{
+					PyObject *obj = createWrapper(node->getTypeId().getName().getString());
+					if (obj)
+					{
+						setInstance((Object*) obj, node);
+						return obj;
+					}
+				}
+			}
+		}
+		else
+		{
+			SoField *field = self->inventorObject->getField(fieldName);
+			if (field)
+			{
+				return getField(field);
+			}
 		}
 	}
 
@@ -1598,4 +1645,70 @@ PyObject* PySceneObject::isconnected(Object *self, PyObject *args)
 	}
 
 	return PyBool_FromLong(connected);
+}
+
+
+PyObject* PySceneObject::set(Object *self, PyObject *args)
+{
+	char *value = 0;
+	if (self->inventorObject && PyArg_ParseTuple(args, "s", &value))
+	{
+		setFields(self->inventorObject, value);
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+PyObject* PySceneObject::get(Object *self, PyObject *args)
+{
+	char *name = 0;
+	bool createIfNeeded = true;
+	if (self->inventorObject)
+	{
+		if (PyArg_ParseTuple(args, "s|p", &name, &createIfNeeded))
+		{
+			// name given
+			if (self->inventorObject->isOfType(SoBaseKit::getClassTypeId()))
+			{
+				// return leaf?
+				SoBaseKit *baseKit = (SoBaseKit *) self->inventorObject;
+				if (baseKit->getNodekitCatalog()->isLeaf(name))
+				{
+					SoNode *node = baseKit->getPart(name, createIfNeeded ? TRUE : FALSE);
+					if (node)
+					{
+						PyObject *obj = createWrapper(node->getTypeId().getName().getString());
+						if (obj)
+						{
+							setInstance((Object*) obj, node);
+							return obj;
+						}
+					}
+				}
+			}
+
+			// return field?
+			SoField *field = self->inventorObject->getField(name);
+			if (field)
+			{
+				return getField(field);
+			}
+		}
+		else
+		{
+			// no name then return all field values
+			if (self->inventorObject)
+			{
+				SbString value;
+				self->inventorObject->get(value);
+		
+				return _PyUnicode_FromASCII(value.getString(), value.getLength());
+			}
+		}
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
 }
