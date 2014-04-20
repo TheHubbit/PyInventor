@@ -944,13 +944,76 @@ int PySceneObject::setField(SoField *field, PyObject *value)
 				Py_DECREF(arr);
 			}
 		}
+		else if (field->isOfType(SoSFRotation::getClassTypeId()))
+		{
+			bool valueWasSet = false;
+			PyObject *axis = 0, *fromVec = 0, *toVec = 0;
+			float angle = 0.;
+
+			if (PyArg_ParseTuple(value, "Of", &axis, &angle))
+			{
+				// axis plus angle
+				PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(axis, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
+				if (arr)
+				{
+					size_t n = PyArray_SIZE(arr);
+					float *data = (float *) PyArray_GETPTR1(arr, 0);
+					if (data && (n == 3))
+					{
+						((SoSFRotation*) field)->setValue(SbVec3f(data), angle);
+						valueWasSet = true;
+					}
+					Py_DECREF(arr);
+				}
+			}
+			else if (PyArg_ParseTuple(value, "OO", &fromVec, &toVec))
+			{
+				// from & to vectors
+				PyArrayObject *arr1 = (PyArrayObject*) PyArray_FROM_OTF(fromVec, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
+				PyArrayObject *arr2 = (PyArrayObject*) PyArray_FROM_OTF(toVec, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
+				if (arr1 && arr2)
+				{
+					if ((PyArray_SIZE(arr1) == 3) && (PyArray_SIZE(arr2) == 3))
+					{
+						SbRotation r(SbVec3f((const float*) PyArray_GETPTR1(arr1, 0)), SbVec3f((const float*) PyArray_GETPTR1(arr2, 0)));
+						((SoSFRotation*) field)->setValue(r);
+						valueWasSet = true;
+					}
+				}
+				if (arr1) Py_DECREF(arr1);
+				if (arr2) Py_DECREF(arr2);
+			}
+			
+			if (!valueWasSet)
+			{
+				PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(axis, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
+				if (arr)
+				{
+					size_t n = PyArray_SIZE(arr);
+					float *data = (float *) PyArray_GETPTR1(arr, 0);
+					if (n == 16)
+					{
+						// matrix
+						SbMatrix m;
+						m.setValue(data);
+						((SoSFRotation*) field)->setValue(SbRotation(m));
+					}
+					else if (n == 4)
+					{
+						// quaternion
+						((SoSFRotation*) field)->setValue(data);
+					}
+					Py_DECREF(arr);
+				}
+			}
+		}
 		else SOFIELD_SET(Float, float, NPY_FLOAT32, field, value)
-	else SOFIELD_SET(Double, double, NPY_FLOAT64, field, value)
-	else SOFIELD_SET(Int32, int, NPY_INT32, field, value)
-	else SOFIELD_SET(UInt32, unsigned int, NPY_UINT32, field, value)
-	else SOFIELD_SET(Short, short, NPY_INT16, field, value)
-	else SOFIELD_SET(UShort, unsigned short, NPY_UINT16, field, value)
-	else SOFIELD_SET(Bool, int, NPY_INT32, field, value)
+		else SOFIELD_SET(Double, double, NPY_FLOAT64, field, value)
+		else SOFIELD_SET(Int32, int, NPY_INT32, field, value)
+		else SOFIELD_SET(UInt32, unsigned int, NPY_UINT32, field, value)
+		else SOFIELD_SET(Short, short, NPY_INT16, field, value)
+		else SOFIELD_SET(UShort, unsigned short, NPY_UINT16, field, value)
+		else SOFIELD_SET(Bool, int, NPY_INT32, field, value)
 		else SOFIELD_SET_N(Vec2f, float, NPY_FLOAT32, 2, field, value)
 		else SOFIELD_SET_N(Vec3f, float, NPY_FLOAT32, 3, field, value)
 		else SOFIELD_SET_N(Vec4f, float, NPY_FLOAT32, 4, field, value)
