@@ -48,8 +48,8 @@ def makeRandomScene(n):
         disc.transform.translation = trans * 40.0
         disc.transform.scaleFactor = (scale, 0.3 * scale, scale)
         disc.transform.rotation = ((0.0, 1.0, 0.0), trans)
-        disc.material.diffuseColor = color
-        disc.material.ambientColor = (0.7, 0.7, 0.7)
+        disc.appearance.material.diffuseColor = color
+        disc.appearance.material.ambientColor = (0.7, 0.7, 0.7)
         root += disc
 
     return root
