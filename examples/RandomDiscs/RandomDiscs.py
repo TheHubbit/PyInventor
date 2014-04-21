@@ -16,6 +16,7 @@ def makeRandomScene(n):
     root =  iv.Separator()
     root += iv.DirectionalLight()
     root += iv.OrthographicCamera("position 0 0 100 nearDistance 20 focalDistance 60 farDistance 100 height 80")
+    root += iv.Complexity("value 1")
     shape = iv.Sphere()
 
     # color table
@@ -62,7 +63,7 @@ class Window(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         
-        widget = QtInventor.QIVWidget()
+        widget = QtInventor.QIVWidget(format=QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers))
         widget.sceneManager.background = (0.3, 0.3, 0.3)
         widget.sceneManager.scene = makeRandomScene(150)
 
