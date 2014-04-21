@@ -24,8 +24,7 @@ python setup.py install
 ```
 
 ## Using the Module
-This module provides capabilities to work with Inventor scene objects from Python. For an overview on how to use it please visit https://github.com/TheHubbit/PyInventor/wiki/Using-PyInventor and check out the examples/ folder in the source code repository.
-![Example](https://raw.githubusercontent.com/TheHubbit/PyInventor/master/examples/HelloCone/ShadowScene.png)
+This module provides capabilities to work with Inventor scene objects from Python. For an overview on how to use it please visit wiki where you can find a getting started guide and examples (see https://github.com/TheHubbit/PyInventor/wiki). 
 
 ## License
 PyInventor is distributed under the BSD 3-Clause License. For full terms see the included COPYING file.
