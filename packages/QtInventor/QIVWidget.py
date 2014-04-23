@@ -56,6 +56,15 @@ class QIVWidget(QtOpenGL.QGLWidget):
         """Forwards mouse move event to scene for processing"""
         self.sceneManager.mouse_move(event.x(), event.y())
 
+    def wheelEvent(self, event):
+        """Forwards mouse wheel event to scene for processing"""
+        # use buttons 3 and 4 similar to GLUT
+        if event.delta() > 0:
+            print (event.delta())
+            self.sceneManager.mouse_button(3, 0, event.x(), event.y())
+        else:
+            self.sceneManager.mouse_button(4, 1, event.x(), event.y())
+
     def sizeHint(self):
         """Returns hint for default widget size"""
         return self.sizeHintValue
