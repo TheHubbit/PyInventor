@@ -13,8 +13,11 @@
 #pragma once
 
 #include "PySceneObject.h"
+#include <Inventor/nodes/SoCamera.h>
 
 class SoSceneManager;
+class SbSphereSheetProjector;
+class SoEvent;
 
 // for VSG Inventor use of context class is required
 class SoGLContext;
@@ -30,10 +33,16 @@ private:
 	{
 		PyObject_HEAD
 		SoSceneManager *sceneManager;
+		SbSphereSheetProjector *sphereSheetProjector;
 		PyObject *scene;
 		PyObject *renderCallback;
 		PyObject *backgroundColor;
 		SoGLContext *context;
+		enum ManipulationMode {
+			SCENE,
+			CAMERA
+		} manipMode;
+		bool isManipulating;
 	} Object;
 
 	// type implementations
@@ -49,8 +58,12 @@ private:
 	static PyObject* mouse_move(Object *self, PyObject *args);
 	static PyObject* key(Object *self, PyObject *args);
 	static PyObject* view_all(Object *self, PyObject *args);
+	static PyObject* interaction(Object *self, PyObject *args);
 
 	// internal
 	static void renderCBFunc(void *userdata, SoSceneManager *mgr);
+	static void processEvent(Object *self, SoEvent *e);
+	static SoCamera *getCamera(Object *self);
+	static void rotateCamera(SoCamera *camera, SbRotation orient);
 };
 

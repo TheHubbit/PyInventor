@@ -15,11 +15,11 @@
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoKeyboardEvent.h>
 #include <Inventor/nodes/SoNode.h>
-#include <Inventor/nodes/SoCamera.h>
 #include <Inventor/engines/SoEngine.h>
 #include <Inventor/elements/SoGLLazyElement.h> // for GL.h, whose location is distribution specific under system/ or sys/
 #include <Inventor/fields/SoSFColor.h>
 #include <Inventor/actions/SoSearchAction.h>
+#include <Inventor/projectors/SbSphereSheetProjector.h>
 #include <Inventor/SoDB.h>
 
 #ifdef TGS_VERSION
@@ -70,6 +70,7 @@ PyTypeObject *PySceneManager::getType()
 		{"mouse_move", (PyCFunction) mouse_move, METH_VARARGS, "Sends mouse move event into the scene for processing" },
 		{"key", (PyCFunction) key, METH_VARARGS, "Sends keyboard event into the scene for processing" },
 		{"view_all", (PyCFunction) view_all, METH_VARARGS, "Initializes camera so that the entire scene is visible" },
+		{"interaction", (PyCFunction) interaction, METH_VARARGS, "Sets the mouse interaction mode (0 = SCENE, 1 = CAMERA)" },
 		{NULL}  /* Sentinel */
 	};
 
@@ -125,6 +126,13 @@ void PySceneManager::tp_dealloc(Object* self)
 	if (self->sceneManager)
 	{
 		delete self->sceneManager;
+		self->sceneManager = 0;
+	}
+
+	if (self->sphereSheetProjector)
+	{
+		delete self->sphereSheetProjector;
+		self->sphereSheetProjector = 0;
 	}
 
 	SOGLCONTEXT_UNREF(self->context);
@@ -146,7 +154,10 @@ PyObject* PySceneManager::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObjec
 		self->scene = 0;
 		self->renderCallback = 0;
 		self->sceneManager = 0;
+		self->sphereSheetProjector = 0;
 		self->context = 0;
+		self->manipMode = Object::SCENE;
+		self->isManipulating = false;
 	}
 
     return (PyObject *) self;
@@ -169,6 +180,15 @@ int PySceneManager::tp_init(Object *self, PyObject *args, PyObject *kwds)
 	}
 	self->sceneManager->setRenderCallback(renderCBFunc, self);
 	self->sceneManager->activate();
+
+	self->sphereSheetProjector = new SbSphereSheetProjector();
+	if (self->sphereSheetProjector)
+	{
+		SbViewVolume viewVolume;
+		viewVolume.ortho(-1, 1, -1, 1, -1, 1);
+		self->sphereSheetProjector->setViewVolume(viewVolume);
+		self->sphereSheetProjector->setSphere(SbSphere(SbVec3f(0, 0, 0), .7f));
+	}
 
 	Py_INCREF(Py_None);
 	self->renderCallback = Py_None;
@@ -290,6 +310,83 @@ PyObject* PySceneManager::resize(Object *self, PyObject *args)
 }
 
 
+SoCamera *PySceneManager::getCamera(Object *self)
+{
+	SoCamera *camera = 0;
+	if (self && self->sceneManager)
+	{
+		SoSearchAction search;
+		search.setType(SoCamera::getClassTypeId());
+		search.setInterest(SoSearchAction::FIRST);
+		search.apply(self->sceneManager->getSceneGraph());
+
+		if (search.getPath())
+		{
+			camera = (SoCamera*) search.getPath()->getTail();
+		}
+	}
+
+	return camera;
+}
+
+
+void PySceneManager::rotateCamera(SoCamera *camera, SbRotation orient)
+{
+	if (camera)
+	{
+		SbVec3f dir;
+		camera->orientation.getValue().multVec(SbVec3f(0.f, 0.f, -1.f), dir);
+		SbVec3f center = camera->position.getValue() + dir * camera->focalDistance.getValue();
+		camera->orientation.setValue(orient * camera->orientation.getValue());
+		camera->orientation.getValue().multVec(SbVec3f(0.f, 0.f, -1.f), dir);
+		camera->position.setValue(center - dir * camera->focalDistance.getValue());
+	}
+}
+
+
+void PySceneManager::processEvent(Object *self, SoEvent *e)
+{
+	SbVec2f normalizedPosition = e->getNormalizedPosition(SbViewportRegion(self->sceneManager->getSize()));
+
+	switch (self->manipMode)
+	{
+	case Object::CAMERA:
+		{
+			if (self->sphereSheetProjector)
+			{
+				if (SO_MOUSE_PRESS_EVENT(e, BUTTON1))
+				{
+					self->sphereSheetProjector->project(normalizedPosition);
+					self->isManipulating = true;
+				}
+				else if (SO_MOUSE_RELEASE_EVENT(e, BUTTON1))
+				{
+					self->isManipulating = false;
+				}
+				else if (e->isOfType(SoLocation2Event::getClassTypeId()))
+				{
+					if (self->isManipulating)
+					{
+						SbRotation rot;
+						self->sphereSheetProjector->projectAndGetRotation(normalizedPosition, rot);
+						rot.invert();
+						rotateCamera(getCamera(self), rot);
+					}
+				}
+			}
+		} break;
+
+	default:
+		{
+			if (self->sceneManager->processEvent(e))
+			{
+				SoDB::getSensorManager()->processDelayQueue(FALSE);
+			}
+		}
+	}
+}
+
+
 PyObject* PySceneManager::mouse_button(Object *self, PyObject *args)
 {
     int button = 0, state = 0, x = 0, y = 0;
@@ -297,31 +394,36 @@ PyObject* PySceneManager::mouse_button(Object *self, PyObject *args)
 	{
 		y = self->sceneManager->getWindowSize()[1] - y;
 
-        #ifdef TGS_VERSION
-		// Coin does not have wheel event (yet)
         if (button > 2)
 		{
-			// wheel
-			SoMouseWheelEvent ev;
-			ev.setTime(SbTime::getTimeOfDay());
-			ev.setDelta(state ? -120 : 120);
-			if (self->sceneManager->processEvent(&ev))
+			// buttons 3 and 4 mean mouse wheel
+			if (self->manipMode == Object::SCENE)
 			{
-				SoDB::getSensorManager()->processDelayQueue(FALSE);
+				#ifdef TGS_VERSION
+				// Coin does not have wheel event (yet)
+				SoMouseWheelEvent ev;
+				ev.setTime(SbTime::getTimeOfDay());
+				ev.setDelta(button == 3 ? -120 : 120);
+				processEvent(self, &ev);
+		        #endif
+			}
+			else
+			{
+				SoCamera *camera = getCamera(self);
+				if (camera)
+				{
+					camera->scaleHeight(button == 3 ? 0.9f : 1.f / 0.9f);
+				}
 			}
 		}
 		else
-        #endif
 		{
 			SoMouseButtonEvent ev;
 			ev.setTime(SbTime::getTimeOfDay());
 			ev.setPosition(SbVec2s(x, y));
 			ev.setButton((SoMouseButtonEvent::Button) (button + 1));
 			ev.setState(state ? SoMouseButtonEvent::UP : SoMouseButtonEvent::DOWN);
-			if (self->sceneManager->processEvent(&ev))
-			{
-				SoDB::getSensorManager()->processDelayQueue(FALSE);
-			}
+			processEvent(self, &ev);
 		}
 	}
 
@@ -340,10 +442,7 @@ PyObject* PySceneManager::mouse_move(Object *self, PyObject *args)
 		SoLocation2Event ev;
 		ev.setTime(SbTime::getTimeOfDay());
 		ev.setPosition(SbVec2s(x, y));
-		if (self->sceneManager->processEvent(&ev))
-		{
-			SoDB::getSensorManager()->processDelayQueue(FALSE);
-		}
+		processEvent(self, &ev);
 	}
 
     Py_INCREF(Py_None);
@@ -393,6 +492,7 @@ PyObject* PySceneManager::key(Object *self, PyObject *args)
 			ev.setState(SoButtonEvent::DOWN);
 			SbBool processed = self->sceneManager->processEvent(&ev);
 			ev.setState(SoButtonEvent::UP);
+			processEvent(self, &ev);
 			processed |= self->sceneManager->processEvent(&ev);
 			if (processed)
 			{
@@ -440,3 +540,20 @@ PyObject* PySceneManager::view_all(Object *self, PyObject *args)
 }
 
 
+PyObject* PySceneManager::interaction(Object *self, PyObject *args)
+{
+    int mode = 0;
+    if (PyArg_ParseTuple(args, "i", &mode))
+	{
+		switch (mode)
+		{
+		case Object::CAMERA: self->manipMode = Object::CAMERA; break;
+		default:
+			self->manipMode = Object::SCENE;
+		}
+	}
+
+    Py_INCREF(Py_None);
+    return Py_None;
+
+}
