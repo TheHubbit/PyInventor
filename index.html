@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="PyInventor : 3D Graphics in Python with Open Inventor" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>PyInventor</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/TheHubbit/PyInventor">View on GitHub</a>
+
+          <h1 id="project_title">PyInventor</h1>
+          <h2 id="project_tagline">3D Graphics in Python with Open Inventor</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/TheHubbit/PyInventor/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/TheHubbit/PyInventor/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="pyinventor" class="anchor" href="#pyinventor"><span class="octicon octicon-link"></span></a>PyInventor</h1>
+
+<p>PyInventor provides a Python binding for the Open Inventor 3D graphics toolkit. The main drivers for this project are:</p>
+
+<ul>
+<li>Enable the creation, modification and viewing of scene graphs with Python</li>
+<li>Offer a flexible yet easy to use "Python-like" interface to Open Inventor</li>
+<li>Support of Open Inventor extensions without introducing compile time dependencies</li>
+<li>Platform independent and compatible with all major implementations (SGI, VSG and Coin)</li>
+<li>Undemanding maintenance of the library</li>
+<li>Compatible with Python 3</li>
+</ul><h2>
+<a name="building" class="anchor" href="#building"><span class="octicon octicon-link"></span></a>Building</h2>
+
+<p>The binding can be compiled and installed using included distutils setup script. To compile the module CPython 3.3, numpy and Open Inventor need to be installed on the target system. Before running the setup, some variables that point to the Inventor include and library paths as well as the library names need to be adjusted.</p>
+
+<pre><code># Open Inventor paths and libraries:
+oivincpath = ''
+oivlibpath = ''
+oivlibs = []
+</code></pre>
+
+<p>Afterwards calling the following command will first compile PyInventor and then copy the binaries into the site-packages directory.</p>
+
+<pre><code>python setup.py install
+</code></pre>
+
+<h2>
+<a name="using-the-module" class="anchor" href="#using-the-module"><span class="octicon octicon-link"></span></a>Using the Module</h2>
+
+<p>This module provides capabilities to work with Inventor scene objects from Python. For an overview on how to use it please visit wiki where you can find a getting started guide and examples (see <a href="https://github.com/TheHubbit/PyInventor/wiki">https://github.com/TheHubbit/PyInventor/wiki</a>). </p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>PyInventor is distributed under the BSD 3-Clause License. For full terms see the included COPYING file.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">PyInventor maintained by <a href="https://github.com/TheHubbit">TheHubbit</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
