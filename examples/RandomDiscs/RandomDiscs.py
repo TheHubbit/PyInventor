@@ -15,7 +15,7 @@ def makeRandomScene(n):
     """Returns a scene with randomly placed discs"""
     root =  iv.Separator()
     root += iv.DirectionalLight()
-    root += iv.OrthographicCamera("position 0 0 100 nearDistance 20 focalDistance 60 farDistance 100 height 80")
+    root += iv.OrthographicCamera("position 0 0 100 nearDistance 20 focalDistance 100 farDistance 160 height 80")
     root += iv.Complexity("value 1")
     shape = iv.Sphere()
 
@@ -66,6 +66,7 @@ class Window(QtGui.QWidget):
         widget = QtInventor.QIVWidget(format=QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers))
         widget.sceneManager.background = (0.3, 0.3, 0.3)
         widget.sceneManager.scene = makeRandomScene(150)
+        widget.sceneManager.interaction(1)
 
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.setContentsMargins(0, 0, 0, 0)
