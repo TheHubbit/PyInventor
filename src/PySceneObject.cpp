@@ -951,57 +951,38 @@ int PySceneObject::setField(SoField *field, PyObject *value)
 			if (PyArg_ParseTuple(value, "Of", &axis, &angle))
 			{
 				// axis plus angle
-				PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(axis, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
-				if (arr)
+				float axisValue[3];
+				if (getFloatsFromPyObject(axis, 3, axisValue))
 				{
-					size_t n = PyArray_SIZE(arr);
-					float *data = (float *) PyArray_GETPTR1(arr, 0);
-					if (data && (n == 3))
-					{
-						((SoSFRotation*) field)->setValue(SbVec3f(data), angle);
-						valueWasSet = true;
-					}
-					Py_DECREF(arr);
+					((SoSFRotation*) field)->setValue(SbVec3f(axisValue), angle);
+					valueWasSet = true;
 				}
 			}
 			else if (PyArg_ParseTuple(value, "OO", &fromVec, &toVec))
 			{
 				// from & to vectors
-				PyArrayObject *arr1 = (PyArrayObject*) PyArray_FROM_OTF(fromVec, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
-				PyArrayObject *arr2 = (PyArrayObject*) PyArray_FROM_OTF(toVec, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
-				if (arr1 && arr2)
+				float fromValue[3], toValue[3];
+				if (getFloatsFromPyObject(fromVec, 3, fromValue) && getFloatsFromPyObject(toVec, 3, toValue))
 				{
-					if ((PyArray_SIZE(arr1) == 3) && (PyArray_SIZE(arr2) == 3))
-					{
-						SbRotation r(SbVec3f((const float*) PyArray_GETPTR1(arr1, 0)), SbVec3f((const float*) PyArray_GETPTR1(arr2, 0)));
-						((SoSFRotation*) field)->setValue(r);
-						valueWasSet = true;
-					}
+					((SoSFRotation*) field)->setValue(SbRotation(SbVec3f(fromValue), SbVec3f(toValue)));
+					valueWasSet = true;
 				}
-				if (arr1) Py_DECREF(arr1);
-				if (arr2) Py_DECREF(arr2);
 			}
 			
 			if (!valueWasSet)
 			{
-				PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(axis, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
-				if (arr)
+				float value[16];
+				if (getFloatsFromPyObject(axis, 16, value))
 				{
-					size_t n = PyArray_SIZE(arr);
-					float *data = (float *) PyArray_GETPTR1(arr, 0);
-					if (n == 16)
-					{
-						// matrix
-						SbMatrix m;
-						m.setValue(data);
-						((SoSFRotation*) field)->setValue(SbRotation(m));
-					}
-					else if (n == 4)
-					{
-						// quaternion
-						((SoSFRotation*) field)->setValue(data);
-					}
-					Py_DECREF(arr);
+					// matrix
+					SbMatrix m;
+					m.setValue(value);
+					((SoSFRotation*) field)->setValue(SbRotation(m));
+				}
+				else if (getFloatsFromPyObject(axis, 4, value))
+				{
+					// quaternion
+					((SoSFRotation*) field)->setValue(value);
 				}
 			}
 		}
@@ -1606,3 +1587,26 @@ PyObject* PySceneObject::get(Object *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
+
+bool PySceneObject::getFloatsFromPyObject(PyObject *obj, int size, float *value_out)
+{
+	initNumpy();
+
+	if (obj)
+	{
+		if (PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(obj, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST))
+		{
+			if (PyArray_SIZE(arr) == size)
+			{
+				memcpy(value_out, PyArray_BYTES(arr), sizeof(float) * size);
+			}
+			Py_DECREF(arr);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
