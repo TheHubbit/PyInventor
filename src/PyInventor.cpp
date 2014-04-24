@@ -13,6 +13,8 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/SoLists.h>
 #include <Inventor/actions/SoSearchAction.h>
+#include <Inventor/actions/SoRayPickAction.h>
+#include <Inventor/SoPickedPoint.h>
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/SoInput.h>
@@ -234,6 +236,111 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 }
 
 
+PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+{
+	PyObject *applyTo = NULL;
+	bool pickAll = false;
+	int x = -1, y = -1, width = -1, height = -1;
+	float nearDist = -1.f, farDist = -1.f;
+	PyObject *start = 0, *dir = 0;
+
+	static char *kwlist[] = { "applyTo", "x", "y", "width", "height", "start", "direction", "near", "far", "pickAll", NULL};
+
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|iiiiOOffp", kwlist, &applyTo, &x, &y, &width, &height, &start, &dir, &nearDist, &farDist, &pickAll))
+	{
+		// if scene manager then use scene node and viewport size from there
+		PySceneManager::getScene(applyTo, applyTo, width, height);
+
+		if (PyNode_Check(applyTo))
+		{
+			PySceneObject::Object *sceneObj = (PySceneObject::Object *)	applyTo;
+			if (sceneObj->inventorObject)
+			{
+				SbViewportRegion viewport;
+				if ((width != -1) && (height != -1))
+				{
+					viewport = SbViewportRegion(SbVec2s(short(width), short(height)));
+				}
+
+				SoRayPickAction pa(viewport);
+
+				if ((x != -1) && (y != -1))
+				{
+					pa.setPoint(SbVec2s(short(x), viewport.getViewportSizePixels()[1] - short(y)));
+				}
+
+				float startVec[3], dirVec[3];
+				if (!PySceneObject::getFloatsFromPyObject(start, 3, startVec))
+				{
+					start = 0;
+				}
+				if (!PySceneObject::getFloatsFromPyObject(dir, 3, dirVec))
+				{
+					dir = 0;
+				}
+				if (start && dir)
+				{
+					pa.setRay(SbVec3f(startVec), SbVec3f(dirVec), nearDist, farDist);
+				}
+
+				pa.setPickAll(pickAll);
+				pa.apply((SoNode*) sceneObj->inventorObject);
+
+				int numPoints = 0;
+				while (pa.getPickedPoint(numPoints)) 
+					++numPoints;
+
+				PyObject *points = PyList_New(numPoints);
+				for (int i = 0; i < numPoints; ++i)
+				{
+					SoPickedPoint *p = pa.getPickedPoint(i); 
+
+					PyObject *point = PyList_New(3);
+					PyObject *coord = PyTuple_New(3);
+					PyTuple_SetItem(coord, 0, PyFloat_FromDouble(p->getPoint()[0]));
+					PyTuple_SetItem(coord, 1, PyFloat_FromDouble(p->getPoint()[1]));
+					PyTuple_SetItem(coord, 2, PyFloat_FromDouble(p->getPoint()[2]));
+					PyList_SetItem(point, 0, coord);
+
+					PyObject *norm = PyTuple_New(3);
+					PyTuple_SetItem(norm, 0, PyFloat_FromDouble(p->getNormal()[0]));
+					PyTuple_SetItem(norm, 1, PyFloat_FromDouble(p->getNormal()[1]));
+					PyTuple_SetItem(norm, 2, PyFloat_FromDouble(p->getNormal()[2]));
+					PyList_SetItem(point, 1, norm);
+
+					SoNode *node = 0;
+					if (p->getPath())
+					{
+						node = p->getPath()->getTail();
+					}
+
+					if (node)
+					{
+						PyObject *obj = PySceneObject::createWrapper(p->getPath()->getTail()->getTypeId().getName().getString(), p->getPath()->getTail());
+						if (obj)
+						{
+							PyList_SetItem(point, 2, obj);
+						}
+					}
+					else
+					{
+						Py_INCREF(Py_None);
+						PyList_SetItem(point, 2, Py_None);
+					}
+
+					PyList_SetItem(points, i, point);
+				}
+
+				return points;
+			}
+		}
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
 // External inventor module creation function.
 PyMODINIT_FUNC PyInit_inventor(void)
 {
@@ -244,6 +351,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
 		{ "read", (PyCFunction) iv_read, METH_VARARGS, "Reads a scene graph" },
 		{ "write", (PyCFunction) iv_write, METH_VARARGS, "Writes scene graph to file" },
 		{ "search", (PyCFunction) iv_search, METH_VARARGS | METH_KEYWORDS, "Searches all children for a specific scene object" },
+		{ "pick", (PyCFunction) iv_pick, METH_VARARGS | METH_KEYWORDS, "Performs ray picking action on scene" },
 		{ NULL, NULL, 0, NULL }
 	};
 

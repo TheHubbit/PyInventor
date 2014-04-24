@@ -27,6 +27,7 @@ class PySceneManager
 {
 public:
 	static PyTypeObject *getType();
+	static bool getScene(PyObject* self, PyObject *&scene_out, int &viewportWidth_out, int &viewportHeight_out);
 
 private:
 	typedef struct 

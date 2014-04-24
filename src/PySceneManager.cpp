@@ -555,5 +555,26 @@ PyObject* PySceneManager::interaction(Object *self, PyObject *args)
 
     Py_INCREF(Py_None);
     return Py_None;
-
 }
+
+
+bool PySceneManager::getScene(PyObject* self, PyObject *&scene_out, int &viewportWidth_out, int &viewportHeight_out)
+{
+	if (PyObject_TypeCheck(self, PySceneManager::getType()))
+	{
+		PySceneManager::Object *sm = (PySceneManager::Object *) self;
+
+		if (sm->scene && sm->sceneManager)
+		{
+			scene_out = sm->scene;
+			SbVec2s size = sm->sceneManager->getViewportRegion().getViewportSizePixels();
+			viewportWidth_out = size[0];
+			viewportHeight_out = size[0];
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
