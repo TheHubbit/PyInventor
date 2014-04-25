@@ -1,0 +1,72 @@
+<!DOCTYPE html><html><head>
+<meta name='description' content='PyInventor : 3D Graphics in Python with Open Inventor' />
+<link rel='stylesheet' type='text/css' media='screen' href='../stylesheets/stylesheet.css'>
+<title>PyInventor</title></head>
+<body><div id='header_wrap' class='outer'><header class='inner'>
+<a id='forkme_banner' href='https://github.com/TheHubbit/PyInventor'>View on GitHub</a>
+<h1 id='project_title'>PyInventor</h1><h2 id='project_tagline'>3D Graphics in Python with Open Inventor</h2>
+</header></div>
+<div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>
+<h1>inventor.Sensor</h1><p><em>class Sensor(object)</em></p>
+Represents node, field, timer and alarm sensors.
+
+Sensors can be used to observe changes in scene graphs or to trigger actions
+at given times.
+
+<h2> Methods defined here:</h2>
+<h3>attach(...)</h3>
+Attaches sensor to node or field.
+
+<p><em>    Args:</em></p>
+<ul>
+If only a Node instance is given then the sensor triggers on any
+change of that node or children. If both a scene object instance
+and a field name are passed, the sensor triggers on field changes
+only.
+
+</ul>
+<h3>detach(...)</h3>
+Deactivates a sensor.
+
+<h3>isscheduled(...)</h3>
+Returns scheduled state of the sensor.
+
+<p><em>    Returns:</em></p>
+<ul>
+True is sensor is currently scheduled, otherwise False.
+
+</ul>
+<h3>schedule(...)</h3>
+Schedules a timer sensor.
+
+<h3>setinterval(...)</h3>
+Sets up a timer sensor with a regular interval.
+
+<p><em>    Args:</em></p>
+<ul>
+Timer interval in milliseconds.
+
+</ul>
+<h3>settime(...)</h3>
+Sets up an alarm sensor that is trigegred at a given time from now.
+
+<p><em>    Args:</em></p>
+<ul>
+Timer from now in milliseconds when the sensor will be triggered.
+
+</ul>
+<h3>unschedule(...)</h3>
+Unschedules a timer sensor.
+
+
+<h2> Data descriptors defined here:</h2>
+<h3>callback</h3>
+Sensor callback function.
+An object can be assigned to that property which is called when a
+sensor is triggered.
+
+</div>
+<div id='footer_wrap' class='outer'><footer class='inner'>
+<p class='copyright'>PyInventor maintained by <a href='https://github.com/TheHubbit'>TheHubbit</a></p>
+<p>Published with <a href='http://pages.github.com'>GitHub Pages</a></p></footer></div>
+</body></html>

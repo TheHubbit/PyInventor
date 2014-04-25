@@ -1,0 +1,114 @@
+<!DOCTYPE html><html><head>
+<meta name='description' content='PyInventor : 3D Graphics in Python with Open Inventor' />
+<link rel='stylesheet' type='text/css' media='screen' href='../stylesheets/stylesheet.css'>
+<title>PyInventor</title></head>
+<body><div id='header_wrap' class='outer'><header class='inner'>
+<a id='forkme_banner' href='https://github.com/TheHubbit/PyInventor'>View on GitHub</a>
+<h1 id='project_title'>PyInventor</h1><h2 id='project_tagline'>3D Graphics in Python with Open Inventor</h2>
+</header></div>
+<div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>
+<h1>inventor.SceneManager</h1><p><em>class SceneManager(object)</em></p>
+Handles the display and interactions with scene graphs.
+
+Scene manager instances are used in an application to attach scene
+graphs to OpenGL windows for display and user interaction (using
+GLUT for example).
+
+<h2> Methods defined here:</h2>
+<h3>interaction(...)</h3>
+Sets the mouse interaction mode.
+
+<p><em>    Args:</em></p>
+<ul>
+Interaction mode (0 = SCENE, 1 = CAMERA). By default all events
+are forwarded to the scene graph for processing. Setting the mode
+to 1 allows rotating the camera around the focal point and zooming
+with the scroll wheel.
+
+</ul>
+<h3>key(...)</h3>
+Sends keyboard event into the scene for processing.
+
+<p><em>    Args:</em></p>
+<ul>
+Pressed keyboard character.
+
+</ul>
+<p><em>    Note:</em></p>
+<ul>
+Pass this function to glutKeyboardFunc() in GLUT applications.
+
+</ul>
+<h3>mouse_button(...)</h3>
+Sends mouse button event into the scene for processing.
+
+<p><em>    Args:</em></p>
+<ul>
+<li>button: Button index (0 = left, 1 = middle, 2 = right).
+<li>state: Button state (0 = pressed, 1 = released).
+<li>x, y: Mouse position in pixel viewport coordinates.
+
+<br /><br />
+</ul>
+<p><em>    Note:</em></p>
+<ul>
+Pass this function to glutMouseFunc() in GLUT applications.
+
+</ul>
+<h3>mouse_move(...)</h3>
+Sends mouse move event into the scene for processing.
+
+<p><em>    Args:</em></p>
+<ul>
+<li>x, y: Mouse position in pixel viewport coordinates.
+
+<br /><br />
+</ul>
+<p><em>    Note:</em></p>
+<ul>
+Pass this function to glutMotionFunc() in GLUT applications.
+
+</ul>
+<h3>render(...)</h3>
+Renders the scene into an OpenGL context.
+
+<p><em>    Args:</em></p>
+<ul>
+Optionally two boolean flags can be passed as arguments indicating if
+color and depth buffer should be cleared before rendering the scene.
+
+</ul>
+<h3>resize(...)</h3>
+Sets the window size.
+
+<p><em>    Args:</em></p>
+<ul>
+Window width and height in pixel.
+
+</ul>
+<h3>view_all(...)</h3>
+Initializes camera so that the entire scene is visible.
+
+<p><em>    Args:</em></p>
+<ul>
+Optionally a node can be passed as argument instead of using the
+scene managers graph.
+
+
+</ul>
+<h2> Data descriptors defined here:</h2>
+<h3>background</h3>
+Background color.
+<h3>redisplay</h3>
+Render callback object.
+The render callback object is invoked whenever the managed scene graph
+changes and needs to be re-rendered. When using GLUT for example, it
+should be set to glutPostRedisplay.
+<h3>scene</h3>
+Scene graph root node.
+
+</div>
+<div id='footer_wrap' class='outer'><footer class='inner'>
+<p class='copyright'>PyInventor maintained by <a href='https://github.com/TheHubbit'>TheHubbit</a></p>
+<p>Published with <a href='http://pages.github.com'>GitHub Pages</a></p></footer></div>
+</body></html>

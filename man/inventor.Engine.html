@@ -1,0 +1,123 @@
+<!DOCTYPE html><html><head>
+<meta name='description' content='PyInventor : 3D Graphics in Python with Open Inventor' />
+<link rel='stylesheet' type='text/css' media='screen' href='../stylesheets/stylesheet.css'>
+<title>PyInventor</title></head>
+<body><div id='header_wrap' class='outer'><header class='inner'>
+<a id='forkme_banner' href='https://github.com/TheHubbit/PyInventor'>View on GitHub</a>
+<h1 id='project_title'>PyInventor</h1><h2 id='project_tagline'>3D Graphics in Python with Open Inventor</h2>
+</header></div>
+<div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>
+<h1>inventor.Engine</h1><p><em>class Engine(FieldContainer)</em></p>
+Base class for scene objects of type SoEngine.
+
+<p><em>Method resolution order:</em></p><ul>
+<li>Engine
+<li>FieldContainer
+<li>object
+</ul>
+
+
+<h2> Methods inherited from FieldContainer:</h2>
+<h3>connect(...)</h3>
+Connects a field from another field or engine output.
+
+<p><em>    Args:</em></p>
+<ul>
+<li>toField: Field name of this instance that will be conntected.
+<li>fromObject: Scene objects whose output or field serve as input.
+<li>fromField: Field or engine output name that will be connected to
+toField.
+
+<br /><br />
+</ul>
+<h3>disconnect(...)</h3>
+Disconnects any incoming connection from a field.
+
+<p><em>    Args:</em></p>
+<ul>
+<li>field: Field name of field to be disconnected.
+
+<br /><br />
+</ul>
+<h3>enable_notify(...)</h3>
+Enables or disables change notifications for a scene object.
+
+<p><em>    Args:</em></p>
+<ul>
+Boolean value indicating if notifications are enabled (True)
+or not (False).
+
+</ul>
+<h3>get(...)</h3>
+Returns a field or leaf by name.
+
+<p><em>    Args:</em></p>
+<ul>
+<li>name: Field or leaf name to be returned.
+<li>createIfNeeded: For node kit leafs the second parameter controls
+if the named part should be created if is doesn't
+exist yet.
+
+<br /><br />
+</ul>
+<p><em>    Returns:</em></p>
+<ul>
+Field or node kit leaf is name is given. If no name is passed all
+field values are returned as string.
+
+</ul>
+<h3>getname(...)</h3>
+Returns the instance name of a scene object.
+
+<p><em>    Returns:</em></p>
+<ul>
+String containing scene object name.
+
+</ul>
+<h3>isconnected(...)</h3>
+Returns if a field has an incomming connection.
+
+<p><em>    Args:</em></p>
+<ul>
+<li>field: Field name whose conntection state will be checked.
+
+<br /><br />
+</ul>
+<p><em>    Returns:</em></p>
+<ul>
+True is the field field has an incoming connection from another
+field or engine output.
+
+</ul>
+<h3>set(...)</h3>
+Initializes fields or leaf values of a node kit.
+
+<p><em>    Args:</em></p>
+<ul>
+Initialization string containing field names and values.
+
+</ul>
+<h3>setname(...)</h3>
+Sets the instance name of a scene object.
+
+<p><em>    Args:</em></p>
+<ul>
+Name for scene object instance.
+
+</ul>
+<h3>sotype(...)</h3>
+Return the type name of a scene object.
+
+<p><em>    Returns:</em></p>
+<ul>
+String containing scene object type.
+
+</ul>
+<h3>touch(...)</h3>
+Marks a scene object as modified.
+
+</div>
+<div id='footer_wrap' class='outer'><footer class='inner'>
+<p class='copyright'>PyInventor maintained by <a href='https://github.com/TheHubbit'>TheHubbit</a></p>
+<p>Published with <a href='http://pages.github.com'>GitHub Pages</a></p></footer></div>
+</body></html>
