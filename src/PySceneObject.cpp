@@ -166,7 +166,8 @@ PyTypeObject *PySceneObject::getFieldContainerType()
             "Enables or disables change notifications for a scene object.\n"
             "\n"
             "Args:\n"
-            "    Boolean value indicating if notifications are enabled (True) or not (False).\n"
+            "    Boolean value indicating if notifications are enabled (True)\n"
+            "    or not (False).\n"
         },
 		{"connect", (PyCFunction) connect, METH_VARARGS,
             "Connects a field from another field or engine output.\n"
@@ -174,7 +175,8 @@ PyTypeObject *PySceneObject::getFieldContainerType()
             "Args:\n"
             "    toField: Field name of this instance that will be conntected.\n"
             "    fromObject: Scene objects whose output or field serve as input.\n"
-            "    fromField: Field or engine output name that will be connected to toField.\n"
+            "    fromField: Field or engine output name that will be connected to\n"
+            "               toField.\n"
         },
 		{"isconnected", (PyCFunction) isconnected, METH_VARARGS,
             "Returns if a field has an incomming connection.\n"
@@ -183,8 +185,8 @@ PyTypeObject *PySceneObject::getFieldContainerType()
             "    field: Field name whose conntection state will be checked.\n"
             "\n"
             "Returns:\n"
-            "    True is the field field has an incoming connection from another field or\n"
-            "    engine output.\n"
+            "    True is the field field has an incoming connection from another\n"
+            "    field or engine output.\n"
         },
 		{"disconnect", (PyCFunction) disconnect, METH_VARARGS,
             "Disconnects any incoming connection from a field.\n"
@@ -203,12 +205,13 @@ PyTypeObject *PySceneObject::getFieldContainerType()
             "\n"
             "Args:\n"
             "    name: Field or leaf name to be returned.\n"
-            "    createIfNeeded: For node kit leafs the second parameter controls if the\n"
-            "                    named part should be created if is doesn't exist yet.\n"
+            "    createIfNeeded: For node kit leafs the second parameter controls\n"
+            "                    if the named part should be created if is doesn't\n"
+            "                    exist yet.\n"
             "\n"
             "Returns:\n"
-            "    Field or node kit leaf is name is given. If no name is passed all field\n"
-            "    values are returned as string.\n"
+            "    Field or node kit leaf is name is given. If no name is passed all\n"
+            "    field values are returned as string.\n"
         },
 		{NULL}  /* Sentinel */
 	};
@@ -239,7 +242,7 @@ PyTypeObject *PySceneObject::getFieldContainerType()
 		"Base class for scene objects of type SoFieldContainer.\n"
         "\n"
         "All field values and node kit parts are dynamically added as class attributes.\n"
-        "Please refer to the Open Inventor documentation of exposed fields for each scene\n"
+        "Please refer to the Open Inventor documentation for the fields of each scene\n"
         "object type.\n"
         ,   /* tp_doc */
 		0,                         /* tp_traverse */
@@ -281,8 +284,8 @@ PyTypeObject *PySceneObject::getNodeType()
             "Args:\n"
             "    index: Position where node will be inserted.\n"
             "    node: Node to be inserted as child.\n"
-            "    other: If not None than the node will be inserted relative to this node,\n"
-            "           which must be a child of the group.\n"
+            "    other: If not None than the node will be inserted relative to this\n"
+            "           node, which must be a child of the group.\n"
         },
 		{"remove", (PyCFunction) remove, METH_VARARGS,
             "Removes a scene object from a group node.\n"
@@ -294,8 +297,8 @@ PyTypeObject *PySceneObject::getNodeType()
             "Return the unique node identifier.\n"
             "\n"
             "Returns:\n"
-            "    Unique node identifier, which changes with each change of the node or\n"
-            "    one of its children.\n"
+            "    Unique node identifier, which changes with each change of the node\n"
+            "    or one of its children.\n"
         },
 		{NULL}  /* Sentinel */
 	};

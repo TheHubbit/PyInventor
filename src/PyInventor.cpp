@@ -417,6 +417,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
         "\n"
         "This module provides capabilities to work with Inventor scene objects. It provides\n"
         "the following classes:\n"
+        "- FieldContainer: Base class for all scene objects.\n"
         "- Node: Generic scene object class for nodes.\n"
         "- Engine: Generic scene object class for engines.\n"
         "- SceneManager: Utility class for visualizing and interacting with scene graphs.\n"

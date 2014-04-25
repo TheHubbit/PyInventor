@@ -1,0 +1,110 @@
+# Qick hack to convert pydoc to something decent looking in html.
+# Author: Thomas Moeller
+# Usage: pydoc3.3 inventor | awk -f pydoc2html.awk > inventor.html
+#
+# Copyright (C) the PyInventor contributors. All rights reserved.
+# This file is part of PyInventor, distributed under the BSD 3-Clause
+# License. For full terms see the included COPYING file.
+#
+
+
+BEGIN   {
+          eatEmptyLines = 0;
+          indendet = 0;
+          dataDesc = 0;
+          isBullet = 0;
+          print "<!DOCTYPE html><html><head>";
+          print "<meta name='description' content='PyInventor : 3D Graphics in Python with Open Inventor' />";
+          print "<link rel='stylesheet' type='text/css' media='screen' href='../stylesheets/stylesheet.css'>";
+          print "<title>PyInventor</title></head>";
+          print "<body><div id='header_wrap' class='outer'><header class='inner'>";
+          print "<a id='forkme_banner' href='https://github.com/TheHubbit/PyInventor'>View on GitHub</a>";
+          print "<h1 id='project_title'>PyInventor</h1><h2 id='project_tagline'>3D Graphics in Python with Open Inventor</h2>";
+          print "</header></div>";
+
+          print "<div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>";
+        }
+        
+END     {
+          print "</div>";
+          print "<div id='footer_wrap' class='outer'><footer class='inner'>";
+          print "<p class='copyright'>PyInventor maintained by <a href='https://github.com/TheHubbit'>TheHubbit</a></p>";
+          print "<p>Published with <a href='http://pages.github.com'>GitHub Pages</a></p></footer></div>";
+          print "</body></html>";
+        }
+
+        { sub(/^[ \t]\|  /, ""); }
+/^Help on/ { getline; next; }
+/ = class / { print "<h1>" $1 "</h1><p><em>" $3 " " $4 "</em></p>"; next; }
+/^[ ]*FILE$/ { getline; next; }
+/^[ ]*NAME$/ { getline; print "<h1>" $1 "</h1><p><em>module " $0 "</em></p>"; module = $1; next; }
+/^[ ]*DESCRIPTION$/ { next; }
+/^[ ]*FUNCTIONS$/ { print "<h2>Functions:</h2>"; next; }
+/^[ ]*[A-Z]+$/ { print "<h2>" $0 "</h2>"; next; }
+/Method resolution order:/ { print "<p><em>" $0 "</em></p><ul>"; while (!match($0, /^[ \|\t]*$/)) { getline; if (length($2) > 0) print "<li>" $2; } print "</ul>"; isBullet = 0; next; }
+/Data descriptors defined here:$/ { header = "<h2> " $0 "</h2>"; eatEmptyLines = 1; dataDesc = 1; next; }
+/^[ ]*[A-Z][a-z]+ [A-Za-z ]+:$/ { header = "<h2> " $0 "</h2>"; eatEmptyLines = 1; next; }
+/__/    { getline; next; }
+/\(\.\.\.\)/ {
+          if (indendet)
+          {
+            indendet = 0;
+            print "</ul>";
+          }
+          if (length(header) > 0)
+          {
+            print header;
+            header = "";
+          }
+          print "<h3>" $1 "</h3>"; next;
+        }
+/Args:|Returns:|Note:/ {
+          if (indendet)
+          {
+            indendet = 0;
+            print "</ul>";
+          }
+          print "<p><em>" $0 "</em></p>"; print "<ul>"; indendet = 1; next;
+        }
+/^[ ]*\- [a-zA-Z0-9_, ]+: / {
+          print "<li><a href='" module "." substr($2, 0, length($2) -1) ".html'>" $2 "</a>";
+          sub(/^[ ]*\- [a-zA-Z0-9_, ]+: /, ""); 
+          print; 
+          isBullet = 1; next; 
+        }
+/^[ -]+[a-zA-Z0-9_, ]+: / { sub(/^[ -]+/, ""); print "<li>" $0; isBullet = 1; next; }
+/-----/ { print ""; dataDesc = 0; next; }
+        {
+          sub(/^[ \t]*/, "");
+          if (dataDesc)
+          {
+            if (indendet)
+            {
+              indendet = 0;
+              print "</ul>";
+            }
+            if (length(header) > 0)
+            {
+              print header;
+              header = "";
+            }
+            if (match($0, /^[ \t]*[a-zA-Z0-9_]+$/))
+            {
+              print "<h3>" $0 "</h3>";
+            }
+            else if (length($0) > 0)
+            {
+              print $0;
+            }
+          }
+          else if (!eatEmptyLines || length($0) > 0)
+          {
+            print;
+          } 
+          if (length($0) > 0) eatEmptyLines = 0; else if (isBullet)
+          {
+            isBullet = 0;
+            print "<br /><br />";
+          }
+        }
+
