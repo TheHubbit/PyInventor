@@ -23,19 +23,53 @@ PyTypeObject *PySensor::getType()
 {
 	static PyMemberDef members[] = 
 	{
-		{"callback", T_OBJECT_EX, offsetof(Object, callback), 0, "Sensor callback"},
+		{"callback", T_OBJECT_EX, offsetof(Object, callback), 0,
+            "Sensor callback function.\n"
+            "\n"
+            "An object can be assigned to that property which is called when a\n"
+            "sensor is triggered.\n"
+        },
 		{NULL}  /* Sentinel */
 	};
 
 	static PyMethodDef methods[] = 
 	{
-		{"attach", (PyCFunction) attach, METH_VARARGS, "Attaches sensor to node or field" },
-		{"detach", (PyCFunction) detach, METH_NOARGS, "Detaches sensor from node or field" },
-		{"setinterval", (PyCFunction) setinterval, METH_VARARGS, "Sets a timer interval in which the sensor callback is invoked" },
-		{"settime", (PyCFunction) settime, METH_VARARGS, "Sets a time from now at which the sensor callback is invoked" },
-		{"schedule", (PyCFunction) schedule, METH_NOARGS, "Schedules a timer sensor" },
-		{"unschedule", (PyCFunction) unschedule, METH_NOARGS, "Unschedules a timer sensor" },
-		{"isscheduled", (PyCFunction) isscheduled, METH_NOARGS, "Returns true if a sensor is scheduled" },
+		{"attach", (PyCFunction) attach, METH_VARARGS,
+            "Attaches sensor to node or field.\n"
+            "\n"
+            "Args:\n"
+            "    If only a Node instance is given then the sensor triggers on any\n"
+            "    change of that node or children. If both a scene object instance\n"
+            "    and a field name are passed, the sensor triggers on field changes\n"
+            "    only.\n"
+        },
+		{"detach", (PyCFunction) detach, METH_NOARGS,
+            "Deactivates a sensor.\n"
+        },
+		{"setinterval", (PyCFunction) setinterval, METH_VARARGS,
+            "Sets up a timer sensor with a regular interval.\n"
+            "\n"
+            "Args:\n"
+            "    Timer interval in milliseconds.\n"
+        },
+		{"settime", (PyCFunction) settime, METH_VARARGS,
+            "Sets up an alarm sensor that is trigegred at a given time from now.\n"
+            "\n"
+            "Args:\n"
+            "    Timer from now in milliseconds when the sensor will be triggered.\n"
+        },
+		{"schedule", (PyCFunction) schedule, METH_NOARGS,
+            "Schedules a timer sensor."
+        },
+		{"unschedule", (PyCFunction) unschedule, METH_NOARGS,
+            "Unschedules a timer sensor."
+        },
+		{"isscheduled", (PyCFunction) isscheduled, METH_NOARGS,
+            "Returns scheduled state of the sensor.\n"
+            "\n"
+            "Returns:\n"
+            "    True is sensor is currently scheduled, otherwise False.\n"
+        },
 		{NULL}  /* Sentinel */
 	};
 
@@ -61,8 +95,11 @@ PyTypeObject *PySensor::getType()
 		0, //(setattrofunc)tp_setattro, /* tp_setattro */
 		0,                         /* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT |
-		Py_TPFLAGS_BASETYPE,   /* tp_flags */
-		"Sensor object",           /* tp_doc */
+		Py_TPFLAGS_BASETYPE,       /* tp_flags */
+        "Represents node, field, timer and alarm sensors.\n"
+        "\n"
+        "Sensors can be used to observe changes in scene graphs or to trigger actions\n"
+        "at given times.\n",       /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
 		0,                         /* tp_richcompare */

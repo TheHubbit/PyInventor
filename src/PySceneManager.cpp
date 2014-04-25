@@ -56,21 +56,82 @@ PyTypeObject *PySceneManager::getType()
 {
 	static PyMemberDef members[] = 
 	{
-		{"scene", T_OBJECT_EX, offsetof(Object, scene), 0, "scene graph"},
-		{"redisplay", T_OBJECT_EX, offsetof(Object, renderCallback), 0, "render callback"},
-		{"background", T_OBJECT_EX, offsetof(Object, backgroundColor), 0, "background color"},
+		{"scene", T_OBJECT_EX, offsetof(Object, scene), 0,
+            "Scene graph root node.\n"
+        },
+		{"redisplay", T_OBJECT_EX, offsetof(Object, renderCallback), 0,
+            "Render callback object.\n"
+            "\n"
+            "The render callback object is invoked whenever the managed scene graph\n"
+            "changes and needs to be re-rendered. When using GLUT for example, it\n"
+            "should be set to glutPostRedisplay.\n"
+        },
+		{"background", T_OBJECT_EX, offsetof(Object, backgroundColor), 0,
+            "Background color."
+        },
 		{NULL}  /* Sentinel */
 	};
 
 	static PyMethodDef methods[] = 
 	{
-		{"render", (PyCFunction) render, METH_NOARGS, "Renders the scene into an OpenGL context" },
-		{"resize", (PyCFunction) resize, METH_VARARGS, "Sets the window size" },
-		{"mouse_button", (PyCFunction) mouse_button, METH_VARARGS, "Sends mouse button event into the scene for processing" },
-		{"mouse_move", (PyCFunction) mouse_move, METH_VARARGS, "Sends mouse move event into the scene for processing" },
-		{"key", (PyCFunction) key, METH_VARARGS, "Sends keyboard event into the scene for processing" },
-		{"view_all", (PyCFunction) view_all, METH_VARARGS, "Initializes camera so that the entire scene is visible" },
-		{"interaction", (PyCFunction) interaction, METH_VARARGS, "Sets the mouse interaction mode (0 = SCENE, 1 = CAMERA)" },
+		{"render", (PyCFunction) render, METH_VARARGS,
+            "Renders the scene into an OpenGL context.\n"
+            "\n"
+            "Args:\n"
+            "    Optionally two boolean flags can be passed as arguments indicating if\n"
+            "    color and depth buffer should be cleared before rendering the scene.\n"
+        },
+		{"resize", (PyCFunction) resize, METH_VARARGS,
+            "Sets the window size.\n"
+            "\n"
+            "Args:\n"
+            "    Window width and height in pixel.\n"
+        },
+		{"mouse_button", (PyCFunction) mouse_button, METH_VARARGS,
+            "Sends mouse button event into the scene for processing.\n"
+            "\n"
+            "Args:\n"
+            "    button: Button index (0 = left, 1 = middle, 2 = right).\n"
+            "    state: Button state (0 = pressed, 1 = released).\n"
+            "    x, y: Mouse position in pixel viewport coordinates.\n"
+            "\n"
+            "Note:\n"
+            "    Pass this function to glutMouseFunc() in GLUT applications.\n"
+        },
+		{"mouse_move", (PyCFunction) mouse_move, METH_VARARGS,
+            "Sends mouse move event into the scene for processing.\n"
+            "\n"
+            "Args:\n"
+            "    x, y: Mouse position in pixel viewport coordinates.\n"
+            "\n"
+            "Note:\n"
+            "    Pass this function to glutMotionFunc() in GLUT applications.\n"
+        },
+		{"key", (PyCFunction) key, METH_VARARGS,
+            "Sends keyboard event into the scene for processing.\n"
+            "\n"
+            "Args:\n"
+            "    Pressed keyboard character.\n"
+            "\n"
+            "Note:\n"
+            "    Pass this function to glutKeyboardFunc() in GLUT applications.\n"
+        },
+		{"view_all", (PyCFunction) view_all, METH_VARARGS,
+            "Initializes camera so that the entire scene is visible.\n"
+            "\n"
+            "Args:\n"
+            "    Optionally a node can be passed as argument instead of using the\n"
+            "    scene managers graph.\n"
+        },
+		{"interaction", (PyCFunction) interaction, METH_VARARGS,
+            "Sets the mouse interaction mode.\n"
+            "\n"
+            "Args:\n"
+            "    Interaction mode (0 = SCENE, 1 = CAMERA). By default all events\n"
+            "    are forwarded to the scene graph for processing. Setting the mode\n"
+            "    to 1 allows rotating the camera around the focal point and zooming\n"
+            "    with the scroll wheel.\n"
+        },
 		{NULL}  /* Sentinel */
 	};
 
@@ -97,7 +158,11 @@ PyTypeObject *PySceneManager::getType()
 		0,                         /* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT |
 			Py_TPFLAGS_BASETYPE,   /* tp_flags */
-		"Scene manager object",    /* tp_doc */
+		"Handles the display and interactions with scene graphs.\n"
+        "\n"
+        "Scene manager instances are used in an application to attach scene\n"
+        "graphs to OpenGL windows for display and user interaction (using\n"
+        "GLUT for example).\n",    /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
 		0,                         /* tp_richcompare */
@@ -279,15 +344,19 @@ void PySceneManager::renderCBFunc(void *userdata, SoSceneManager * /*mgr*/)
 }
 
 
-PyObject* PySceneManager::render(Object *self)
+PyObject* PySceneManager::render(Object *self, PyObject *args)
 {
-	SOGLCONTEXT_CREATE(self->context);
-	SOGLCONTEXT_BIND(self->context);
+    bool clearColor = true, clearZ = true;
+    if (PyArg_ParseTuple(args, "|pp", &clearColor, &clearZ))
+	{
+        SOGLCONTEXT_CREATE(self->context);
+        SOGLCONTEXT_BIND(self->context);
 
-	self->sceneManager->render();
-    
-    // need to flush or nothing will be shown on OS X
-    glFlush();
+        self->sceneManager->render(clearColor ? TRUE : FALSE, clearZ ? TRUE : FALSE);
+        
+        // need to flush or nothing will be shown on OS X
+        glFlush();
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
