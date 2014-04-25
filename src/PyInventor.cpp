@@ -128,21 +128,23 @@ PyObject* iv_read(PyObject * /*self*/, PyObject *args)
 }
 
 
-PyObject* iv_write(PyObject * /*self*/, PyObject *args)
+PyObject* iv_write(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	PyObject *applyTo = NULL;
-	char *iv = 0;
-	if (PyArg_ParseTuple(args, "O|s", &applyTo, &iv))
+	char *fileName = NULL;
+	static char *kwlist[] = { "applyTo", "file", NULL};
+    
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|s", kwlist, &applyTo, &fileName))
 	{
 		if (PyNode_Check(applyTo))
 		{
 			PySceneObject::Object *sceneObj = (PySceneObject::Object *)	applyTo;
 			if (sceneObj->inventorObject)
 			{
-				if (iv)
+				if (fileName)
 				{
 					SoOutput out;
-					out.openFile(iv);
+					out.openFile(fileName);
 					SoWriteAction wa(&out);
 					wa.apply((SoNode*) sceneObj->inventorObject);
 				}
@@ -346,12 +348,64 @@ PyMODINIT_FUNC PyInit_inventor(void)
 {
 	static PyMethodDef iv_methods[] = 
 	{
-		{ "process_queues", iv_process_queues, METH_VARARGS, "Processes inventor queues" },
-		{ "create_classes", iv_create_classes, METH_VARARGS, "Creates Python classes for Inventor scene objects" },
-		{ "read", (PyCFunction) iv_read, METH_VARARGS, "Reads a scene graph" },
-		{ "write", (PyCFunction) iv_write, METH_VARARGS, "Writes scene graph to file" },
-		{ "search", (PyCFunction) iv_search, METH_VARARGS | METH_KEYWORDS, "Searches all children for a specific scene object" },
-		{ "pick", (PyCFunction) iv_pick, METH_VARARGS | METH_KEYWORDS, "Performs ray picking action on scene" },
+		{ "process_queues", iv_process_queues, METH_VARARGS,
+            "Processes inventor timer and delay queues.\n"
+            "\n"
+            "Args:\n"
+            "    Boolean flag indicating if application is idle.\n"
+        },
+		{ "create_classes", iv_create_classes, METH_VARARGS,
+            "Creates Python classes for all registered Inventor scene objects."
+        },
+		{ "read", (PyCFunction) iv_read, METH_VARARGS,
+            "Reads a scene graph from string or file.\n"
+            "\n"
+            "Args:\n"
+            "    String containing scene itself or file path.\n"
+            "\n"
+            "Returns:\n"
+            "    Root node of scene or None on failure."
+        },
+		{ "write", (PyCFunction) iv_write, METH_VARARGS | METH_KEYWORDS,
+            "Writes scene graph to file or string.\n"
+            "\n"
+            "Args:\n"
+            "    applyTo: Node where action is applied.\n"
+            "    file: Path to file into which scene is written.\n"
+            "\n"
+            "Returns:\n"
+            "    Written scene as string or None is file argument was provided."
+        },
+		{ "search", (PyCFunction) iv_search, METH_VARARGS | METH_KEYWORDS,
+            "Searches for children in a scene with given name or type.\n"
+            "\n"
+            "Args:\n"
+            "    applyTo: Node where action is applied.\n"
+            "    type: Search for nodes of given type.\n"
+            "    name: Search for node of given name.\n"
+            "    searchAll: If True search includes children that are normally not traversed\n"
+            "               (hidden by switch).\n"
+            "    first: If true search returns only the first child found that matches the\n"
+            "           search criteria. By default all matching children are returned.\n"
+            "\n"
+            "Returns:\n"
+            "    List of nodes matching search criteria or first node found."
+        },
+		{ "pick", (PyCFunction) iv_pick, METH_VARARGS | METH_KEYWORDS,
+            "Performs an intersection test of a ray with objects in a scene.\n"
+            "\n"
+            "Args:\n"
+            "    applyTo: Node or SceneManager where action is applied.\n"
+            "    x, y: Viewport position of ray.\n"
+            "    width, height: Viewport size.\n"
+            "    start,direction: Start and direction vector of ray.\n"
+            "    near, far: Near and far distance for ray intersection tests.\n"
+            "    pickAll: If true returns all objects that intersect with ray.\n"
+            "             By default only first intersection is returned.\n"
+            "\n"
+            "Returns:\n"
+            "    List of points, normals and nodes for each intersected object."
+        },
 		{ NULL, NULL, 0, NULL }
 	};
 
@@ -359,7 +413,18 @@ PyMODINIT_FUNC PyInit_inventor(void)
 	{
 		PyModuleDef_HEAD_INIT,
 		"inventor",					/* name of module */
-		"Open Inventor 3D Toolkit",	/* module documentation, may be NULL */
+		"Open Inventor 3D Toolkit\n"
+        "\n"
+        "This module provides capabilities to work with Inventor scene objects. It provides\n"
+        "the following classes:\n"
+        "- Node: Generic scene object class for nodes.\n"
+        "- Engine: Generic scene object class for engines.\n"
+        "- SceneManager: Utility class for visualizing and interacting with scene graphs.\n"
+        "- Sensor: Utility class for observing node, field or time changes.\n"
+        "\n"
+        "Furthermore this module creates Python classes for all registered engines and nodes\n"
+        "dynamically, thereby enabling access to scene object fields via class attributes.\n"
+        ,	/* module documentation, may be NULL */
 		-1,							/* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
 		iv_methods
 	};
