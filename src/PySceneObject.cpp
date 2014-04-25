@@ -141,16 +141,75 @@ PyTypeObject *PySceneObject::getFieldContainerType()
 {
 	static PyMethodDef methods[] = 
 	{
-		{"setname", (PyCFunction) setname, METH_VARARGS, "Sets the name of a scene object" },
-		{"getname", (PyCFunction) getname, METH_NOARGS, "Returns the name of a scene object" },
-		{"sotype", (PyCFunction) sotype, METH_NOARGS, "Return the type of a scene object" },
-		{"touch", (PyCFunction) touch, METH_NOARGS, "Marks a scene object as modified" },
-		{"enable_notify", (PyCFunction) enable_notify, METH_VARARGS, "Enables or disables change notifications for a scene object" },
-		{"connect", (PyCFunction) connect, METH_VARARGS, "Connects a field to another field or engine output" },
-		{"isconnected", (PyCFunction) isconnected, METH_VARARGS, "Returns True is field has a connection" },
-		{"disconnect", (PyCFunction) disconnect, METH_VARARGS, "Disconnects a field" },
-		{"set", (PyCFunction) set, METH_VARARGS, "Sets a field or leaf value" },
-		{"get", (PyCFunction) get, METH_VARARGS, "Returns a field or leaf value" },
+		{"setname", (PyCFunction) setname, METH_VARARGS,
+            "Sets the instance name of a scene object.\n"
+            "\n"
+            "Args:\n"
+            "    Name for scene object instance.\n"
+        },
+		{"getname", (PyCFunction) getname, METH_NOARGS,
+            "Returns the instance name of a scene object.\n"
+            "\n"
+            "Returns:\n"
+            "    String containing scene object name.\n"
+        },
+		{"sotype", (PyCFunction) sotype, METH_NOARGS,
+            "Return the type name of a scene object.\n"
+            "\n"
+            "Returns:\n"
+            "    String containing scene object type.\n"
+        },
+		{"touch", (PyCFunction) touch, METH_NOARGS,
+            "Marks a scene object as modified."
+        },
+		{"enable_notify", (PyCFunction) enable_notify, METH_VARARGS,
+            "Enables or disables change notifications for a scene object.\n"
+            "\n"
+            "Args:\n"
+            "    Boolean value indicating if notifications are enabled (True) or not (False).\n"
+        },
+		{"connect", (PyCFunction) connect, METH_VARARGS,
+            "Connects a field from another field or engine output.\n"
+            "\n"
+            "Args:\n"
+            "    toField: Field name of this instance that will be conntected.\n"
+            "    fromObject: Scene objects whose output or field serve as input.\n"
+            "    fromField: Field or engine output name that will be connected to toField.\n"
+        },
+		{"isconnected", (PyCFunction) isconnected, METH_VARARGS,
+            "Returns if a field has an incomming connection.\n"
+            "\n"
+            "Args:\n"
+            "    field: Field name whose conntection state will be checked.\n"
+            "\n"
+            "Returns:\n"
+            "    True is the field field has an incoming connection from another field or\n"
+            "    engine output.\n"
+        },
+		{"disconnect", (PyCFunction) disconnect, METH_VARARGS,
+            "Disconnects any incoming connection from a field.\n"
+            "\n"
+            "Args:\n"
+            "    field: Field name of field to be disconnected.\n"
+        },
+		{"set", (PyCFunction) set, METH_VARARGS,
+            "Initializes fields or leaf values of a node kit.\n"
+            "\n"
+            "Args:\n"
+            "    Initialization string containing field names and values.\n"
+        },
+		{"get", (PyCFunction) get, METH_VARARGS,
+            "Returns a field or leaf by name.\n"
+            "\n"
+            "Args:\n"
+            "    name: Field or leaf name to be returned.\n"
+            "    createIfNeeded: For node kit leafs the second parameter controls if the\n"
+            "                    named part should be created if is doesn't exist yet.\n"
+            "\n"
+            "Returns:\n"
+            "    Field or node kit leaf is name is given. If no name is passed all field\n"
+            "    values are returned as string.\n"
+        },
 		{NULL}  /* Sentinel */
 	};
 
@@ -177,7 +236,12 @@ PyTypeObject *PySceneObject::getFieldContainerType()
 		0,                         /* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT |
 		Py_TPFLAGS_BASETYPE,   /* tp_flags */
-		"Inventor scene object",   /* tp_doc */
+		"Base class for scene objects of type SoFieldContainer.\n"
+        "\n"
+        "All field values and node kit parts are dynamically added as class attributes.\n"
+        "Please refer to the Open Inventor documentation of exposed fields for each scene\n"
+        "object type.\n"
+        ,   /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
 		0,                         /* tp_richcompare */
@@ -205,10 +269,34 @@ PyTypeObject *PySceneObject::getNodeType()
 {
 	static PyMethodDef methods[] = 
 	{
-		{"append", (PyCFunction) append, METH_VARARGS, "Appends a scene object to a group node" },
-		{"insert", (PyCFunction) insert, METH_VARARGS, "Inserts a scene object into a group node" },
-		{"remove", (PyCFunction) remove, METH_VARARGS, "Removes a scene object from a group node" },
-		{"node_id", (PyCFunction) node_id, METH_NOARGS, "Return the unique node identifier" },
+		{"append", (PyCFunction) append, METH_VARARGS,
+            "Appends a scene object to a group node.\n"
+            "\n"
+            "Args:\n"
+            "    Node or sequence of nodes to be added as child(ren).\n"
+        },
+		{"insert", (PyCFunction) insert, METH_VARARGS,
+            "Inserts a scene object into a group node.\n"
+            "\n"
+            "Args:\n"
+            "    index: Position where node will be inserted.\n"
+            "    node: Node to be inserted as child.\n"
+            "    other: If not None than the node will be inserted relative to this node,\n"
+            "           which must be a child of the group.\n"
+        },
+		{"remove", (PyCFunction) remove, METH_VARARGS,
+            "Removes a scene object from a group node.\n"
+            "\n"
+            "Args:\n"
+            "    Index or child node to be removed from group.\n"
+        },
+		{"node_id", (PyCFunction) node_id, METH_NOARGS,
+            "Return the unique node identifier.\n"
+            "\n"
+            "Returns:\n"
+            "    Unique node identifier, which changes with each change of the node or\n"
+            "    one of its children.\n"
+        },
 		{NULL}  /* Sentinel */
 	};
 
@@ -249,7 +337,10 @@ PyTypeObject *PySceneObject::getNodeType()
 		0,                         /* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT |
 		Py_TPFLAGS_BASETYPE,   /* tp_flags */
-		"Inventor Node object",    /* tp_doc */
+		"Base class for scene objects of type SoNode.\n"
+        "\n"
+        "Note that children of group nodes can be accessed as Python sequences,\n"
+        "including indexing, slicing, len and del operators.\n", /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
 		0,                         /* tp_richcompare */
@@ -298,7 +389,7 @@ PyTypeObject *PySceneObject::getEngineType()
 		0,                         /* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT |
 		Py_TPFLAGS_BASETYPE,   /* tp_flags */
-		"Inventor engine object",  /* tp_doc */
+		"Base class for scene objects of type SoEngine.",  /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
 		0,                         /* tp_richcompare */
@@ -352,8 +443,12 @@ PyTypeObject *PySceneObject::getWrapperType(const char *typeName, PyTypeObject *
 			0,                         /* tp_setattro */
 			0,                         /* tp_as_buffer */
 			Py_TPFLAGS_DEFAULT |
-			Py_TPFLAGS_BASETYPE,   /* tp_flags */
-			"Inventor scene object",   /* tp_doc */
+			Py_TPFLAGS_BASETYPE,       /* tp_flags */
+			"Generic Inventor scene object.\n"
+            "\n"
+            "This Python class wraps a scene object registered in the SoDB. All fields\n"
+            "can be accessed via attributes.\n"
+            ,   /* tp_doc */
 			0,                         /* tp_traverse */
 			0,                         /* tp_clear */
 			0,                         /* tp_richcompare */
@@ -1543,45 +1638,48 @@ PyObject* PySceneObject::get(Object *self, PyObject *args)
 	bool createIfNeeded = true;
 	if (self->inventorObject)
 	{
-		if (PyArg_ParseTuple(args, "s|p", &name, &createIfNeeded))
+		if (PyArg_ParseTuple(args, "|sp", &name, &createIfNeeded))
 		{
-			// name given
-			if (self->inventorObject->isOfType(SoBaseKit::getClassTypeId()))
-			{
-				// return leaf?
-				SoBaseKit *baseKit = (SoBaseKit *) self->inventorObject;
-				if (baseKit->getNodekitCatalog()->isLeaf(name))
-				{
-					SoNode *node = baseKit->getPart(name, createIfNeeded ? TRUE : FALSE);
-					if (node)
-					{
-						PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
-						if (obj)
-						{
-							return obj;
-						}
-					}
-				}
-			}
+            if (name)
+            {
+                // name given
+                if (self->inventorObject->isOfType(SoBaseKit::getClassTypeId()))
+                {
+                    // return leaf?
+                    SoBaseKit *baseKit = (SoBaseKit *) self->inventorObject;
+                    if (baseKit->getNodekitCatalog()->isLeaf(name))
+                    {
+                        SoNode *node = baseKit->getPart(name, createIfNeeded ? TRUE : FALSE);
+                        if (node)
+                        {
+                            PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
+                            if (obj)
+                            {
+                                return obj;
+                            }
+                        }
+                    }
+                }
 
-			// return field?
-			SoField *field = self->inventorObject->getField(name);
-			if (field)
-			{
-				return getField(field);
-			}
-		}
-		else
-		{
-			// no name then return all field values
-			if (self->inventorObject)
-			{
-				SbString value;
-				self->inventorObject->get(value);
-		
-				return _PyUnicode_FromASCII(value.getString(), value.getLength());
-			}
-		}
+                // return field?
+                SoField *field = self->inventorObject->getField(name);
+                if (field)
+                {
+                    return getField(field);
+                }
+            }
+            else
+            {
+                // no name then return all field values
+                if (self->inventorObject)
+                {
+                    SbString value;
+                    self->inventorObject->get(value);
+            
+                    return _PyUnicode_FromASCII(value.getString(), value.getLength());
+                }
+            }
+        }
 	}
 
 	Py_INCREF(Py_None);
