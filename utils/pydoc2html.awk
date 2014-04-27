@@ -2,6 +2,9 @@
 # Author: Thomas Moeller
 # Usage: pydoc3.3 inventor | awk -f pydoc2html.awk > inventor.html
 #
+# Example for updating a man directory:
+# for f in *.html; do pydoc3.3 ${f%%.html} | awk -f ../../PyInventor/utils/pydoc2html.awk > $f; done
+#
 # Copyright (C) the PyInventor contributors. All rights reserved.
 # This file is part of PyInventor, distributed under the BSD 3-Clause
 # License. For full terms see the included COPYING file.
@@ -35,13 +38,23 @@ END     {
 
         { sub(/^[ \t]\|  /, ""); }
 /^Help on/ { getline; next; }
-/ = class / { print "<h1>" $1 "</h1><p><em>" $3 " " $4 "</em></p>"; next; }
+/ = class / { print "<h1>" $1 "</h1><p><em>" $3 " " $4 "</em></p>"; module = substr($1, 0, index($1, ".") - 1); next; }
 /^[ ]*FILE$/ { getline; next; }
 /^[ ]*NAME$/ { getline; print "<h1>" $1 "</h1><p><em>module " $0 "</em></p>"; module = $1; next; }
 /^[ ]*DESCRIPTION$/ { next; }
 /^[ ]*FUNCTIONS$/ { print "<h2>Functions:</h2>"; next; }
 /^[ ]*[A-Z]+$/ { print "<h2>" $0 "</h2>"; next; }
-/Method resolution order:/ { print "<p><em>" $0 "</em></p><ul>"; while (!match($0, /^[ \|\t]*$/)) { getline; if (length($2) > 0) print "<li>" $2; } print "</ul>"; isBullet = 0; next; }
+/Method resolution order:/ {
+            print "<p><em>" $0 "</em></p><ul>"; 
+            while (!match($0, /^[ \|\t]*$/)) 
+            { 
+              getline;
+              #if (match($2, /^object/)) print "<li>" $2; else if (length($2) > 0) print "<li><a href='" module "." $2 ".html'>" $2 "</a>";
+              if (length($2) > 0) print "<li>" $2;
+            } 
+            print "</ul>"; 
+            isBullet = 0; next; 
+          }
 /Data descriptors defined here:$/ { header = "<h2> " $0 "</h2>"; eatEmptyLines = 1; dataDesc = 1; next; }
 /^[ ]*[A-Z][a-z]+ [A-Za-z ]+:$/ { header = "<h2> " $0 "</h2>"; eatEmptyLines = 1; next; }
 /__/    { getline; next; }
@@ -67,6 +80,7 @@ END     {
           print "<p><em>" $0 "</em></p>"; print "<ul>"; indendet = 1; next;
         }
 /^[ ]*\- [a-zA-Z0-9_, ]+: / {
+          if (!isBullet) print "<ul>";
           print "<li><a href='" module "." substr($2, 0, length($2) -1) ".html'>" $2 "</a>";
           sub(/^[ ]*\- [a-zA-Z0-9_, ]+: /, ""); 
           print; 
@@ -103,8 +117,9 @@ END     {
           } 
           if (length($0) > 0) eatEmptyLines = 0; else if (isBullet)
           {
+            print "</ul>";
             isBullet = 0;
-            print "<br /><br />";
+            #print "<br /><br />";
           }
         }
 

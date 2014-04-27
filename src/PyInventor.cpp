@@ -415,7 +415,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
 		"inventor",					/* name of module */
 		"Open Inventor 3D Toolkit\n"
         "\n"
-        "This module provides capabilities to work with Inventor scene objects. It provides\n"
+        "This module provides capabilities to work with Inventor scene objects. It implements\n"
         "the following classes:\n"
         "- FieldContainer: Base class for all scene objects.\n"
         "- Node: Generic scene object class for nodes.\n"
