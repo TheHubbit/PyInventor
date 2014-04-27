@@ -36,7 +36,7 @@ END     {
           print "</body></html>";
         }
 
-        { sub(/^[ \t]\|  /, ""); }
+        { sub(/^[ \t]\|  /, ""); gsub(/[\<\>]/, ""); }
 /^Help on/ { getline; next; }
 / = class / { print "<h1>" $1 "</h1><p><em>" $3 " " $4 "</em></p>"; module = substr($1, 0, index($1, ".") - 1); next; }
 /^[ ]*FILE$/ { getline; next; }
@@ -49,16 +49,18 @@ END     {
             while (!match($0, /^[ \|\t]*$/)) 
             { 
               getline;
-              #if (match($2, /^object/)) print "<li>" $2; else if (length($2) > 0) print "<li><a href='" module "." $2 ".html'>" $2 "</a>";
+              if (match($2, /PySide\./)) { link = $2; gsub(/\./, "/", link); print "<li><a href='http://srinikom.github.io/pyside-docs/" link "'>" $2 "</a>"; } else
+              if (match($2, /FieldContainer/)) print "<li><a href='" module "." $2 ".html'>" $2 "</a>"; else
               if (length($2) > 0) print "<li>" $2;
             } 
             print "</ul>"; 
             isBullet = 0; next; 
           }
-/Data descriptors defined here:$/ { header = "<h2> " $0 "</h2>"; eatEmptyLines = 1; dataDesc = 1; next; }
-/^[ ]*[A-Z][a-z]+ [A-Za-z ]+:$/ { header = "<h2> " $0 "</h2>"; eatEmptyLines = 1; next; }
+/Methods inherited from PySide/ { exit; }
+/^[ ]*[A-Z][a-z]+ [A-Za-z \.]+:$/ { header = "<h2> " $0 "</h2>"; eatEmptyLines = 1; if (match($0, /[ ]*Data /)) dataDesc = 1; next; }
 /__/    { getline; next; }
-/\(\.\.\.\)/ {
+/^[ \t]*[a-zA-Z0-9_]+\([A-Za-z0-9_\., ]+\)$/ {
+          sub(/^[ \t]*/, "");
           if (indendet)
           {
             indendet = 0;
@@ -69,7 +71,7 @@ END     {
             print header;
             header = "";
           }
-          print "<h3>" $1 "</h3>"; next;
+          print "<h3>" $0 "</h3>"; next;
         }
 /Args:|Returns:|Note:/ {
           if (indendet)
@@ -97,7 +99,7 @@ END     {
               indendet = 0;
               print "</ul>";
             }
-            if (length(header) > 0)
+            if ((length(header) > 0) && (length($0) > 0))
             {
               print header;
               header = "";
@@ -108,7 +110,11 @@ END     {
             }
             else if (length($0) > 0)
             {
-              print $0;
+              if (index($0, " = ") > 0)
+              {
+                print $0 "<br />";
+              }
+              else print $0;
             }
           }
           else if (!eatEmptyLines || length($0) > 0)
@@ -119,7 +125,6 @@ END     {
           {
             print "</ul>";
             isBullet = 0;
-            #print "<br /><br />";
           }
         }
 
