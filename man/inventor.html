@@ -9,8 +9,9 @@
 <div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>
 <h1>inventor</h1><p><em>module     inventor - Open Inventor 3D Toolkit</em></p>
 
-This module provides capabilities to work with Inventor scene objects. It provides
+This module provides capabilities to work with Inventor scene objects. It implements
 the following classes:
+<ul>
 <li><a href='inventor.FieldContainer.html'>FieldContainer:</a>
 Base class for all scene objects.
 <li><a href='inventor.Node.html'>Node:</a>
@@ -22,7 +23,7 @@ Utility class for visualizing and interacting with scene graphs.
 <li><a href='inventor.Sensor.html'>Sensor:</a>
 Utility class for observing node, field or time changes.
 
-<br /><br />
+</ul>
 Furthermore this module creates Python classes for all registered engines and nodes
 dynamically, thereby enabling access to scene object fields via class attributes.
 
@@ -43,7 +44,7 @@ Performs an intersection test of a ray with objects in a scene.
 <li>pickAll: If true returns all objects that intersect with ray.
 By default only first intersection is returned.
 
-<br /><br />
+</ul>
 </ul>
 <p><em>        Returns:</em></p>
 <ul>
@@ -84,7 +85,7 @@ Searches for children in a scene with given name or type.
 <li>first: If true search returns only the first child found that matches the
 search criteria. By default all matching children are returned.
 
-<br /><br />
+</ul>
 </ul>
 <p><em>        Returns:</em></p>
 <ul>
@@ -99,7 +100,7 @@ Writes scene graph to file or string.
 <li>applyTo: Node where action is applied.
 <li>file: Path to file into which scene is written.
 
-<br /><br />
+</ul>
 </ul>
 <p><em>        Returns:</em></p>
 <ul>
