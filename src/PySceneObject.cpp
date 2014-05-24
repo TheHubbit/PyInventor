@@ -1711,3 +1711,14 @@ bool PySceneObject::getFloatsFromPyObject(PyObject *obj, int size, float *value_
 	return false;
 }
 
+
+PyObject *PySceneObject::getPyObjectFromFloats(const float *value_in, int size)
+{
+	initNumpy();
+    
+    npy_intp dims[] = { size };
+    PyObject *arr = (PyObject*) PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*) value_in);
+    
+    return arr;
+}
+
