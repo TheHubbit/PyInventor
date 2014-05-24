@@ -58,12 +58,22 @@ def makeRandomScene(n):
 # makeRandomScene()
 
 
+class QMyPickWidget(QtInventor.QIVWidget):
+    """Class that turns picked objects white (for demonstrating pick action)"""
+    def mousePressEvent(self, event):
+        """Forwards mouse button press event to scene for processing"""
+        self.sceneManager.mouse_button(self.qtButtonIndex.index(event.button()), 0, event.x(), event.y())
+        points = iv.pick(self.sceneManager, event.x(), event.y(), pickAll=True)
+        for p in points:
+            p[2].appearance.material.diffuseColor = (1, 1, 1)
+
+
 class Window(QtGui.QWidget):
     """Main application window"""
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         
-        widget = QtInventor.QIVWidget(format=QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers))
+        widget = QMyPickWidget(format=QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers))
         widget.sceneManager.background = (0.3, 0.3, 0.3)
         widget.sceneManager.scene = makeRandomScene(150)
         widget.sceneManager.interaction(1)
