@@ -241,7 +241,7 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	PyObject *applyTo = NULL;
-	bool pickAll = false;
+	int pickAll = 0; // don't use bool, crashes on OS X / clang
 	int x = -1, y = -1, width = -1, height = -1;
 	float nearDist = -1.f, farDist = -1.f;
 	PyObject *start = 0, *dir = 0;
