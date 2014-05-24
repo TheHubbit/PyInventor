@@ -298,17 +298,8 @@ PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 					SoPickedPoint *p = pa.getPickedPoint(i); 
 
 					PyObject *point = PyList_New(3);
-					PyObject *coord = PyTuple_New(3);
-					PyTuple_SetItem(coord, 0, PyFloat_FromDouble(p->getPoint()[0]));
-					PyTuple_SetItem(coord, 1, PyFloat_FromDouble(p->getPoint()[1]));
-					PyTuple_SetItem(coord, 2, PyFloat_FromDouble(p->getPoint()[2]));
-					PyList_SetItem(point, 0, coord);
-
-					PyObject *norm = PyTuple_New(3);
-					PyTuple_SetItem(norm, 0, PyFloat_FromDouble(p->getNormal()[0]));
-					PyTuple_SetItem(norm, 1, PyFloat_FromDouble(p->getNormal()[1]));
-					PyTuple_SetItem(norm, 2, PyFloat_FromDouble(p->getNormal()[2]));
-					PyList_SetItem(point, 1, norm);
+                    PyList_SetItem(point, 0, PySceneObject::getPyObjectFromFloats(p->getPoint().getValue(), 3));
+                    PyList_SetItem(point, 1, PySceneObject::getPyObjectFromFloats(p->getNormal().getValue(), 3));
 
 					SoNode *node = 0;
 					if (p->getPath())
