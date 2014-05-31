@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 
-"""PyInventor Example: Render Offline
+"""PyInventor Example: Scene Texture
 
-   Demonstrates rendering of a scene to an instance of the QImage class. Furthermore this
-   example shows how to load a texture from a QImage instance. Note that it is meant for
-   demonstrating the concepts of using offline buffers and that rendering to texture can
-   be accomplished more efficiently using SoSceneTexture2 (Coin3D) or 
-   SoTexture2::renderToTextureProperty (VSG).
+   Demonstrates rendering of a scene to a texture that can be used in another scene graph.
    """
 
 import sys
@@ -63,23 +59,21 @@ def makeRandomScene(n):
 # makeRandomScene()
 
 
-def makeTexturedCubeScene(img):
+def makeTexturedCubeScene():
     """Returns a scene with randomly placed discs"""
-    # make sure we have 8 bit per channel for RGBA
-    tmp = img.convertToFormat(QtGui.QImage.Format_ARGB32).mirrored().rgbSwapped()
-
-    # to get image without alpha:
-    # tmp = img.convertToFormat(QtGui.QImage.Format_RGB888).mirrored()
-
     root =  iv.Separator()
     root += iv.DirectionalLight()
     root += iv.PerspectiveCamera("orientation 1 0 0 -0.2 heightAngle 0.4")
     root += iv.Rotor("rotation 0 1 0 0.2 speed 0.1")
-    root += iv.Texture2("model DECAL")
-    root[-1].image = (tmp.width(), tmp.height(), 3 + tmp.hasAlphaChannel(), tmp.constBits())
+    # Coin3D:
+    root += iv.SceneTexture2("model DECAL")
+    root[-1].scene = makeRandomScene(150)
+    # VSG:
+    # root += iv.Texture2("model DECAL")
+    # root[-1].renderToTextureProperty = makeRandomScene(150)
     root += iv.Material("diffuseColor 0.2 0.3 0.4 ambientColor 0.1 0.1 0.1")
     root += iv.Cube()
-
+    
     return root
 
 # makeTexturedCubeScene
@@ -92,18 +86,14 @@ class Window(QtGui.QWidget):
 
         widget = QtInventor.QIVWidget(format=QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers))
         widget.sceneManager.background = (0.3, 0.3, 0.3)
-        widget.sceneManager.scene = makeRandomScene(150)
+        widget.sceneManager.scene = makeTexturedCubeScene()
+        widget.sceneManager.view_all()
 
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.addWidget(widget)
         self.setLayout(mainLayout)
-        self.setWindowTitle(self.tr("Render Offline"))
-
-        # render scene to buffer and use as texture for cube
-        img = widget.toImage(512, 512)
-        widget.sceneManager.scene = makeTexturedCubeScene(img)
-        widget.sceneManager.view_all()
+        self.setWindowTitle(self.tr("Scene Texture"))
 
     def minimumSizeHint(self):
         return QtCore.QSize(100, 100)
