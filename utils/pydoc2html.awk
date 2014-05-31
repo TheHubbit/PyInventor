@@ -22,7 +22,7 @@ BEGIN   {
           print "<title>PyInventor</title></head>";
           print "<body><div id='header_wrap' class='outer'><header class='inner'>";
           print "<a id='forkme_banner' href='https://github.com/TheHubbit/PyInventor'>View on GitHub</a>";
-          print "<h1 id='project_title'>PyInventor</h1><h2 id='project_tagline'>3D Graphics in Python with Open Inventor</h2>";
+          print "<a href='http://thehubbit.github.io/PyInventor/'><h1 id='project_title'>PyInventor</h1></a><h2 id='project_tagline'>3D Graphics in Python with Open Inventor</h2>";
           print "</header></div>";
 
           print "<div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>";
