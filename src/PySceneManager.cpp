@@ -463,36 +463,43 @@ PyObject* PySceneManager::mouse_button(Object *self, PyObject *args)
 	{
 		y = self->sceneManager->getWindowSize()[1] - y;
 
-        if (button > 2)
+		if ((button > 2) && (self->manipMode == Object::CAMERA))
 		{
-			// buttons 3 and 4 mean mouse wheel
-			if (self->manipMode == Object::SCENE)
+			// zoom camera
+			SoCamera *camera = getCamera(self);
+			if (camera)
 			{
-				#ifdef TGS_VERSION
-				// Coin does not have wheel event (yet)
-				SoMouseWheelEvent ev;
-				ev.setTime(SbTime::getTimeOfDay());
-				ev.setDelta(button == 3 ? -120 : 120);
-				processEvent(self, &ev);
-		        #endif
-			}
-			else
-			{
-				SoCamera *camera = getCamera(self);
-				if (camera)
-				{
-					camera->scaleHeight(button == 3 ? 0.9f : 1.f / 0.9f);
-				}
+				camera->scaleHeight(button == 3 ? 0.9f : 1.f / 0.9f);
 			}
 		}
 		else
 		{
-			SoMouseButtonEvent ev;
-			ev.setTime(SbTime::getTimeOfDay());
-			ev.setPosition(SbVec2s(x, y));
-			ev.setButton((SoMouseButtonEvent::Button) (button + 1));
-			ev.setState(state ? SoMouseButtonEvent::UP : SoMouseButtonEvent::DOWN);
-			processEvent(self, &ev);
+			// send event to scene
+			SoMouseButtonEvent buttonEvent;
+			buttonEvent.setTime(SbTime::getTimeOfDay());
+			buttonEvent.setPosition(SbVec2s(x, y));
+			buttonEvent.setButton((SoMouseButtonEvent::Button) (button + 1));
+			buttonEvent.setState(state ? SoMouseButtonEvent::UP : SoMouseButtonEvent::DOWN);
+
+			if (button > 2)
+			{
+				// buttons 3 and 4 mean mouse wheel
+
+				#ifdef TGS_VERSION
+				// TGS/VSG inventor has wheel event
+				SoMouseWheelEvent wheelEvent;
+				wheelEvent.setTime(SbTime::getTimeOfDay());
+				wheelEvent.setDelta(button == 3 ? -120 : 120);
+				processEvent(self, &wheelEvent);
+				#else
+				// other inventor versions use button 4 + 5 (Coin)
+				processEvent(self, &buttonEvent);
+		        #endif
+			}
+			else
+			{
+				processEvent(self, &buttonEvent);
+			}
 		}
 	}
 
