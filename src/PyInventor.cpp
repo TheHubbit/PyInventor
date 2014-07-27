@@ -25,6 +25,8 @@
 
 #ifndef _WIN32
 #include <unistd.h>
+#else
+#include <Windows.h> // for Sleep()
 #endif
 
 
