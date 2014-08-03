@@ -95,6 +95,7 @@ private:
 	static PyObject* isconnected(Object *self, PyObject *args);
 	static PyObject* set(Object *self, PyObject *args);
 	static PyObject* get(Object *self, PyObject *args);
+    static PyObject* getfields(Object *self);
 
     // generic field container
     static PyObject* internal_pointer(Object *self);

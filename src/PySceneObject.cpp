@@ -213,6 +213,13 @@ PyTypeObject *PySceneObject::getFieldContainerType()
             "    Field or node kit leaf is name is given. If no name is passed all\n"
             "    field values are returned as string.\n"
         },
+		{"getfields", (PyCFunction) getfields, METH_NOARGS,
+            "Return the names and types of this container's fields.\n"
+            "\n"
+            "Returns:\n"
+            "    List of tuples with name and type for each field of this field\n"
+            "    container instance.\n"
+        },
 		{"internal_pointer", (PyCFunction) internal_pointer, METH_NOARGS,
             "Return the internal field container pointer.\n"
             "\n"
@@ -1709,6 +1716,37 @@ PyObject* PySceneObject::get(Object *self, PyObject *args)
         }
 	}
 
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+PyObject* PySceneObject::getfields(Object* self)
+{
+	if (self->inventorObject)
+	{
+        SoFieldList fieldList;
+        int numFields = self->inventorObject->getFields(fieldList);
+        
+        PyObject *result = PyList_New(numFields);
+		for (int i = 0; i < numFields; ++i)
+		{
+            PyObject* fieldNameType = PyTuple_New(2);
+            SbName fieldName("");
+            if (self->inventorObject->getFieldName(fieldList[i], fieldName))
+            {
+                PyTuple_SetItem(fieldNameType, 0, PyUnicode_FromString(fieldName.getString()));
+            }
+            else
+            {
+                PyTuple_SetItem(fieldNameType, 0, PyUnicode_FromString(""));
+            }
+            PyTuple_SetItem(fieldNameType, 1, PyUnicode_FromString(fieldList[i]->getTypeId().getName().getString()));
+            PyList_SetItem(result, i, fieldNameType);
+		}
+		return result;
+	}
+    
 	Py_INCREF(Py_None);
 	return Py_None;
 }
