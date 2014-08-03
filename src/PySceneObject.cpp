@@ -1295,7 +1295,8 @@ PyObject *PySceneObject::sq_item(Object *self, Py_ssize_t idx)
 	}
 	else
 	{
-		PyErr_SetString(PyExc_TypeError, "Not of type SoGroup");
+		// don't report error here and just return NULL so "for child in sceneObject:" can be
+        // called without checking for group type first
 	}
 
 	return NULL;
