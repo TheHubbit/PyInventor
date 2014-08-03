@@ -96,6 +96,9 @@ private:
 	static PyObject* set(Object *self, PyObject *args);
 	static PyObject* get(Object *self, PyObject *args);
 
+    // generic field container
+    static PyObject* internal_pointer(Object *self);
+
 	// internal methods
 	static void setInstance(Object *self, SoFieldContainer *obj);
 };

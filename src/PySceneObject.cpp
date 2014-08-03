@@ -213,6 +213,12 @@ PyTypeObject *PySceneObject::getFieldContainerType()
             "    Field or node kit leaf is name is given. If no name is passed all\n"
             "    field values are returned as string.\n"
         },
+		{"internal_pointer", (PyCFunction) internal_pointer, METH_NOARGS,
+            "Return the internal field container pointer.\n"
+            "\n"
+            "Returns:\n"
+            "    Internal pointer to field container instance.\n"
+        },
 		{NULL}  /* Sentinel */
 	};
 
@@ -559,9 +565,10 @@ PyObject* PySceneObject::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObject
 int PySceneObject::tp_init(Object *self, PyObject *args, PyObject *kwds)
 {
 	char *type = NULL, *name = NULL, *init = NULL;
-	static char *kwlist[] = { "type", "init", "name", NULL};
+	PyObject *pointer = NULL;
+	static char *kwlist[] = { "type", "init", "name", "pointer", NULL};
 
-	if (! PyArg_ParseTupleAndKeywords(args, kwds, "|sss", kwlist, &type, &init, &name))
+	if (! PyArg_ParseTupleAndKeywords(args, kwds, "|sssO", kwlist, &type, &init, &name, &pointer))
 		return -1;
 
 	if (self->inventorObject)
@@ -570,7 +577,23 @@ int PySceneObject::tp_init(Object *self, PyObject *args, PyObject *kwds)
 		self->inventorObject = 0;
 	}
 
-	if (type && type[0]) 
+    
+	if (pointer)
+	{
+		// pointer provided
+		if (PyCapsule_CheckExact(pointer))
+		{
+			void* ptr = PyCapsule_GetPointer(pointer, NULL);
+			if (ptr)
+			{
+				self->inventorObject = (SoFieldContainer *) ptr;
+				self->inventorObject->ref();
+				if (name && name[0]) self->inventorObject->setName(name);
+				if (init && init[0]) setFields(self->inventorObject, init);
+			}
+		}
+	}
+	else if (type && type[0])
 	{
 		// create new instance
 		SoType t = SoType::fromName(type);
@@ -1684,6 +1707,18 @@ PyObject* PySceneObject::get(Object *self, PyObject *args)
                 }
             }
         }
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+PyObject* PySceneObject::internal_pointer(Object* self)
+{
+	if (self->inventorObject)
+	{
+        return PyCapsule_New((void*) self->inventorObject, NULL, NULL);
 	}
 
 	Py_INCREF(Py_None);
