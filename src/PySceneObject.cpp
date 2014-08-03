@@ -1655,10 +1655,22 @@ PyObject* PySceneObject::isconnected(Object *self, PyObject *args)
 
 PyObject* PySceneObject::set(Object *self, PyObject *args)
 {
-	char *value = 0;
-	if (self->inventorObject && PyArg_ParseTuple(args, "s", &value))
+	char *name = 0, *value = 0;;
+	if (self->inventorObject && PyArg_ParseTuple(args, "s|s", &name, &value))
 	{
-		setFields(self->inventorObject, value);
+        if (!value)
+        {
+            value = name;
+            setFields(self->inventorObject, value);
+        }
+        else
+        {
+            SoField *field = self->inventorObject->getField(name);
+            if (field)
+            {
+                field->set(value);
+            }
+        }
 	}
 
 	Py_INCREF(Py_None);
@@ -1699,18 +1711,21 @@ PyObject* PySceneObject::get(Object *self, PyObject *args)
                 SoField *field = self->inventorObject->getField(name);
                 if (field)
                 {
-                    return getField(field);
+                    // return string value for field
+                    SbString value;
+                    field->get(value);
+                    return PyUnicode_FromString(value.getString());
                 }
             }
             else
             {
-                // no name then return all field values
+                // no name then return all field values that are not default
                 if (self->inventorObject)
                 {
                     SbString value;
                     self->inventorObject->get(value);
             
-                    return _PyUnicode_FromASCII(value.getString(), value.getLength());
+                    return PyUnicode_FromString(value.getString());
                 }
             }
         }
