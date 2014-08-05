@@ -159,6 +159,15 @@ PyTypeObject *PySceneObject::getFieldContainerType()
             "Returns:\n"
             "    String containing scene object type.\n"
         },
+		{"check_type", (PyCFunction) check_type, METH_VARARGS,
+            "Checks if a scene object is derived form a given type.\n"
+            "\n"
+            "Args:\n"
+            "    Name of type to check for as string.\n"
+			"\n"
+            "Returns:\n"
+            "    True if the instance is derived from the given type.\n"
+        },
 		{"touch", (PyCFunction) touch, METH_NOARGS,
             "Marks a scene object as modified."
         },
@@ -1526,6 +1535,23 @@ PyObject* PySceneObject::sotype(Object* self)
 	}
 
 	return _PyUnicode_FromASCII(n.getString(), n.getLength());
+}
+
+
+PyObject* PySceneObject::check_type(Object* self, PyObject *args)
+{
+	long derived = 0;
+
+	if (self->inventorObject)
+	{
+		char *typeName = 0;
+		if (PyArg_ParseTuple(args, "s", &typeName))
+		{
+			derived = self->inventorObject->isOfType(SoType::fromName(SbName(typeName)));
+		}
+	}
+
+	return PyBool_FromLong(derived);
 }
 
 

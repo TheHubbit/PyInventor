@@ -85,6 +85,7 @@ private:
 	static PyObject* getname(Object *self);
 	static PyObject* setname(Object *self, PyObject *args);
 	static PyObject* sotype(Object *self);
+	static PyObject* check_type(Object *self, PyObject *args);
 	static PyObject* node_id(Object *self);
 	static PyObject* touch(Object *self);
 	static PyObject* enable_notify(Object *self, PyObject *args);
