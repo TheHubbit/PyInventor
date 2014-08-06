@@ -204,22 +204,22 @@ PyTypeObject *PySceneObject::getFieldContainerType()
             "    field: Field name of field to be disconnected.\n"
         },
 		{"set", (PyCFunction) set, METH_VARARGS,
-            "Initializes fields or leaf values of a node kit.\n"
+            "Initializes fields or parts of a node kit.\n"
             "\n"
             "Args:\n"
             "    Initialization string containing field names and values.\n"
         },
 		{"get", (PyCFunction) get, METH_VARARGS,
-            "Returns a field or leaf by name.\n"
+            "Returns a field or part by name.\n"
             "\n"
             "Args:\n"
-            "    name: Field or leaf name to be returned.\n"
-            "    createIfNeeded: For node kit leafs the second parameter controls\n"
+            "    name: Field or part name to be returned.\n"
+            "    createIfNeeded: For node kit parts the second parameter controls\n"
             "                    if the named part should be created if is doesn't\n"
             "                    exist yet.\n"
             "\n"
             "Returns:\n"
-            "    Field or node kit leaf is name is given. If no name is passed all\n"
+            "    Field or node kit part if name is given. If no name is passed all\n"
             "    field values are returned as string.\n"
         },
 		{"getfields", (PyCFunction) getfields, METH_NOARGS,
@@ -941,7 +941,7 @@ int PySceneObject::setField(SoField *field, PyObject *value)
 					SbName fieldName;
 					if (baseKit->getFieldName(field, fieldName))
 					{
-						if (baseKit->getNodekitCatalog()->isLeaf(fieldName))
+						if (baseKit->getNodekitCatalog()->getPartNumber(fieldName) >= 0)
 						{
 							// update part of a node kit
 							baseKit->setPart(fieldName, (SoNode*) child->inventorObject);
@@ -1184,26 +1184,26 @@ PyObject* PySceneObject::tp_getattro(Object* self, PyObject *attrname)
 	const char *fieldName = PyUnicode_AsUTF8(attrname);
 	if (self->inventorObject && fieldName)
 	{
-		if (self->inventorObject->isOfType(SoBaseKit::getClassTypeId()))
+		SoField *field = self->inventorObject->getField(fieldName);
+		if (field)
 		{
-			SoBaseKit *baseKit = (SoBaseKit *) self->inventorObject;
-			if (baseKit->getNodekitCatalog()->isLeaf(fieldName))
+			if (self->inventorObject->isOfType(SoBaseKit::getClassTypeId()))
 			{
-				SoNode *node = baseKit->getPart(fieldName, TRUE);
-				if (node)
+				SoBaseKit *baseKit = (SoBaseKit *) self->inventorObject;
+				if (baseKit->getNodekitCatalog()->getPartNumber(fieldName) >= 0)
 				{
-					PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
-					if (obj)
+					SoNode *node = baseKit->getPart(fieldName, TRUE);
+					if (node)
 					{
-						return obj;
+						PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
+						if (obj)
+						{
+							return obj;
+						}
 					}
 				}
 			}
-		}
-		else
-		{
-			SoField *field = self->inventorObject->getField(fieldName);
-			if (field)
+			else
 			{
 				return getField(field);
 			}
@@ -1717,9 +1717,9 @@ PyObject* PySceneObject::get(Object *self, PyObject *args)
                 // name given
                 if (self->inventorObject->isOfType(SoBaseKit::getClassTypeId()))
                 {
-                    // return leaf?
+                    // return part?
                     SoBaseKit *baseKit = (SoBaseKit *) self->inventorObject;
-                    if (baseKit->getNodekitCatalog()->isLeaf(name))
+                    if (baseKit->getNodekitCatalog()->getPartNumber(name) >= 0)
                     {
                         SoNode *node = baseKit->getPart(name, createIfNeeded ? TRUE : FALSE);
                         if (node)
