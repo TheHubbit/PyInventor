@@ -76,6 +76,11 @@ private:
 	static PyObject *sq_item(Object *self, Py_ssize_t idx);
 	static int sq_ass_item(Object *self, Py_ssize_t idx, PyObject *item);
 
+	// mapping implementations
+	static Py_ssize_t mp_length(Object *self);
+	static PyObject * mp_subscript(Object *self, PyObject *item);
+	static int mp_ass_subscript(Object *self, PyObject *key, PyObject *value);
+
 	// list methods
 	static PyObject* append(Object *self, PyObject *args);
 	static PyObject* insert(Object *self, PyObject *args);

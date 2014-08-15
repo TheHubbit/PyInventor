@@ -339,6 +339,13 @@ PyTypeObject *PySceneObject::getNodeType()
 		0                          /* sq_inplace_repeat */
 	};
 
+	static PyMappingMethods mapping_methods[] = 
+	{
+		(lenfunc) mp_length,
+		(binaryfunc) mp_subscript,
+		(objobjargproc)	mp_ass_subscript
+	};
+
 	static PyTypeObject nodeType = 
 	{
 		PyVarObject_HEAD_INIT(NULL, 0)
@@ -353,7 +360,7 @@ PyTypeObject *PySceneObject::getNodeType()
 		0,                         /* tp_repr */
 		0,                         /* tp_as_number */
 		sequence_methods,          /* tp_as_sequence */
-		0,                         /* tp_as_mapping */
+		mapping_methods,           /* tp_as_mapping */
 		0,                         /* tp_hash  */
 		0,                         /* tp_call */
 		0,                         /* tp_str */
@@ -1372,10 +1379,93 @@ int PySceneObject::sq_ass_item(Object *self, Py_ssize_t idx, PyObject *item)
 	}
 	else
 	{
-		PyErr_SetString(PyExc_TypeError, "Not of type SoGroup");
+		PyErr_SetString(PyExc_TypeError, "Not of type SoNode");
 	}
 
 	return -1;
+}
+
+
+Py_ssize_t PySceneObject::mp_length(Object *self)
+{
+	if (self->inventorObject && self->inventorObject->isOfType(SoGroup::getClassTypeId()))
+	{
+		return ((SoGroup*) self->inventorObject)->getNumChildren();
+	}
+
+	return 0;
+}
+
+
+PyObject * PySceneObject::mp_subscript(Object *self, PyObject *key)
+{
+	if (PySlice_Check(key))
+	{
+		Py_ssize_t start, stop, step, slicelength;
+		if (PySlice_GetIndicesEx(key, mp_length(self), &start, &stop, &step, &slicelength) == 0)
+		{
+			PyObject *result = PyList_New(slicelength);
+
+			Py_ssize_t index = 0;
+			for (Py_ssize_t i = start; (i != stop) && (index < slicelength); i += step)
+			{
+				PyList_SetItem(result, index++, sq_item(self, i));
+			}
+
+			return result;
+		}
+	}
+
+	if (PyLong_Check(key))
+	{
+		long i = PyLong_AsLong(key);
+		Py_ssize_t index = (i < 0) ? mp_length(self) + i : i;
+
+		return sq_item(self, index);
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+int PySceneObject::mp_ass_subscript(Object *self, PyObject *key, PyObject *value)
+{
+	if (PySlice_Check(key))
+	{
+		Py_ssize_t start, stop, step, slicelength;
+		if (PySlice_GetIndicesEx(key, mp_length(self), &start, &stop, &step, &slicelength) == 0)
+		{
+			if (!PySequence_Check(value))
+			{
+				PyErr_SetString(PyExc_TypeError, "must assign iterable to extended slice");
+				return -1;
+			}
+
+			if (PySequence_Size(value) != slicelength)
+			{
+				char errMsg[100];
+				sprintf(errMsg, "attempt to assign sequence of size %d to extended slice of size %d", (int) PySequence_Size(value), (int) slicelength);
+				PyErr_SetString(PyExc_ValueError, errMsg);
+				return -1;
+			}
+
+			Py_ssize_t index = 0;
+			for (Py_ssize_t i = start; (i != stop) && (index < slicelength); i += step)
+			{
+				sq_ass_item(self, i, PySequence_GetItem(value, index++));
+			}
+		}
+	}
+	else if (PyLong_Check(key))
+	{
+		long i = PyLong_AsLong(key);
+		Py_ssize_t index = (i < 0) ? mp_length(self) + i : i;
+
+		return sq_ass_item(self, index, value);
+	}
+
+	return 0;
 }
 
 
