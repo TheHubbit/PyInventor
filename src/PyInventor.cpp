@@ -92,6 +92,46 @@ static PyObject* iv_create_classes(PyObject *self, PyObject * /*args*/)
 }
 
 
+PyObject* iv_classes(PyObject * /*self*/, PyObject *args)
+{
+	char *baseTypeName = 0;
+	if (PyArg_ParseTuple(args, "|s", &baseTypeName))
+	{
+		SoType baseType = SoType::fromName(baseTypeName ? baseTypeName : "FieldContainer");
+
+		SoTypeList lst;
+		SoType::getAllDerivedFrom(baseType, lst);
+
+		// first count total number of objects
+		int count = 0;
+		for (int i = 0; i < lst.getLength(); ++i)
+		{
+			if (lst[i].canCreateInstance())
+			{
+				count++;
+			}
+		}
+
+		// now add names to list and return
+		PyObject *names = PyList_New(count);
+		count = 0;
+
+		for (int i = 0; i < lst.getLength(); ++i)
+		{
+			if (lst[i].canCreateInstance())
+			{
+				PyList_SetItem(names, count++, PyUnicode_FromString(lst[i].getName().getString()));
+			}
+		}
+
+		return names;
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
 PyObject* iv_read(PyObject * /*self*/, PyObject *args)
 {
 	char *iv = 0;
@@ -349,6 +389,15 @@ PyMODINIT_FUNC PyInit_inventor(void)
         },
 		{ "create_classes", iv_create_classes, METH_VARARGS,
             "Creates Python classes for all registered Inventor scene objects."
+        },
+		{ "classes", iv_classes, METH_VARARGS,
+            "Returns all class names registered as Inventor scene objects."
+            "\n"
+            "Args:\n"
+			"    Type name of base class to filter for (optional).\n"
+            "\n"
+            "Returns:\n"
+            "    Type names of all classes matching the given filter."
         },
 		{ "read", (PyCFunction) iv_read, METH_VARARGS,
             "Reads a scene graph from string or file.\n"
