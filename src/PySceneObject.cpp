@@ -1379,7 +1379,7 @@ int PySceneObject::sq_ass_item(Object *self, Py_ssize_t idx, PyObject *item)
 	}
 	else
 	{
-		PyErr_SetString(PyExc_TypeError, "Not of type SoNode");
+		PyErr_SetString(PyExc_TypeError, "Not of type SoGroup");
 	}
 
 	return -1;
