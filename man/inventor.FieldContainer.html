@@ -15,6 +15,19 @@ Please refer to the Open Inventor documentation for the fields of each scene
 object type.
 
 <h2> Methods defined here:</h2>
+<h3>check_type(...)</h3>
+Checks if a scene object is derived form a given type.
+
+<p><em>    Args:</em></p>
+<ul>
+Name of type to check for as string.
+
+</ul>
+<p><em>    Returns:</em></p>
+<ul>
+True if the instance is derived from the given type.
+
+</ul>
 <h3>connect(...)</h3>
 Connects a field from another field or engine output.
 
@@ -46,12 +59,12 @@ or not (False).
 
 </ul>
 <h3>get(...)</h3>
-Returns a field or leaf by name.
+Returns a field or part by name.
 
 <p><em>    Args:</em></p>
 <ul>
-<li>name: Field or leaf name to be returned.
-<li>createIfNeeded: For node kit leafs the second parameter controls
+<li>name: Field or part name to be returned.
+<li>createIfNeeded: For node kit parts the second parameter controls
 if the named part should be created if is doesn't
 exist yet.
 
@@ -59,8 +72,17 @@ exist yet.
 </ul>
 <p><em>    Returns:</em></p>
 <ul>
-Field or node kit leaf is name is given. If no name is passed all
+Field or node kit part if name is given. If no name is passed all
 field values are returned as string.
+
+</ul>
+<h3>getfields(...)</h3>
+Return the names and types of this container's fields.
+
+<p><em>    Returns:</em></p>
+<ul>
+List of tuples with name and type for each field of this field
+container instance.
 
 </ul>
 <h3>getname(...)</h3>
@@ -69,6 +91,14 @@ Returns the instance name of a scene object.
 <p><em>    Returns:</em></p>
 <ul>
 String containing scene object name.
+
+</ul>
+<h3>internal_pointer(...)</h3>
+Return the internal field container pointer.
+
+<p><em>    Returns:</em></p>
+<ul>
+Internal pointer to field container instance.
 
 </ul>
 <h3>isconnected(...)</h3>
@@ -87,7 +117,7 @@ field or engine output.
 
 </ul>
 <h3>set(...)</h3>
-Initializes fields or leaf values of a node kit.
+Initializes fields or parts of a node kit.
 
 <p><em>    Args:</em></p>
 <ul>
