@@ -1703,7 +1703,7 @@ PyObject* PySceneObject::touch(Object* self)
 PyObject* PySceneObject::enable_notify(Object* self, PyObject *args)
 {
 	long enabled = 0;
-	bool enable = 0;
+	int enable = 0;
 	if (self->inventorObject)
 	{
 		if (PyArg_ParseTuple(args, "p", &enable))
@@ -1827,7 +1827,7 @@ PyObject* PySceneObject::set(Object *self, PyObject *args)
 PyObject* PySceneObject::get(Object *self, PyObject *args)
 {
 	char *name = 0;
-	bool createIfNeeded = true;
+	int createIfNeeded = true;
 	if (self->inventorObject)
 	{
 		if (PyArg_ParseTuple(args, "|sp", &name, &createIfNeeded))

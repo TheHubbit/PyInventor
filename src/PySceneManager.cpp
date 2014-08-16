@@ -346,7 +346,7 @@ void PySceneManager::renderCBFunc(void *userdata, SoSceneManager * /*mgr*/)
 
 PyObject* PySceneManager::render(Object *self, PyObject *args)
 {
-    bool clearColor = true, clearZ = true;
+    int clearColor = true, clearZ = true;
     if (PyArg_ParseTuple(args, "|pp", &clearColor, &clearZ))
 	{
         SOGLCONTEXT_CREATE(self->context);
