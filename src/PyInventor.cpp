@@ -34,7 +34,7 @@ static PyObject* iv_process_queues(PyObject * /*self*/, PyObject * args)
 {
 	PySceneObject::initSoDB();
 
-	bool idle = true;
+	int idle = true;
 	if (PyArg_ParseTuple(args, "|p", &idle))
 	{
 		SoDB::getSensorManager()->processTimerQueue();
@@ -223,10 +223,10 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	PyObject *applyTo = NULL;
 	char *type = NULL, *name = NULL;
-	bool searchAll = false, first = false;
-	static char *kwlist[] = { "applyTo", "type", "name", "searchAll", "first", NULL};
+	int searchAll = false, first = false, parent = false;
+	static char *kwlist[] = { "applyTo", "type", "name", "searchAll", "first", "parent", NULL};
 
-	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|sspp", kwlist, &applyTo, &type, &name, &searchAll, &first))
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|ssppp", kwlist, &applyTo, &type, &name, &searchAll, &first, &parent))
 	{
 		if (PyNode_Check(applyTo))
 		{
@@ -244,10 +244,19 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 				{
 					if (sa.getPath())
 					{
-						PyObject *found = PySceneObject::createWrapper(sa.getPath()->getTail()->getTypeId().getName().getString(), sa.getPath()->getTail());
-						if (found)
+						SoNode *node = sa.getPath()->getTail();
+						if (parent)
 						{
-							return found;
+							node = sa.getPath()->getNodeFromTail(1);
+						}
+
+						if (node)
+						{
+							PyObject *found = PySceneObject::createWrapper(node->getTypeId().getName().getString(), node);
+							if (found)
+							{
+								return found;
+							}
 						}
 					}
 				}
@@ -257,10 +266,19 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 					PyObject *found = PyList_New(pl.getLength());
 					for (int i = 0; i < pl.getLength(); ++i)
 					{
-						PyObject *obj = PySceneObject::createWrapper(pl[i]->getTail()->getTypeId().getName().getString(), pl[i]->getTail());
-						if (obj)
+						SoNode *node = pl[i]->getTail();
+						if (parent)
 						{
-							PyList_SetItem(found, i, obj);
+							node = pl[i]->getNodeFromTail(1);
+						}
+
+						if (node)
+						{
+							PyObject *obj = PySceneObject::createWrapper(node->getTypeId().getName().getString(), node);
+							if (obj)
+							{
+								PyList_SetItem(found, i, obj);
+							}
 						}
 					}
 					return found;
@@ -429,6 +447,8 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "               (hidden by switch).\n"
             "    first: If true search returns only the first child found that matches the\n"
             "           search criteria. By default all matching children are returned.\n"
+            "    parent: If true search returns the parent of the found node. This is\n"
+            "            useful for example when replacing nodes in a scene.\n"
             "\n"
             "Returns:\n"
             "    List of nodes matching search criteria or first node found."
