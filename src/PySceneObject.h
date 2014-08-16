@@ -66,6 +66,7 @@ private:
 	static int tp_init2(Object *self, PyObject *args, PyObject *kwds);
 	static PyObject* tp_getattro(Object *self, PyObject *attrname);
 	static int tp_setattro(Object *self, PyObject *attrname, PyObject *value);
+	static PyObject* tp_repr(Object *self);
 	static void initDictionary(Object *self);
 
 	// sequence implementation

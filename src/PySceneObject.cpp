@@ -249,7 +249,7 @@ PyTypeObject *PySceneObject::getFieldContainerType()
 		0,                         /* tp_getattr */
 		0,                         /* tp_setattr */
 		0,                         /* tp_reserved */
-		0,                         /* tp_repr */
+		(reprfunc) tp_repr,        /* tp_repr */
 		0,                         /* tp_as_number */
 		0,                         /* tp_as_sequence */
 		0,                         /* tp_as_mapping */
@@ -357,7 +357,7 @@ PyTypeObject *PySceneObject::getNodeType()
 		0,                         /* tp_getattr */
 		0,                         /* tp_setattr */
 		0,                         /* tp_reserved */
-		0,                         /* tp_repr */
+		(reprfunc) tp_repr,        /* tp_repr */
 		0,                         /* tp_as_number */
 		sequence_methods,          /* tp_as_sequence */
 		mapping_methods,           /* tp_as_mapping */
@@ -409,7 +409,7 @@ PyTypeObject *PySceneObject::getEngineType()
 		0,                         /* tp_getattr */
 		0,                         /* tp_setattr */
 		0,                         /* tp_reserved */
-		0,                         /* tp_repr */
+		(reprfunc) tp_repr,        /* tp_repr */
 		0,                         /* tp_as_number */
 		0,                         /* tp_as_sequence */
 		0,                         /* tp_as_mapping */
@@ -464,7 +464,7 @@ PyTypeObject *PySceneObject::getWrapperType(const char *typeName, PyTypeObject *
 			0,                         /* tp_getattr */
 			0,                         /* tp_setattr */
 			0,                         /* tp_reserved */
-			0,                         /* tp_repr */
+			(reprfunc) tp_repr,        /* tp_repr */
 			0,                         /* tp_as_number */
 			0,                         /* tp_as_sequence */
 			0,                         /* tp_as_mapping */
@@ -652,6 +652,11 @@ int PySceneObject::tp_init(Object *self, PyObject *args, PyObject *kwds)
 		{
 			self->inventorObject = SoEngine::getByName(name);
 		}
+		else
+		{
+			PyErr_SetString(PyExc_TypeError, "Name lookup requires Node or Engine instance");
+			return -1;
+		}
 
 		if (self->inventorObject)
 		{
@@ -659,7 +664,8 @@ int PySceneObject::tp_init(Object *self, PyObject *args, PyObject *kwds)
 		}
 		else
 		{
-			PyErr_SetString(PyExc_ValueError, "No node or engine with given name exists");
+			PyErr_SetString(PyExc_ValueError, "No scene object with given name exists");
+			return -1;
 		}
 	}
 
@@ -776,6 +782,30 @@ int PySceneObject::tp_init2(Object *self, PyObject *args, PyObject *kwds)
 }
 
 
+PyObject* PySceneObject::tp_repr(Object *self)
+{
+	if (self->inventorObject)
+	{
+		SbString type = self->inventorObject->getTypeId().getName().getString();
+		SbString name = self->inventorObject->getName().getString();
+		SbString repr;
+
+		if (name.getLength())
+		{
+			repr.sprintf("<%s \"%s\" at %p>", type.getString(), name.getString(), self->inventorObject);
+		}
+		else
+		{
+			repr.sprintf("<%s at %p>", type.getString(), self->inventorObject);
+		}
+
+		return PyUnicode_FromString(repr.getString());
+	}
+
+	return PyUnicode_FromString("Uninitialized");
+}
+
+
 void PySceneObject::setInstance(Object *self, SoFieldContainer *obj)
 {
 	if (self->inventorObject)
@@ -871,7 +901,7 @@ PyObject *PySceneObject::getField(SoField *field)
 		#ifdef TGS_VERSION
 		result = PyUnicode_FromUnicode(s.toWideChar(), s.getLength());
 		#else
-		result = PyUnicode_FromStringAndSize(s.getString(), s.getLength());
+		result = PyUnicode_FromString(s.getString());
 		#endif
 		return result;
 	}
@@ -885,7 +915,7 @@ PyObject *PySceneObject::getField(SoField *field)
 				#ifdef TGS_VERSION
 				PyUnicode_FromUnicode(s.toWideChar(), s.getLength())
 				#else
-				PyUnicode_FromStringAndSize(s.getString(), s.getLength())
+				PyUnicode_FromString(s.getString())
 				#endif
 				);
 		}
@@ -915,7 +945,7 @@ PyObject *PySceneObject::getField(SoField *field)
 		{
 			SbString s;
 			((SoMField*) field)->get1(i, s);
-			PyList_SetItem(result, i, PyUnicode_FromStringAndSize(s.getString(), s.getLength()));
+			PyList_SetItem(result, i, PyUnicode_FromString(s.getString()));
 		}
 		return result;
 	}
@@ -923,7 +953,7 @@ PyObject *PySceneObject::getField(SoField *field)
 	// generic string based fallback
 	SbString s;
 	field->get(s);
-	result = PyUnicode_FromStringAndSize(s.getString(), s.getLength());
+	result = PyUnicode_FromString(s.getString());
 
 	return result;
 }
@@ -1611,7 +1641,7 @@ PyObject* PySceneObject::getname(Object* self)
 		n = self->inventorObject->getName();
 	}
 
-	return _PyUnicode_FromASCII(n.getString(), n.getLength());
+	return PyUnicode_FromString(n.getString());
 }
 
 
@@ -1624,7 +1654,7 @@ PyObject* PySceneObject::sotype(Object* self)
 		n = self->inventorObject->getTypeId().getName();
 	}
 
-	return _PyUnicode_FromASCII(n.getString(), n.getLength());
+	return PyUnicode_FromString(n.getString());
 }
 
 
