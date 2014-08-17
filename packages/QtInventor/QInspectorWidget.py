@@ -281,7 +281,6 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
             if not parent.internalPointer().isGroup():
                 row = parent.row()
                 parent = parent.parent()
-                print (row, parent)
         
         beginRow = row;
         if (row is -1):
@@ -305,7 +304,6 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
             for text in newItems:
                 idx = self.index(beginRow, 0, parent)
                 self.setData(idx, text)
-                print("set data: ", text)
                 beginRow += 1
         
         return True
@@ -385,14 +383,12 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         parentNode = node.parent()
 
         if parentNode is None:
-            print("createIndex parentNode is None!!! ", node.type())
-            return QtCore.QModelIndex() 
+            return QtCore.QModelIndex()
         
         if parentNode == self._rootNode:
             return QtCore.QModelIndex()
 
         if parentNode.row() is None:
-            print("!!! parent issue ", index)
             return QtCore.QModelIndex()
         
         return self.createIndex(parentNode.row(), 0, parentNode)
@@ -558,7 +554,7 @@ class QSceneObjectTypeDelegate(QtGui.QStyledItemDelegate):
     def __init__(self, parent=None):
         """Initializes delegate"""
         super(QSceneObjectTypeDelegate, self).__init__(parent)
-        self.parent= parent
+        self.parent = parent
         self._wasUninitialized = False
 
 
@@ -600,6 +596,8 @@ class QSceneObjectTypeDelegate(QtGui.QStyledItemDelegate):
             return False
         
         index.model().setData(index, editor.currentText(), QtCore.Qt.EditRole)
+        self.parent.setCurrentIndex(index)
+        
         return True
 
 
@@ -619,6 +617,10 @@ class QSceneObjectTypeDelegate(QtGui.QStyledItemDelegate):
                     self.commitData.emit(editor)
         return super(QSceneObjectTypeDelegate, self).eventFilter(editor,event)    
 
+
+    def sizeHint(self, option, index):
+        """Returns default size for items, enlarged from default size for combo box"""
+        return QtCore.QSize(200, 19)
 
 
 class QInspectorWidget(QtGui.QSplitter):
@@ -710,7 +712,12 @@ class QInspectorWidget(QtGui.QSplitter):
         self._proxyModel.setFilterFixedString(filter)
         self._graphView.expandAll()
         self._graphView.scrollTo(self._graphView.currentIndex())
-    
+
+
+    def setCurrentIndex(self, index):
+        """Sets current selection in scene graph tree view"""
+        self._graphView.setCurrentIndex(index)
+
 
     def setSelection(self, current, old):
         """Updates field editor after selection in tree view changed"""
@@ -721,7 +728,7 @@ class QInspectorWidget(QtGui.QSplitter):
 
     def keyPressEvent(self, event):
         """Handles default keyboard events for insert and delete"""
-        if event.key() == QtCore.Qt.Key_Delete:
+        if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             self.deleteObject()
 
         if event.key() in [QtCore.Qt.Key_Insert]:
@@ -729,6 +736,13 @@ class QInspectorWidget(QtGui.QSplitter):
 
         if event.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]:
             self.appendObject()
+        
+        if event.modifiers():
+            # allow insert with cursor keys while modifier key is pressed
+            if event.key() == QtCore.Qt.Key_Up:
+                self.insertObject()
+            if event.key() == QtCore.Qt.Key_Down:
+                self.appendObject()
                     
         super(QInspectorWidget, self).keyPressEvent(event)
 
@@ -764,9 +778,9 @@ class QInspectorWidget(QtGui.QSplitter):
             dataIndex = viewIndex.data(QtCore.Qt.UserRole)
             if self._sceneModel.insertRow(dataIndex.row() + 1, dataIndex.parent()):
                 viewIndex = viewIndex.sibling(viewIndex.row() + 1, viewIndex.column())
-                self._graphView.setCurrentIndex(viewIndex)
                 self._fieldView.setModel(None)
                 self._graphView.edit(viewIndex.sibling(viewIndex.row(), 0))
+                self._graphView.clearSelection()
 
 
     def insertObject(self):
@@ -775,9 +789,9 @@ class QInspectorWidget(QtGui.QSplitter):
         if viewIndex.isValid():
             dataIndex = viewIndex.data(QtCore.Qt.UserRole)
             if self._sceneModel.insertRow(dataIndex.row(), dataIndex.parent()):
-                self._graphView.setCurrentIndex(viewIndex)
                 self._fieldView.setModel(None)
                 dataIndex = viewIndex.data(QtCore.Qt.UserRole)
                 self._graphView.edit(viewIndex.sibling(viewIndex.row(), 0))
+                self._graphView.clearSelection()
 
 
