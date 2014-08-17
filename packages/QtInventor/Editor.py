@@ -87,14 +87,14 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
 
     def saveAs(self):
         """Save current scene to new file"""
-        self._filePath = QtGui.QFileDialog.getSaveFileName(self, 'Save', self._filePath, filter="Open Inventor (*.iv);;Virtual Reality Modeling Language (*.vrml)")[0]
+        self._filePath = QtGui.QFileDialog.getSaveFileName(self, 'Save', self._filePath, filter="Open Inventor (*.iv);;Virtual Reality Modeling Language (*.wrl)")[0]
         if len(self._filePath):
             print(self._filePath)
             iv.write(self._root, self._filePath)
 
     def open(self):
         """Open scene from file"""
-        filePath = QtGui.QFileDialog.getOpenFileName(self, 'Open', self._filePath, filter="Open Inventor (*.iv);;Virtual Reality Modeling Language (*.vrml)")[0]
+        filePath = QtGui.QFileDialog.getOpenFileName(self, 'Open', self._filePath, filter="Open Inventor (*.iv);;Virtual Reality Modeling Language (*.wrl)")[0]
         if len(filePath):
             self.load(filePath)
 
@@ -200,7 +200,7 @@ class QSceneGraphEditor(QtGui.QApplication):
         viewMenu.addAction(viewManipAction)
 
 
-        if (len(self.arguments()) > 1) and (".iv" in self.arguments()[-1]):
+        if (len(self.arguments()) > 1) and ("." in self.arguments()[-1]):
             # load scene from file if argument is given
             self._editor.load(self.arguments()[-1])
         else:
