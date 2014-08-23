@@ -6,8 +6,15 @@
 # License. For full terms see the included COPYING file.
 #
 
+"""
+PyInventor main entry point.
+
+When invoking the module as an executable (python -m PyInventor)
+the scene graph editor application will be launched.
+"""
+
 import sys
-from PyInventor.QtInventor.Editor import QSceneGraphEditor
+from PyInventor.QtInventor import QSceneGraphEditor
 
 if __name__ == '__main__':
     app = QSceneGraphEditor(sys.argv)

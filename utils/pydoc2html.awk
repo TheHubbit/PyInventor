@@ -36,7 +36,7 @@ END     {
           print "</body></html>";
         }
 
-        { sub(/^[ \t]\|  /, ""); gsub(/[\<\>]/, ""); }
+        { sub(/^[ \t\|]+/, ""); gsub(/[\<\>]/, ""); }
 /^Help on/ { getline; next; }
 / = class / { print "<h1>" $1 "</h1><p><em>" $3 " " $4 "</em></p>"; module = substr($1, 0, index($1, ".") - 1); next; }
 /^[ ]*FILE$/ { getline; next; }
@@ -44,6 +44,19 @@ END     {
 /^[ ]*DESCRIPTION$/ { next; }
 /^[ ]*FUNCTIONS$/ { print "<h2>Functions:</h2>"; next; }
 /^[ ]*[A-Z]+$/ { print "<h2>" $0 "</h2>"; next; }
+/PACKAGE CONTENTS/ {
+            print "<h2>Package contents:</h2><ul>";
+            while (!match($0, /^[ \|\t\n]*$/))
+            { 
+              getline;
+              if ((length($0) > 2) && !match($0, "__main__"))
+              {
+                print "<li><a href='" module "." $1 ".html'>" $0 "</a>";
+              }
+            }
+            print "</ul>"; 
+            isBullet = 0; next; 
+          }
 /Method resolution order:/ {
             print "<p><em>" $0 "</em></p><ul>"; 
             while (!match($0, /^[ \|\t]*$/)) 
@@ -83,7 +96,9 @@ END     {
         }
 /^[ ]*\- [a-zA-Z0-9_, ]+: / {
           if (!isBullet) print "<ul>";
-          print "<li><a href='" module "." substr($2, 0, length($2) -1) ".html'>" $2 "</a>";
+          target = substr($2, 0, length($2) -1);
+          if (target == "inventor") print "<li><a href='" target ".html'>" $2 "</a>";
+          else print "<li><a href='" module "." target ".html'>" $2 "</a>";
           sub(/^[ ]*\- [a-zA-Z0-9_, ]+: /, ""); 
           print; 
           isBullet = 1; next; 

@@ -11,7 +11,11 @@ from OpenGL import GL
 import inventor
 
 class QIVWidget(QtOpenGL.QGLWidget):
-    """OpenGL widget for displaying inventor scene graphs"""
+    """
+    OpenGL widget for displaying and interacting with inventor scene graphs.
+    This class derives from QtOpenGL.QGLWidget and creates a scene manager
+    instance to which it forwards mouse, keyboard and display events.
+    """
     
     # used to map Qt buttons to simple index
     qtButtonIndex = (QtCore.Qt.LeftButton, QtCore.Qt.MiddleButton, QtCore.Qt.RightButton)
