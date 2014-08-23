@@ -60,7 +60,6 @@ class QIVWidget(QtOpenGL.QGLWidget):
         """Forwards mouse wheel event to scene for processing"""
         # use buttons 3 and 4 similar to GLUT
         if event.delta() > 0:
-            print (event.delta())
             self.sceneManager.mouse_button(3, 0, event.x(), event.y())
         else:
             self.sceneManager.mouse_button(4, 1, event.x(), event.y())
