@@ -18,12 +18,12 @@ object type.
 <h3>check_type(...)</h3>
 Checks if a scene object is derived form a given type.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Name of type to check for as string.
 
 </ul>
-<p><em>    Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 True if the instance is derived from the given type.
 
@@ -31,28 +31,26 @@ True if the instance is derived from the given type.
 <h3>connect(...)</h3>
 Connects a field from another field or engine output.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
-<li>toField: Field name of this instance that will be conntected.
-<li>fromObject: Scene objects whose output or field serve as input.
-<li>fromField: Field or engine output name that will be connected to
+toField: Field name of this instance that will be conntected.
+fromObject: Scene objects whose output or field serve as input.
+fromField: Field or engine output name that will be connected to
 toField.
 
-</ul>
 </ul>
 <h3>disconnect(...)</h3>
 Disconnects any incoming connection from a field.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
-<li>field: Field name of field to be disconnected.
+field: Field name of field to be disconnected.
 
-</ul>
 </ul>
 <h3>enable_notify(...)</h3>
 Enables or disables change notifications for a scene object.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Boolean value indicating if notifications are enabled (True)
 or not (False).
@@ -61,16 +59,15 @@ or not (False).
 <h3>get(...)</h3>
 Returns a field or part by name.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
-<li>name: Field or part name to be returned.
-<li>createIfNeeded: For node kit parts the second parameter controls
+name: Field or part name to be returned.
+createIfNeeded: For node kit parts the second parameter controls
 if the named part should be created if is doesn't
 exist yet.
 
 </ul>
-</ul>
-<p><em>    Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 Field or node kit part if name is given. If no name is passed all
 field values are returned as string.
@@ -79,7 +76,7 @@ field values are returned as string.
 <h3>getfields(...)</h3>
 Return the names and types of this container's fields.
 
-<p><em>    Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 List of tuples with name and type for each field of this field
 container instance.
@@ -88,7 +85,7 @@ container instance.
 <h3>getname(...)</h3>
 Returns the instance name of a scene object.
 
-<p><em>    Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 String containing scene object name.
 
@@ -96,7 +93,7 @@ String containing scene object name.
 <h3>internal_pointer(...)</h3>
 Return the internal field container pointer.
 
-<p><em>    Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 Internal pointer to field container instance.
 
@@ -104,13 +101,12 @@ Internal pointer to field container instance.
 <h3>isconnected(...)</h3>
 Returns if a field has an incomming connection.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
-<li>field: Field name whose conntection state will be checked.
+field: Field name whose conntection state will be checked.
 
 </ul>
-</ul>
-<p><em>    Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 True is the field field has an incoming connection from another
 field or engine output.
@@ -119,7 +115,7 @@ field or engine output.
 <h3>set(...)</h3>
 Initializes fields or parts of a node kit.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Initialization string containing field names and values.
 
@@ -127,7 +123,7 @@ Initialization string containing field names and values.
 <h3>setname(...)</h3>
 Sets the instance name of a scene object.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Name for scene object instance.
 
@@ -135,7 +131,7 @@ Name for scene object instance.
 <h3>sotype(...)</h3>
 Return the type name of a scene object.
 
-<p><em>    Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 String containing scene object type.
 

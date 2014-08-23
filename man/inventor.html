@@ -30,12 +30,12 @@ dynamically, thereby enabling access to scene object fields via class attributes
 <h2>Functions:</h2>
 <h3>classes(...)</h3>
 Returns all class names registered as Inventor scene objects.
-<p><em>        Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Type name of base class to filter for (optional).
 
 </ul>
-<p><em>        Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 Type names of all classes matching the given filter.
 
@@ -46,19 +46,18 @@ Creates Python classes for all registered Inventor scene objects.
 <h3>pick(...)</h3>
 Performs an intersection test of a ray with objects in a scene.
 
-<p><em>        Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
-<li>applyTo: Node or SceneManager where action is applied.
-<li>x, y: Viewport position of ray.
-<li>width, height: Viewport size.
-<li>start,direction: Start and direction vector of ray.
-<li>near, far: Near and far distance for ray intersection tests.
-<li>pickAll: If true returns all objects that intersect with ray.
+applyTo: Node or SceneManager where action is applied.
+x, y: Viewport position of ray.
+width, height: Viewport size.
+start,direction: Start and direction vector of ray.
+near, far: Near and far distance for ray intersection tests.
+pickAll: If true returns all objects that intersect with ray.
 By default only first intersection is returned.
 
 </ul>
-</ul>
-<p><em>        Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 List of points, normals and nodes for each intersected object.
 
@@ -66,7 +65,7 @@ List of points, normals and nodes for each intersected object.
 <h3>process_queues(...)</h3>
 Processes inventor timer and delay queues.
 
-<p><em>        Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Boolean flag indicating if application is idle.
 
@@ -74,12 +73,12 @@ Boolean flag indicating if application is idle.
 <h3>read(...)</h3>
 Reads a scene graph from string or file.
 
-<p><em>        Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 String containing scene itself or file path.
 
 </ul>
-<p><em>        Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 Root node of scene or None on failure.
 
@@ -87,21 +86,20 @@ Root node of scene or None on failure.
 <h3>search(...)</h3>
 Searches for children in a scene with given name or type.
 
-<p><em>        Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
-<li>applyTo: Node where action is applied.
-<li>type: Search for nodes of given type.
-<li>name: Search for node of given name.
-<li>searchAll: If True search includes children that are normally not traversed
+applyTo: Node where action is applied.
+type: Search for nodes of given type.
+name: Search for node of given name.
+searchAll: If True search includes children that are normally not traversed
 (hidden by switch).
-<li>first: If true search returns only the first child found that matches the
+first: If true search returns only the first child found that matches the
 search criteria. By default all matching children are returned.
-<li>parent: If true search returns the parent of the found node. This is
+parent: If true search returns the parent of the found node. This is
 useful for example when replacing nodes in a scene.
 
 </ul>
-</ul>
-<p><em>        Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 List of nodes matching search criteria or first node found.
 
@@ -109,14 +107,13 @@ List of nodes matching search criteria or first node found.
 <h3>write(...)</h3>
 Writes scene graph to file or string.
 
-<p><em>        Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
-<li>applyTo: Node where action is applied.
-<li>file: Path to file into which scene is written.
+applyTo: Node where action is applied.
+file: Path to file into which scene is written.
 
 </ul>
-</ul>
-<p><em>        Returns:</em></p>
+<p><em>Returns:</em></p>
 <ul>
 Written scene as string or None is file argument was provided.
 

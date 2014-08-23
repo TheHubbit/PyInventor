@@ -7,14 +7,14 @@
 <a href='http://thehubbit.github.io/PyInventor/'><h1 id='project_title'>PyInventor</h1></a><h2 id='project_tagline'>3D Graphics in Python with Open Inventor</h2>
 </header></div>
 <div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>
-<h1>PyInventor.QtInventor.QIVWidget</h1><p><em>class QIVWidget(PySide.QtOpenGL.QGLWidget)</em></p>
-OpenGL widget for displaying and interacting with inventor scene graphs.
-This class derives from QtOpenGL.QGLWidget and creates a scene manager
-instance to which it forwards mouse, keyboard and display events.
+<h1>PyInventor.QtInventor.QInspectorWidget</h1><p><em>class QInspectorWidget(PySide.QtGui.QSplitter)</em></p>
+Widget for inspecting and editing scene grpahs. It shows the structure
+of a scene as a tree as well as a fields editor.
 
 <p><em>Method resolution order:</em></p><ul>
-<li>QIVWidget
-<li><a href='http://srinikom.github.io/pyside-docs/PySide/QtOpenGL/QGLWidget'>PySide.QtOpenGL.QGLWidget</a>
+<li>QInspectorWidget
+<li><a href='http://srinikom.github.io/pyside-docs/PySide/QtGui/QSplitter'>PySide.QtGui.QSplitter</a>
+<li><a href='http://srinikom.github.io/pyside-docs/PySide/QtGui/QFrame'>PySide.QtGui.QFrame</a>
 <li><a href='http://srinikom.github.io/pyside-docs/PySide/QtGui/QWidget'>PySide.QtGui.QWidget</a>
 <li><a href='http://srinikom.github.io/pyside-docs/PySide/QtCore/QObject'>PySide.QtCore.QObject</a>
 <li><a href='http://srinikom.github.io/pyside-docs/PySide/QtGui/QPaintDevice'>PySide.QtGui.QPaintDevice</a>
@@ -22,40 +22,35 @@ instance to which it forwards mouse, keyboard and display events.
 <li>builtins.object
 </ul>
 <h2> Methods defined here:</h2>
-<h3>initializeGL(self)</h3>
-Performs initial OpenGL setup
+<h3>appendObject(self)</h3>
+Appends a new scene object after current selection
 
-<h3>mouseMoveEvent(self, event)</h3>
-Forwards mouse move event to scene for processing
+<h3>attach(self, rootNode)</h3>
+Attaches the scene and field editors to a scene graph
 
-<h3>mousePressEvent(self, event)</h3>
-Forwards mouse button press event to scene for processing
+<h3>deleteObject(self)</h3>
+Deletes all scene objects currently selected in tree view
 
-<h3>mouseReleaseEvent(self, event)</h3>
-Forwards mouse button release event to scene for processing
+<h3>insertObject(self)</h3>
+Inserts a new scene object before current selection
 
-<h3>paintGL(self)</h3>
-Renders scene
+<h3>keyPressEvent(self, event)</h3>
+Handles default keyboard events for insert and delete
 
-<h3>resizeGL(self, width, height)</h3>
-Resizes viewport of scene manager
+<h3>setCurrentIndex(self, index)</h3>
+Sets current selection in scene graph tree view
 
-<h3>setSizeHint(self, width, height)</h3>
-Sets hint for default widget size
+<h3>setFilter(self, filter)</h3>
+Updates filter used in tree view, linked to filter edito box
+
+<h3>setSelection(self, current, old)</h3>
+Updates field editor after selection in tree view changed
 
 <h3>sizeHint(self)</h3>
-Returns hint for default widget size
-
-<h3>toImage(self, width, height)</h3>
-Renders the scene into an offline buffer and returns is as QImage instance
-
-<h3>wheelEvent(self, event)</h3>
-Forwards mouse wheel event to scene for processing
+Returns default widget size
 
 
 <h2> Data and other attributes defined here:</h2>
-idleTimer = PySide.QtCore.QTimer object<br />
-qtButtonIndex = (PySide.QtCore.Qt.MouseButton.LeftButton, PySide.QtCor...<br />
 staticMetaObject = PySide.QtCore.QMetaObject object<br />
 
 </div>

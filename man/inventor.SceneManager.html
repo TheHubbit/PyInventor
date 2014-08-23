@@ -18,7 +18,7 @@ GLUT for example).
 <h3>interaction(...)</h3>
 Sets the mouse interaction mode.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Interaction mode (0 = SCENE, 1 = CAMERA). By default all events
 are forwarded to the scene graph for processing. Setting the mode
@@ -29,12 +29,12 @@ with the scroll wheel.
 <h3>key(...)</h3>
 Sends keyboard event into the scene for processing.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Pressed keyboard character.
 
 </ul>
-<p><em>    Note:</em></p>
+<p><em>Note:</em></p>
 <ul>
 Pass this function to glutKeyboardFunc() in GLUT applications.
 
@@ -42,15 +42,14 @@ Pass this function to glutKeyboardFunc() in GLUT applications.
 <h3>mouse_button(...)</h3>
 Sends mouse button event into the scene for processing.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
-<li>button: Button index (0 = left, 1 = middle, 2 = right).
-<li>state: Button state (0 = pressed, 1 = released).
-<li>x, y: Mouse position in pixel viewport coordinates.
+button: Button index (0 = left, 1 = middle, 2 = right).
+state: Button state (0 = pressed, 1 = released).
+x, y: Mouse position in pixel viewport coordinates.
 
 </ul>
-</ul>
-<p><em>    Note:</em></p>
+<p><em>Note:</em></p>
 <ul>
 Pass this function to glutMouseFunc() in GLUT applications.
 
@@ -58,13 +57,12 @@ Pass this function to glutMouseFunc() in GLUT applications.
 <h3>mouse_move(...)</h3>
 Sends mouse move event into the scene for processing.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
-<li>x, y: Mouse position in pixel viewport coordinates.
+x, y: Mouse position in pixel viewport coordinates.
 
 </ul>
-</ul>
-<p><em>    Note:</em></p>
+<p><em>Note:</em></p>
 <ul>
 Pass this function to glutMotionFunc() in GLUT applications.
 
@@ -72,7 +70,7 @@ Pass this function to glutMotionFunc() in GLUT applications.
 <h3>render(...)</h3>
 Renders the scene into an OpenGL context.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Optionally two boolean flags can be passed as arguments indicating if
 color and depth buffer should be cleared before rendering the scene.
@@ -81,7 +79,7 @@ color and depth buffer should be cleared before rendering the scene.
 <h3>resize(...)</h3>
 Sets the window size.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Window width and height in pixel.
 
@@ -89,7 +87,7 @@ Window width and height in pixel.
 <h3>view_all(...)</h3>
 Initializes camera so that the entire scene is visible.
 
-<p><em>    Args:</em></p>
+<p><em>Args:</em></p>
 <ul>
 Optionally a node can be passed as argument instead of using the
 scene managers graph.
