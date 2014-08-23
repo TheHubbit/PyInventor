@@ -36,7 +36,7 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
         
         mainLayout.addWidget(horiSplitter)
         self.setLayout(mainLayout)
-        self.setWindowTitle(self.tr("Scene Graph Editor"))
+        self.setWindowTitle(self.applicationTitle())
         
         self.inspectorWidget.attach(self.previewWidget.sceneManager.scene)
 
@@ -50,7 +50,7 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
         """Returns the default application title"""
         title = "Scene Graph Editor" 
         if len(self._filePath) > 0:
-            title += " - " + self._filePath.split('/')[-1]
+            title = self._filePath.split('/')[-1]
         return title
 
     
