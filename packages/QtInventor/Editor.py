@@ -8,7 +8,7 @@
 
 import sys
 import inventor as iv
-from PySide import QtCore, QtGui
+from PySide import QtCore, QtGui, QtOpenGL
 from PyInventor.QtInventor import QIVWidget,QInspectorWidget
 
 
@@ -23,7 +23,7 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
         
         self._filePath = ""
         self.inspectorWidget = QInspectorWidget()
-        self.previewWidget = QIVWidget()
+        self.previewWidget = QIVWidget(format=QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers))
         self.previewWidget.sceneManager.background = (0.3, 0.3, 0.3)
 
         mainLayout = QtGui.QHBoxLayout()
