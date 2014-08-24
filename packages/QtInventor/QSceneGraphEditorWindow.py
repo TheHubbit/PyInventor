@@ -91,14 +91,14 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
 
     def saveAs(self):
         """Save current scene to new file"""
-        self._filePath = QtGui.QFileDialog.getSaveFileName(self, 'Save', self._filePath, filter="Open Inventor (*.iv);;Virtual Reality Modeling Language (*.wrl)")[0]
+        self._filePath = QtGui.QFileDialog.getSaveFileName(self, 'Save', self._filePath, filter="Open Inventor (*.iv);;VRML (*.wrl)")[0]
         if len(self._filePath):
-            print(self._filePath)
             iv.write(self._root, self._filePath)
+            self.parent().setWindowTitle(self.applicationTitle())
 
     def open(self):
         """Open scene from file"""
-        filePath = QtGui.QFileDialog.getOpenFileName(self, 'Open', self._filePath, filter="Open Inventor (*.iv);;Virtual Reality Modeling Language (*.wrl)")[0]
+        filePath = QtGui.QFileDialog.getOpenFileName(self, 'Open', self._filePath, filter="Scene Graph (*.iv;*.wrl);;Autodesk 3D Studio (*.3ds)")[0]
         if len(filePath):
             self.load(filePath)
 
