@@ -65,7 +65,9 @@ class QIVWidget(QtOpenGL.QGLWidget):
         # use buttons 3 and 4 similar to GLUT
         if event.delta() > 0:
             self.sceneManager.mouse_button(3, 0, event.x(), event.y())
+            self.sceneManager.mouse_button(3, 1, event.x(), event.y())
         else:
+            self.sceneManager.mouse_button(4, 0, event.x(), event.y())
             self.sceneManager.mouse_button(4, 1, event.x(), event.y())
 
     def sizeHint(self):
