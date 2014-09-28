@@ -103,7 +103,7 @@ END     {
           print; 
           isBullet = 1; next; 
         }
-/^[ -]+[a-zA-Z0-9_, ]+: / { sub(/^[ -]+/, ""); print "<li>" $0; isBullet = 1; next; }
+/^[ -]*[a-zA-Z0-9_, ]+: / { sub(/^[ -]+/, ""); print "<li>" $0; isBullet = 1; next; }
 /-----/ { print ""; dataDesc = 0; next; }
         {
           sub(/^[ \t]*/, "");
