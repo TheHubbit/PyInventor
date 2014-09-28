@@ -238,7 +238,7 @@ PyTypeObject *PySceneObject::getFieldContainerType()
 		0,                         /* tp_as_mapping */
 		0,                         /* tp_hash  */
 		0,                         /* tp_call */
-		0,                         /* tp_str */
+		(reprfunc) tp_str,         /* tp_str */
 		(getattrofunc) tp_getattro,/* tp_getattro */
 		(setattrofunc) tp_setattro,/* tp_setattro */
 		0,                         /* tp_as_buffer */
@@ -786,6 +786,36 @@ PyObject* PySceneObject::tp_repr(Object *self)
 	}
 
 	return PyUnicode_FromString("Uninitialized");
+}
+
+
+PyObject* PySceneObject::tp_str(Object *self)
+{
+    if (self->inventorObject)
+    {
+		SbString type = self->inventorObject->getTypeId().getName().getString();
+		SbString name = self->inventorObject->getName().getString();
+		SbString repr;
+
+        SbString value;
+        self->inventorObject->get(value);
+		SbBool hasValues = value.getLength() > 1;
+
+		if (name.getLength())
+		{
+			repr.sprintf("<%s \"%s\" at %p>%s%s", type.getString(), name.getString(), self->inventorObject,
+				hasValues ? "\n" : "", hasValues ? value.getString() : "");
+		}
+		else
+		{
+			repr.sprintf("<%s at %p>%s%s", type.getString(), self->inventorObject,
+				hasValues ? "\n" : "", hasValues ? value.getString() : "");
+		}
+
+        return PyUnicode_FromString(repr.getString());
+    }
+
+	return tp_repr(self);
 }
 
 
