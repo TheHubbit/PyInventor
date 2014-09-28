@@ -32,11 +32,12 @@ Inserts a scene object into a group node.
 
 <p><em>Args:</em></p>
 <ul>
-index: Position where node will be inserted.
-node: Node to be inserted as child.
-other: If not None than the node will be inserted relative to this
+<li>index: Position where node will be inserted.
+<li>node: Node to be inserted as child.
+<li>other: If not None than the node will be inserted relative to this
 node, which must be a child of the group.
 
+</ul>
 </ul>
 <h3>node_id(...)</h3>
 Return the unique node identifier.
@@ -76,19 +77,21 @@ Connects a field from another field or engine output.
 
 <p><em>Args:</em></p>
 <ul>
-toField: Field name of this instance that will be conntected.
-fromObject: Scene objects whose output or field serve as input.
-fromField: Field or engine output name that will be connected to
+<li>toField: Field name of this instance that will be conntected.
+<li>fromObject: Scene objects whose output or field serve as input.
+<li>fromField: Field or engine output name that will be connected to
 toField.
 
+</ul>
 </ul>
 <h3>disconnect(...)</h3>
 Disconnects any incoming connection from a field.
 
 <p><em>Args:</em></p>
 <ul>
-field: Field name of field to be disconnected.
+<li>field: Field name of field to be disconnected.
 
+</ul>
 </ul>
 <h3>enable_notify(...)</h3>
 Enables or disables change notifications for a scene object.
@@ -104,11 +107,12 @@ Returns a field or part by name.
 
 <p><em>Args:</em></p>
 <ul>
-name: Field or part name to be returned.
-createIfNeeded: For node kit parts the second parameter controls
+<li>name: Field or part name to be returned.
+<li>createIfNeeded: For node kit parts the second parameter controls
 if the named part should be created if is doesn't
 exist yet.
 
+</ul>
 </ul>
 <p><em>Returns:</em></p>
 <ul>
@@ -146,8 +150,9 @@ Returns if a field has an incomming connection.
 
 <p><em>Args:</em></p>
 <ul>
-field: Field name whose conntection state will be checked.
+<li>field: Field name whose conntection state will be checked.
 
+</ul>
 </ul>
 <p><em>Returns:</em></p>
 <ul>

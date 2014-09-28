@@ -10,9 +10,9 @@
 <h1>inventor.FieldContainer</h1><p><em>class FieldContainer(object)</em></p>
 Base class for scene objects of type SoFieldContainer.
 
-All field values and node kit parts are dynamically added as class attributes.
-Please refer to the Open Inventor documentation for the fields of each scene
-object type.
+All field values and node kit parts are dynamically added as class
+attributes. Please refer to the Open Inventor documentation for the
+fields of each scene object type.
 
 <h2> Methods defined here:</h2>
 <h3>check_type(...)</h3>
@@ -33,19 +33,21 @@ Connects a field from another field or engine output.
 
 <p><em>Args:</em></p>
 <ul>
-toField: Field name of this instance that will be conntected.
-fromObject: Scene objects whose output or field serve as input.
-fromField: Field or engine output name that will be connected to
+<li>toField: Field name of this instance that will be conntected.
+<li>fromObject: Scene objects whose output or field serve as input.
+<li>fromField: Field or engine output name that will be connected to
 toField.
 
+</ul>
 </ul>
 <h3>disconnect(...)</h3>
 Disconnects any incoming connection from a field.
 
 <p><em>Args:</em></p>
 <ul>
-field: Field name of field to be disconnected.
+<li>field: Field name of field to be disconnected.
 
+</ul>
 </ul>
 <h3>enable_notify(...)</h3>
 Enables or disables change notifications for a scene object.
@@ -61,11 +63,12 @@ Returns a field or part by name.
 
 <p><em>Args:</em></p>
 <ul>
-name: Field or part name to be returned.
-createIfNeeded: For node kit parts the second parameter controls
+<li>name: Field or part name to be returned.
+<li>createIfNeeded: For node kit parts the second parameter controls
 if the named part should be created if is doesn't
 exist yet.
 
+</ul>
 </ul>
 <p><em>Returns:</em></p>
 <ul>
@@ -103,8 +106,9 @@ Returns if a field has an incomming connection.
 
 <p><em>Args:</em></p>
 <ul>
-field: Field name whose conntection state will be checked.
+<li>field: Field name whose conntection state will be checked.
 
+</ul>
 </ul>
 <p><em>Returns:</em></p>
 <ul>

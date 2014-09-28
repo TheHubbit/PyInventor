@@ -9,8 +9,8 @@
 <div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>
 <h1>inventor</h1><p><em>module     inventor - Open Inventor 3D Toolkit</em></p>
 
-This module provides capabilities to work with Inventor scene objects. It implements
-the following classes:
+This module provides capabilities to work with Inventor scene objects. It
+implements the following classes:
 <ul>
 <li><a href='inventor.FieldContainer.html'>FieldContainer:</a>
 Base class for all scene objects.
@@ -19,13 +19,15 @@ Generic scene object class for nodes.
 <li><a href='inventor.Engine.html'>Engine:</a>
 Generic scene object class for engines.
 <li><a href='inventor.SceneManager.html'>SceneManager:</a>
-Utility class for visualizing and interacting with scene graphs.
+Utility class for visualizing and interacting with scene
+graphs.
 <li><a href='inventor.Sensor.html'>Sensor:</a>
 Utility class for observing node, field or time changes.
 
 </ul>
-Furthermore this module creates Python classes for all registered engines and nodes
-dynamically, thereby enabling access to scene object fields via class attributes.
+Furthermore this module creates Python classes for all registered engines
+and nodes dynamically, thereby enabling access to scene object fields via
+class attributes.
 
 <h2>Functions:</h2>
 <h3>classes(...)</h3>
@@ -43,19 +45,44 @@ Type names of all classes matching the given filter.
 <h3>create_classes(...)</h3>
 Creates Python classes for all registered Inventor scene objects.
 
+<h3>image(...)</h3>
+Renders a scene into an offscreen buffer using the inventor
+SoOffscreenRenderer class. Note that this class creates a private,
+none-shared OpenGL context. If you are using a GUI framework such as
+Qt then it is better to do the offscreen rendering with classes like
+QtOpenGL.QGLFramebufferObject because the application controls the
+setup of the OpenGL context.
+
+<p><em>Args:</em></p>
+<ul>
+<li>applyTo: Node or SceneManager where render action is applied.
+<li>width, height: Viewport size.
+<li>components: LUMINANCE = 1, LUMINANCE_TRANSPARENCY = 2,
+RGB = 3, RGB_TRANSPARENCY = 4
+<li>file: Optional file name to write image buffer into.
+<li>background: Background color.
+
+</ul>
+</ul>
+<p><em>Returns:</em></p>
+<ul>
+Pixel buffer of rendered scene.
+
+</ul>
 <h3>pick(...)</h3>
 Performs an intersection test of a ray with objects in a scene.
 
 <p><em>Args:</em></p>
 <ul>
-applyTo: Node or SceneManager where action is applied.
-x, y: Viewport position of ray.
-width, height: Viewport size.
-start,direction: Start and direction vector of ray.
-near, far: Near and far distance for ray intersection tests.
-pickAll: If true returns all objects that intersect with ray.
+<li>applyTo: Node or SceneManager where action is applied.
+<li>x, y: Viewport position of ray.
+<li>width, height: Viewport size.
+<li>start,direction: Start and direction vector of ray.
+<li>near, far: Near and far distance for ray intersection tests.
+<li>pickAll: If true returns all objects that intersect with ray.
 By default only first intersection is returned.
 
+</ul>
 </ul>
 <p><em>Returns:</em></p>
 <ul>
@@ -88,16 +115,18 @@ Searches for children in a scene with given name or type.
 
 <p><em>Args:</em></p>
 <ul>
-applyTo: Node where action is applied.
-type: Search for nodes of given type.
-name: Search for node of given name.
-searchAll: If True search includes children that are normally not traversed
-(hidden by switch).
-first: If true search returns only the first child found that matches the
-search criteria. By default all matching children are returned.
-parent: If true search returns the parent of the found node. This is
-useful for example when replacing nodes in a scene.
+<li>applyTo: Node where action is applied.
+<li>type: Search for nodes of given type.
+<li>name: Search for node of given name.
+<li>searchAll: If True search includes children that are normally not
+traversed (hidden by switch).
+<li>first: If true search returns only the first child found that
+matches the search criteria. By default all matching
+children are returned.
+<li>parent: If true search returns the parent of the found node. This
+is useful for example when replacing nodes in a scene.
 
+</ul>
 </ul>
 <p><em>Returns:</em></p>
 <ul>
@@ -109,9 +138,10 @@ Writes scene graph to file or string.
 
 <p><em>Args:</em></p>
 <ul>
-applyTo: Node where action is applied.
-file: Path to file into which scene is written.
+<li>applyTo: Node where action is applied.
+<li>file: Path to file into which scene is written.
 
+</ul>
 </ul>
 <p><em>Returns:</em></p>
 <ul>
