@@ -14,3 +14,12 @@ from .QIVWidget import *
 from .QInspectorWidget import *
 from .QSceneGraphEditorWindow import *
 from .QSceneGraphEditor import *
+
+# load inventor extensions specified in IV_LIBS environment variable
+import os
+if os.environ.get('IV_LIBS') is not None:
+    import ctypes
+    import inventor
+    for lib in os.environ.get('IV_LIBS').split(";"):
+        ctypes.cdll.LoadLibrary(lib).initAllClasses()
+    inventor.create_classes()
