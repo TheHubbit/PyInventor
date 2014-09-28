@@ -425,6 +425,7 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 			{
 				SbViewportRegion viewport;
 				viewport = SbViewportRegion(SbVec2s(short(width), short(height)));
+				viewport.setViewportPixels(0, 0, width, height);
 
 				if (!offscreenRenderer)
 				{
@@ -478,7 +479,7 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 					{
 						// return array
 						unsigned char *buffer = offscreenRenderer->getBuffer();
-						PyObject *arr = PySceneObject::getPyObjectArrayFromData(NPY_UBYTE, buffer, height, width, components);
+						PyObject *arr = PySceneObject::getPyObjectArrayFromData(NPY_UBYTE, buffer, height, width, components > 1 ? components : 0);
 						return arr;
 					}
 				}
