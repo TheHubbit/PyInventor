@@ -314,7 +314,8 @@ PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|iiiiOOffp", kwlist, &applyTo, &x, &y, &width, &height, &start, &dir, &nearDist, &farDist, &pickAll))
 	{
 		// if scene manager then use scene node and viewport size from there
-		PySceneManager::getScene(applyTo, applyTo, width, height);
+		SbColor background;
+		PySceneManager::getScene(applyTo, applyTo, width, height, background);
 
 		if (PyNode_Check(applyTo))
 		{
@@ -405,13 +406,16 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 	PyObject *applyTo = NULL;
 	int width = -1, height = -1, components = 4;
 	char *file = NULL;
-	static char *kwlist[] = { "applyTo", "width", "height", "components", "file", NULL};
+	PyObject *background = 0;
+	static char *kwlist[] = { "applyTo", "width", "height", "components", "file", "background", NULL};
 
-	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|iiis", kwlist, &applyTo, &width, &height, &components, &file))
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|iiisO", kwlist, &applyTo, &width, &height, &components, &file, &background))
 	{
 		// if scene manager then use scene node and viewport size from there if undefined
 		int vpWidth = -1, vpHeight = -1;
-		PySceneManager::getScene(applyTo, applyTo, vpWidth, vpHeight);
+		SbColor backgroundColor(0, 0, 0);
+
+		PySceneManager::getScene(applyTo, applyTo, vpWidth, vpHeight, backgroundColor);
 
 		if (width < 0) width = vpWidth;
 		if (width < 0) width = 512;
@@ -423,6 +427,7 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 			PySceneObject::Object *sceneObj = (PySceneObject::Object *)	applyTo;
 			if (sceneObj->inventorObject)
 			{
+				// configure viewport
 				SbViewportRegion viewport;
 				viewport = SbViewportRegion(SbVec2s(short(width), short(height)));
 				viewport.setViewportPixels(0, 0, width, height);
@@ -436,12 +441,37 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 					offscreenRenderer->setViewportRegion(viewport);
 				}
 
+				// configure number of components
 				SoOffscreenRenderer::Components c = (SoOffscreenRenderer::Components) components;
 				if (offscreenRenderer->getComponents() != c)
 				{
 					offscreenRenderer->setComponents(c);
 				}
 
+				// configure background color
+				if (background && PySequence_Check(background))
+				{
+					PyObject *seq = PySequence_Fast(background, "expected a sequence");
+					size_t n = PySequence_Size(seq);
+					if (n == 3)
+					{
+						for (int i = 0; i < 3; ++i)
+						{
+							PyObject *seqItem = PySequence_GetItem(seq, i);
+							if (seqItem)
+							{
+								if (PyFloat_Check(seqItem))
+									backgroundColor[i] = (float) PyFloat_AsDouble(seqItem);
+								else if (PyLong_Check(seqItem))
+									backgroundColor[i] = (float) PyLong_AsDouble(seqItem);
+							}
+						}
+					}
+					Py_XDECREF(seq);
+				}
+				offscreenRenderer->setBackgroundColor(backgroundColor);
+
+				// render scene
 				if (offscreenRenderer->render((SoNode*) sceneObj->inventorObject))
 				{
 					if (file)

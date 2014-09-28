@@ -634,7 +634,7 @@ PyObject* PySceneManager::interaction(Object *self, PyObject *args)
 }
 
 
-bool PySceneManager::getScene(PyObject* self, PyObject *&scene_out, int &viewportWidth_out, int &viewportHeight_out)
+bool PySceneManager::getScene(PyObject* self, PyObject *&scene_out, int &viewportWidth_out, int &viewportHeight_out, SbColor &backgroundColor_out)
 {
 	if (PyObject_TypeCheck(self, PySceneManager::getType()))
 	{
@@ -646,6 +646,7 @@ bool PySceneManager::getScene(PyObject* self, PyObject *&scene_out, int &viewpor
 			SbVec2s size = sm->sceneManager->getViewportRegion().getViewportSizePixels();
 			viewportWidth_out = size[0];
 			viewportHeight_out = size[0];
+			backgroundColor_out = sm->sceneManager->getBackgroundColor();
 
 			return true;
 		}
