@@ -246,9 +246,9 @@ PyTypeObject *PySceneObject::getFieldContainerType()
 		Py_TPFLAGS_BASETYPE,   /* tp_flags */
 		"Base class for scene objects of type SoFieldContainer.\n"
         "\n"
-        "All field values and node kit parts are dynamically added as class attributes.\n"
-        "Please refer to the Open Inventor documentation for the fields of each scene\n"
-        "object type.\n"
+        "All field values and node kit parts are dynamically added as class\n"
+        "attributes. Please refer to the Open Inventor documentation for the\n"
+        "fields of each scene object type.\n"
         ,   /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */

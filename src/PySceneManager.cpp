@@ -78,8 +78,9 @@ PyTypeObject *PySceneManager::getType()
             "Renders the scene into an OpenGL context.\n"
             "\n"
             "Args:\n"
-            "    Optionally two boolean flags can be passed as arguments indicating if\n"
-            "    color and depth buffer should be cleared before rendering the scene.\n"
+            "    Optionally two boolean flags can be passed as arguments indicating\n"
+            "    if color and depth buffer should be cleared before rendering the\n"
+            "    scene.\n"
         },
 		{"resize", (PyCFunction) resize, METH_VARARGS,
             "Sets the window size.\n"
