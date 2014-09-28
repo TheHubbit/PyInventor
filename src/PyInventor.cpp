@@ -22,6 +22,8 @@
 #include "PySceneManager.h"
 #include "PySensor.h"
 
+#include <numpy/libnumarray.h>
+
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -358,8 +360,8 @@ PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 					SoPickedPoint *p = pa.getPickedPoint(i); 
 
 					PyObject *point = PyList_New(3);
-                    PyList_SetItem(point, 0, PySceneObject::getPyObjectFromFloats(p->getPoint().getValue(), 3));
-                    PyList_SetItem(point, 1, PySceneObject::getPyObjectFromFloats(p->getNormal().getValue(), 3));
+                    PyList_SetItem(point, 0, PySceneObject::getPyObjectArrayFromData(NPY_FLOAT32, p->getPoint().getValue(), 3));
+                    PyList_SetItem(point, 1, PySceneObject::getPyObjectArrayFromData(NPY_FLOAT32, p->getNormal().getValue(), 3));
 
 					SoNode *node = 0;
 					if (p->getPath())

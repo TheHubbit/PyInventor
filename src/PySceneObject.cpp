@@ -98,34 +98,17 @@ void __declspec( dllimport ) PRESODBINIT();
 
 // macro for getting floating point single-field
 #define SOFIELD_GETF(t, ct, nt, f) \
-	if (f->isOfType(SoSF ## t ::getClassTypeId())) \
-		return PyFloat_FromDouble(((SoSF ## t *) f)->getValue()); \
-	else if (f->isOfType(SoMF ## t ::getClassTypeId())) \
-	{ \
-		npy_intp dims[] = { ((SoMF ## t *) f)->getNum() }; \
-		PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNewFromData(1, dims, nt, (void*) ((SoMF ## t *) f)->getValues(0)); \
-		return PyArray_Return(arr); \
-	}
+	if (f->isOfType(SoSF ## t ::getClassTypeId())) { return PyFloat_FromDouble(((SoSF ## t *) f)->getValue()); } \
+	else if (f->isOfType(SoMF ## t ::getClassTypeId())) { return getPyObjectArrayFromData(nt, ((SoMF ## t *) f)->getValues(0), ((SoMF ## t *) f)->getNum()); }
 
 // macro for getting integer single-field
 #define SOFIELD_GETL(t, ct, nt, f) \
-	if (f->isOfType(SoSF ## t ::getClassTypeId())) \
-		return PyLong_FromLong(((SoSF ## t *) f)->getValue()); \
-	else if (f->isOfType(SoMF ## t ::getClassTypeId())) \
-	{ \
-		npy_intp dims[] = { ((SoMF ## t *) f)->getNum() }; \
-		PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNewFromData(1, dims, nt, (void*) ((SoMF ## t *) f)->getValues(0)); \
-		return PyArray_Return(arr); \
-	}
+	if (f->isOfType(SoSF ## t ::getClassTypeId())) { return PyLong_FromLong(((SoSF ## t *) f)->getValue()); } \
+	else if (f->isOfType(SoMF ## t ::getClassTypeId())) { return getPyObjectArrayFromData(nt, ((SoMF ## t *) f)->getValues(0), ((SoMF ## t *) f)->getNum()); }
 
 // macro for getting numerical multi-field (SoMField)
 #define SOFIELD_GET_N(t, ct, nt, n, f) \
-	if (f->isOfType(SoSF ## t ::getClassTypeId())) \
-	{ \
-		npy_intp dims[] = { n }; \
-		PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNewFromData(1, dims, nt, (void*) ((SoSF ## t *) f)->getValue().getValue()); \
-		return PyArray_Return(arr); \
-	} \
+	if (f->isOfType(SoSF ## t ::getClassTypeId())) { return getPyObjectArrayFromData(nt, ((SoSF ## t *) f)->getValue().getValue(), n); } \
 	else if (f->isOfType(SoMF ## t ::getClassTypeId())) \
 	{ \
 		npy_intp dims[] = { ((SoMF ## t *) f)->getNum() , n }; \
@@ -845,9 +828,7 @@ PyObject *PySceneObject::getField(SoField *field)
 	else if (field->isOfType(SoSFMatrix::getClassTypeId()))
 	{
         // special case for single matrix: return as [4][4] rather than [16]
-		npy_intp dims[] = { 4, 4 };
-		PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, (void*) ((SoSFMatrix *) field)->getValue().getValue());
-		return PyArray_Return(arr);
+		return getPyObjectArrayFromData(NPY_FLOAT32, ((SoSFMatrix *) field)->getValue().getValue(), 4, 4);
 	}
 	else if (field->isOfType(SoSFImage::getClassTypeId()))
 	{
@@ -860,9 +841,7 @@ PyObject *PySceneObject::getField(SoField *field)
 			PyTuple_SetItem(obj, 0, PyLong_FromLong(size[0]));
 			PyTuple_SetItem(obj, 1, PyLong_FromLong(size[1]));
 			PyTuple_SetItem(obj, 2, PyLong_FromLong(nc));
-
-			npy_intp dims[] = { size[0] * size[1] * nc };
-			PyTuple_SetItem(obj, 3, PyArray_SimpleNewFromData(1, dims, NPY_UBYTE, (void*) pixel));
+			PyTuple_SetItem(obj, 3, getPyObjectArrayFromData(NPY_UBYTE, pixel, size[0] * size[1] * nc));
 
 			return obj;
 		}
@@ -872,13 +851,12 @@ PyObject *PySceneObject::getField(SoField *field)
 	}
 	else if (field->isOfType(SoSFPlane::getClassTypeId()))
 	{
-		npy_intp dims[] = { 4 };
 		SbPlane p = ((SoSFPlane*) field)->getValue();
 		SbVec4f v;
 		v[0] = p.getNormal()[0]; v[1] = p.getNormal()[1]; v[2] = p.getNormal()[2];
 		v[3] = p.getDistanceFromOrigin();
-		PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*) v.getValue());
-		return PyArray_Return(arr);
+
+		return getPyObjectArrayFromData(NPY_FLOAT32, v.getValue(), 4);
 	}
 	else if (field->isOfType(SoMFPlane::getClassTypeId()))
 	{
@@ -1947,13 +1925,21 @@ bool PySceneObject::getFloatsFromPyObject(PyObject *obj, int size, float *value_
 }
 
 
-PyObject *PySceneObject::getPyObjectFromFloats(const float *value_in, int size)
+PyObject *PySceneObject::getPyObjectArrayFromData(int type, const void* data, int dim1, int dim2, int dim3)
 {
 	initNumpy();
     
-    npy_intp dims[] = { size };
-    PyObject *arr = (PyObject*) PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, (void*) value_in);
+    npy_intp dims[] = { dim1, dim2, dim3 };
+	int num = 1;
+	if (dim2 > 0) num++;
+	if (dim3 > 0) num++;
     
-    return arr;
+	PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNew(num, dims, type);
+	if (arr)
+	{
+		memcpy(PyArray_DATA(arr), data, PyArray_NBYTES(arr));
+	    return PyArray_Return(arr);
 }
 
+	return Py_None;
+}

@@ -47,7 +47,7 @@ public:
 	static int setFields(SoFieldContainer *fieldContainer, char *value);
 
 	static bool getFloatsFromPyObject(PyObject *obj, int size, float *value_out);
-	static PyObject *getPyObjectFromFloats(const float *value_in, int size);
+	static PyObject *getPyObjectArrayFromData(int type, const void* data, int dim1, int dim2 = 0, int dim3 = 0);
 
 	static bool initNumpy();
 	static void initSoDB();
