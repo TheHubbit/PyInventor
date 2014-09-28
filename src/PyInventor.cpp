@@ -18,6 +18,7 @@
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/SoInput.h>
+#include <Inventor/SoOffscreenRenderer.h>
 #include "PySceneObject.h"
 #include "PySceneManager.h"
 #include "PySensor.h"
@@ -396,6 +397,100 @@ PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 }
 
 
+PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+{
+	// keep reusing same instance once created
+	static SoOffscreenRenderer *offscreenRenderer = 0;
+
+	PyObject *applyTo = NULL;
+	int width = -1, height = -1, components = 4;
+	char *file = NULL;
+	static char *kwlist[] = { "applyTo", "width", "height", "components", "file", NULL};
+
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|iiis", kwlist, &applyTo, &width, &height, &components, &file))
+	{
+		// if scene manager then use scene node and viewport size from there if undefined
+		int vpWidth = -1, vpHeight = -1;
+		PySceneManager::getScene(applyTo, applyTo, vpWidth, vpHeight);
+
+		if (width < 0) width = vpWidth;
+		if (width < 0) width = 512;
+		if (height < 0) height = vpHeight;
+		if (height < 0) height = 512;
+
+		if (PyNode_Check(applyTo))
+		{
+			PySceneObject::Object *sceneObj = (PySceneObject::Object *)	applyTo;
+			if (sceneObj->inventorObject)
+			{
+				SbViewportRegion viewport;
+				viewport = SbViewportRegion(SbVec2s(short(width), short(height)));
+
+				if (!offscreenRenderer)
+				{
+					offscreenRenderer = new SoOffscreenRenderer(viewport);
+				}
+				else if (offscreenRenderer->getViewportRegion() != viewport)
+				{
+					offscreenRenderer->setViewportRegion(viewport);
+				}
+
+				SoOffscreenRenderer::Components c = (SoOffscreenRenderer::Components) components;
+				if (offscreenRenderer->getComponents() != c)
+				{
+					offscreenRenderer->setComponents(c);
+				}
+
+				if (offscreenRenderer->render((SoNode*) sceneObj->inventorObject))
+				{
+					if (file)
+					{
+						// save to file
+						SbString ext(file, strlen(file) - 3, -1);
+						ext = ext.lower();
+
+						#ifdef TGS_VERSION
+						if (ext == "jpg")
+						{
+							offscreenRenderer->writeToJPEG(file);
+						}
+						else if (ext == "png")
+						{
+							offscreenRenderer->writeToPNG(file);
+						}
+						else if (ext == "bmp")
+						{
+							offscreenRenderer->writeToBMP(file);
+						}
+						else if (ext == "rgb")
+						{
+							offscreenRenderer->writeToRGB(file);
+						}
+						else if (ext == "tif")
+						{
+							offscreenRenderer->writeToTIFF(file);
+						}
+						#else
+						offscreenRenderer->writeToFile(file, ext.getString());
+						#endif
+					}
+					else
+					{
+						// return array
+						unsigned char *buffer = offscreenRenderer->getBuffer();
+						PyObject *arr = PySceneObject::getPyObjectArrayFromData(NPY_UBYTE, buffer, height, width, components);
+						return arr;
+					}
+				}
+			}
+		}
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
 // External inventor module creation function.
 PyMODINIT_FUNC PyInit_inventor(void)
 {
@@ -469,6 +564,19 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "\n"
             "Returns:\n"
             "    List of points, normals and nodes for each intersected object."
+        },
+		{ "image", (PyCFunction) iv_image, METH_VARARGS | METH_KEYWORDS,
+            "Renders a scene into an offscreen buffer.\n"
+            "\n"
+            "Args:\n"
+            "    applyTo: Node or SceneManager where action is applied.\n"
+            "    width, height: Viewport size.\n"
+			"    components: LUMINANCE = 1, LUMINANCE_TRANSPARENCY = 2,\n"
+			"                RGB = 3, RGB_TRANSPARENCY = 4\n"
+			"    file: Optional file name to write image buffer into.\n"
+            "\n"
+            "Returns:\n"
+            "    Pixel buffer of rendered scene."
         },
 		{ NULL, NULL, 0, NULL }
 	};

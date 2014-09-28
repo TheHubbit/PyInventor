@@ -1933,13 +1933,13 @@ PyObject *PySceneObject::getPyObjectArrayFromData(int type, const void* data, in
 	int num = 1;
 	if (dim2 > 0) num++;
 	if (dim3 > 0) num++;
-    
+
 	PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNew(num, dims, type);
 	if (arr)
 	{
 		memcpy(PyArray_DATA(arr), data, PyArray_NBYTES(arr));
 	    return PyArray_Return(arr);
-}
+	}
 
 	return Py_None;
 }
