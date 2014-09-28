@@ -36,12 +36,39 @@
 <p>The main goals for the Python integration project are:</p>
 
 <ul>
-<li>Enable the creation, modification and viewing of scene graphs, both programmatically with Python as well as with the help of a graphical editor</li>
+<li>Enable the creation, modification and viewing of scene graphs in Python</li>
 <li>Offer a flexible yet easy to use "Python-like" interface to Open Inventor</li>
 <li>Support of Open Inventor extensions without introducing compile time dependencies</li>
 <li>Platform independent and compatible with all major implementations (<a href="https://bitbucket.org/Coin3D/coin/wiki/Home">Coin3D</a>, <a href="http://oss.sgi.com/projects/inventor/">SGI</a> and <a href="http://www.vsg3d.com/open-inventor/sdk">VSG</a>)</li>
 <li>Undemanding maintenance of the library</li>
 <li>Compatible with Python 3</li>
+<li>Provide useful tools for 3D graphics programming such as a scene graph editor</li>
+</ul><h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>The software can be compiled and installed from source using included <em>distutils</em> setup script. Python 3.x, PyOpenGL, PySide, numpy and Open Inventor / Coin are required on the target system. The setup script is pre-configured for Coin on Windows and OS X. Adaptations to the following variables defined in setup.py might be necessary for other configurations.</p>
+
+<pre><code># Open Inventor paths and libraries:
+oivincpath = ''
+oivlibpath = ''
+oivlib = []
+</code></pre>
+
+<p>To compile and install PyInventor call:</p>
+
+<pre><code>python setup.py install
+</code></pre>
+
+<h3>
+<a name="windows-64-bit" class="anchor" href="#windows-64-bit"><span class="octicon octicon-link"></span></a>Windows (64 bit)</h3>
+
+<p>Alternatively to installing the module from source, there is also a binary <a href="dist/PyInventor-1.0.win-amd64-py3.4.exe">installation package</a> available for Windows. The prerequisites and of course PyInventor itself can be installed with the following downloadable packages:</p>
+
+<ul>
+<li><a href="https://www.python.org/downloads/release/python-341/">Python 3.4</a></li>
+<li><a href="http://www.lfd.uci.edu/%7Egohlke/pythonlibs/#scipy-stack">Scipy Stack</a></li>
+<li><a href="http://www.lfd.uci.edu/%7Egohlke/pythonlibs/#pyopengl">PyOpenGL</a></li>
+<li><a href="dist/PyInventor-1.0.win-amd64-py3.4.exe">PyInventor</a></li>
 </ul><h2>
 <a name="using-the-module" class="anchor" href="#using-the-module"><span class="octicon octicon-link"></span></a>Using the Module</h2>
 
@@ -71,22 +98,6 @@
 <a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
 
 <p>PyInventor is distributed under the BSD 3-Clause License. For full terms see the included COPYING file.</p>
-
-<h2>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
-
-<p>The software can be compiled and installed from source using included <em>distutils</em> setup script. CPython 3.x, numpy and Open Inventor / Coin are required on the target system. The setup script is pre-configured for Coin on Windows and OS X. For other configurations the variables that point to the Inventor include and library paths as well as the library names may have to be adjusted.</p>
-
-<pre><code># Open Inventor paths and libraries:
-oivincpath = ''
-oivlibpath = ''
-oivlib = []
-</code></pre>
-
-<p>Afterwards calling the following command will first compile PyInventor and then copy the binaries into the site-packages directory.</p>
-
-<pre><code>python setup.py install
-</code></pre>
       </section>
     </div>
 
