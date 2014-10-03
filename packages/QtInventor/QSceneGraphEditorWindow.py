@@ -98,7 +98,7 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
 
     def open(self):
         """Open scene from file"""
-        filePath = QtGui.QFileDialog.getOpenFileName(self, 'Open', self._filePath, filter="Scene Graph (*.iv;*.wrl);;Autodesk 3D Studio (*.3ds)")[0]
+        filePath = QtGui.QFileDialog.getOpenFileName(self, 'Open', self._filePath, filter="Scene Graph (*.iv;*.wrl);;Autodesk 3D Studio (*.3ds);;STereoLithography (*.stl)")[0]
         if len(filePath):
             self.load(filePath)
 
