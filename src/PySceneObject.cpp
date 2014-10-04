@@ -18,6 +18,12 @@
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInteraction.h>
+
+#ifdef __COIN__
+#include <Inventor/annex/ForeignFiles/SoForeignFileKit.h>
+#endif
+
+
 #include <map>
 #include <string>
 
@@ -1229,6 +1235,25 @@ PyObject* PySceneObject::tp_getattro(Object* self, PyObject *attrname)
 	const char *fieldName = PyUnicode_AsUTF8(attrname);
 	if (self->inventorObject && fieldName)
 	{
+		#ifdef __COIN__
+		// special case for SoForeignFileKit: "convert" returns converted scene graph
+		if (self->inventorObject->isOfType(SoForeignFileKit::getClassTypeId()))
+		{
+			if  (SbString("convert") == fieldName)
+			{
+				SoNode *node = ((SoForeignFileKit*) self->inventorObject)->convert();
+				if (node)
+				{
+					PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
+					if (obj)
+					{
+						return obj;
+					}
+				}
+			}
+		}
+		#endif
+
 		SoField *field = self->inventorObject->getField(fieldName);
 		if (field)
 		{
@@ -1246,12 +1271,14 @@ PyObject* PySceneObject::tp_getattro(Object* self, PyObject *attrname)
 							return obj;
 						}
 					}
+
+					// part is NULL
+					Py_INCREF(Py_None);
+					return Py_None;
 				}
 			}
-			else
-			{
-				return getField(field);
-			}
+
+			return getField(field);
 		}
 	}
 
