@@ -1474,6 +1474,13 @@ int PySceneObject::mp_ass_subscript(Object *self, PyObject *key, PyObject *value
 		Py_ssize_t start, stop, step, slicelength;
 		if (PySlice_GetIndicesEx(key, mp_length(self), &start, &stop, &step, &slicelength) == 0)
 		{
+			Py_ssize_t index = 0;
+			Py_ssize_t removedChildren = 0;
+			for (Py_ssize_t i = start; (i != stop) && (index < slicelength); i += step)
+			{
+				PyObject *item = 0;
+				if (value)
+				{
 			if (!PySequence_Check(value))
 			{
 				PyErr_SetString(PyExc_TypeError, "must assign iterable to extended slice");
@@ -1488,10 +1495,13 @@ int PySceneObject::mp_ass_subscript(Object *self, PyObject *key, PyObject *value
 				return -1;
 			}
 
-			Py_ssize_t index = 0;
-			for (Py_ssize_t i = start; (i != stop) && (index < slicelength); i += step)
-			{
-				sq_ass_item(self, i, PySequence_GetItem(value, index++));
+					item = PySequence_GetItem(value, index++);
+				}
+
+				sq_ass_item(self, i - removedChildren, item);
+
+				if (!item)
+					removedChildren++;
 			}
 		}
 	}
