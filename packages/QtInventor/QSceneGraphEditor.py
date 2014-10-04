@@ -106,17 +106,26 @@ class QSceneGraphEditor(QtGui.QApplication):
         viewMenu.addAction(viewAllAction)
         viewMenu.addAction(viewManipAction)
 
-
+        file = "#Inventor V2.1 ascii\n\nSeparator { " \
+               "DirectionalLight {} OrthographicCamera { position 0 0 5 height 5 }" \
+               "TrackballManip {} Material { diffuseColor 1 0 0 }" \
+               "Cone {} }"
         if (len(self.arguments()) > 1) and ("." in self.arguments()[-1]):
-            # load scene from file if argument is given
-            self._editor.load(self.arguments()[-1])
-        else:
-            self._editor.load(
-                "#Inventor V2.1 ascii\n\nSeparator { "
-                "DirectionalLight {} OrthographicCamera { position 0 0 5 height 5 }"
-                "TrackballManip {} Material { diffuseColor 1 0 0 }"
-                "Cone {} }")
+            if self.arguments()[-1].rsplit('.', 1)[0].lower() in [ 'iv', 'vrml', '3ds', 'stl' ]:
+                file = self.arguments()[-1];
 
+        # load scene from file if argument is given
+        self._editor.load(file)
+
+    def addHorizontalWidget(self, widget):
+        """Adds a widget to the right side of the application."""
+        self._editor.addWidget(QtCore.Qt.Horizontal, widget)
+
+    def addVerticalWidget(self, widget):
+        """Adds a widget to the bottom of the application."""
+        self._editor.addWidget(QtCore.Qt.Vertical, widget)
+
+    def show(self):
+        """Makes the main application window visible."""
         self._mainWindow.show()
-
 

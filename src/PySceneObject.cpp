@@ -1481,19 +1481,19 @@ int PySceneObject::mp_ass_subscript(Object *self, PyObject *key, PyObject *value
 				PyObject *item = 0;
 				if (value)
 				{
-			if (!PySequence_Check(value))
-			{
-				PyErr_SetString(PyExc_TypeError, "must assign iterable to extended slice");
-				return -1;
-			}
+					if (!PySequence_Check(value))
+					{
+						PyErr_SetString(PyExc_TypeError, "must assign iterable to extended slice");
+						return -1;
+					}
 
-			if (PySequence_Size(value) != slicelength)
-			{
-				char errMsg[100];
-				sprintf(errMsg, "attempt to assign sequence of size %d to extended slice of size %d", (int) PySequence_Size(value), (int) slicelength);
-				PyErr_SetString(PyExc_ValueError, errMsg);
-				return -1;
-			}
+					if (PySequence_Size(value) != slicelength)
+					{
+						char errMsg[100];
+						sprintf(errMsg, "attempt to assign sequence of size %d to extended slice of size %d", (int) PySequence_Size(value), (int) slicelength);
+						PyErr_SetString(PyExc_ValueError, errMsg);
+						return -1;
+					}
 
 					item = PySequence_GetItem(value, index++);
 				}

@@ -18,4 +18,5 @@ from PyInventor.QtInventor import QSceneGraphEditor
 
 if __name__ == '__main__':
     app = QSceneGraphEditor(sys.argv)
+    app.show()
     sys.exit(app.exec_())

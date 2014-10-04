@@ -25,20 +25,25 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
         """Initializes widgets of scene graph editor"""
         QtGui.QWidget.__init__(self, parent)
         
+        self._root = iv.Separator()
         self._filePath = ""
         self.inspectorWidget = QInspectorWidget()
         self.previewWidget = QIVWidget(format=QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers))
         self.previewWidget.sceneManager.background = (0.3, 0.3, 0.3)
 
-        mainLayout = QtGui.QHBoxLayout()
+        mainLayout = QtGui.QVBoxLayout()
         mainLayout.setContentsMargins(2, 2, 0, 0)
         mainLayout.setSpacing(0)
 
-        horiSplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        horiSplitter.addWidget(self.inspectorWidget)
-        horiSplitter.addWidget(self.previewWidget)
+        self._horiSplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        self._horiSplitter.addWidget(self.inspectorWidget)
+        self._horiSplitter.addWidget(self.previewWidget)
         
-        mainLayout.addWidget(horiSplitter)
+        self._vertSplitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        self._vertSplitter.addWidget(self._horiSplitter)
+
+        mainLayout.addWidget(self._vertSplitter)
+
         self.setLayout(mainLayout)
         self.setWindowTitle(self.applicationTitle())
         
@@ -60,7 +65,9 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
     
     def load(self, file):
         """Load a scene from file or string"""
-        self._root = iv.read(file)
+        # keep root node instance and copy children instead so root variable in console stays valid
+        del self._root[:]
+        self._root += iv.read(file)[:]
         if self._root is not None:
             if file[0] is not '#':
                 self._filePath = file
@@ -117,3 +124,8 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
         """Set scene camera manipulation mode"""
         self.previewWidget.sceneManager.interaction(on)
 
+    def addWidget(self, orientation, widget):
+        if orientation is QtCore.Qt.Vertical:
+            self._vertSplitter.addWidget(widget)
+        elif orientation is QtCore.Qt.Horizontal:
+            self._horiSplitter.addWidget(widget)
