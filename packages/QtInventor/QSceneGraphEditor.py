@@ -73,6 +73,11 @@ class QSceneGraphEditor(QtGui.QApplication):
         deleteObjectAction.setStatusTip('Deletes currently selected scene object')
         deleteObjectAction.triggered.connect(self._editor.inspectorWidget.deleteObject)
 
+        refreshObjectAction = QtGui.QAction('&Refresh', self._mainWindow)
+        refreshObjectAction.setShortcut('F5')
+        refreshObjectAction.setStatusTip('Recreates tree view from root node')
+        refreshObjectAction.triggered.connect(self._editor.refresh)
+
         viewAllAction = QtGui.QAction('View &All', self._mainWindow)
         viewAllAction.setShortcut('Ctrl+A')
         viewAllAction.setStatusTip('Resets camera in scene so all object are visible')
@@ -101,6 +106,8 @@ class QSceneGraphEditor(QtGui.QApplication):
         objectsMenu.addAction(insertObjectAction)
         objectsMenu.addAction(appendObjectAction)
         objectsMenu.addAction(deleteObjectAction)
+        objectsMenu.addSeparator()
+        objectsMenu.addAction(refreshObjectAction)
     
         viewMenu = menubar.addMenu('&View')
         viewMenu.addAction(viewAllAction)

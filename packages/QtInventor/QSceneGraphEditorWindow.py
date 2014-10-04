@@ -54,14 +54,12 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
         self.idleTimer.timeout.connect(iv.process_queues)
         self.idleTimer.start()
 
-
     def applicationTitle(self):
         """Returns the default application title"""
         title = "Scene Graph Editor" 
         if len(self._filePath) > 0:
             title = self._filePath.split('/')[-1]
         return title
-
     
     def load(self, file):
         """Load a scene from file or string"""
@@ -75,19 +73,21 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
                 self._filePath = ""
 
             self.parent().setWindowTitle(self.applicationTitle())
-            viewRoot = iv.Separator()
-            self.previewWidget.sceneManager.scene = viewRoot
+            del self.previewWidget.sceneManager.scene[:]
+            resetCamera = False
 
             if (len(iv.search(self._root, type="DirectionalLight")) == 0):
-                viewRoot += iv.DirectionalLight()
+                self.previewWidget.sceneManager.scene += iv.DirectionalLight()
             if (len(iv.search(self._root, type="Camera")) == 0):
-                viewRoot += [ iv.OrthographicCamera(), self._root ]
+                self.previewWidget.sceneManager.scene += [ iv.OrthographicCamera(), self._root ]
+                resetCamera = True
+
+            self.previewWidget.sceneManager.scene += self._root
+
+            if resetCamera:
                 self.previewWidget.sceneManager.view_all()
-            else:
-                viewRoot += self._root
 
             self.inspectorWidget.attach(self._root)
-
 
     def save(self):
         """Save current scene to file"""
@@ -119,6 +119,9 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
                 "DirectionalLight {} OrthographicCamera { position 0 0 5 height 5 }"
                 "TrackballManip {} Material { diffuseColor 1 0 0 }"
                 "Cone {} }")
+
+    def refresh(self):
+        self.inspectorWidget.attach(self._root)
 
     def manip(self, on):
         """Set scene camera manipulation mode"""
