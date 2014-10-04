@@ -106,15 +106,45 @@ class QSceneGraphEditor(QtGui.QApplication):
         viewMenu.addAction(viewAllAction)
         viewMenu.addAction(viewManipAction)
 
+        if "--ipython" in self.arguments():
+            # start with IPython console at bottom of application
+            from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+            from IPython.qt.inprocess import QtInProcessKernelManager
+            from IPython.lib import guisupport
+            import inventor
+            
+            # Create an in-process kernel
+            kernel_manager = QtInProcessKernelManager()
+            kernel_manager.start_kernel()
+            kernel = kernel_manager.kernel
+            kernel.gui = 'qt4'
+            kernel.shell.push({'iv': inventor, 'root': self._editor._root, 'view': self._editor.previewWidget.sceneManager })
+
+            kernel_client = kernel_manager.client()
+            kernel_client.start_channels()
+
+            def stop():
+                kernel_client.stop_channels()
+                kernel_manager.shutdown_kernel()
+                self.exit()
+
+            control = RichIPythonWidget()
+            control.kernel_manager = kernel_manager
+            control.kernel_client = kernel_client
+            control.exit_requested.connect(stop)
+
+            self.addVerticalWidget(control)
+
+        # load default scene or from file if argument is given
         file = "#Inventor V2.1 ascii\n\nSeparator { " \
                "DirectionalLight {} OrthographicCamera { position 0 0 5 height 5 }" \
                "TrackballManip {} Material { diffuseColor 1 0 0 }" \
                "Cone {} }"
         if (len(self.arguments()) > 1) and ("." in self.arguments()[-1]):
-            if self.arguments()[-1].rsplit('.', 1)[0].lower() in [ 'iv', 'vrml', '3ds', 'stl' ]:
+            extension = self.arguments()[-1].split('.')[-1].lower()
+            if extension in [ 'iv', 'vrml', '3ds', 'stl' ]:
                 file = self.arguments()[-1];
 
-        # load scene from file if argument is given
         self._editor.load(file)
 
     def addHorizontalWidget(self, widget):
