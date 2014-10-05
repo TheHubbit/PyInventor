@@ -8,6 +8,12 @@ into PySide based applications, namely:
   graphs.
 - QInspectorWidget: Scene graph inspector showing the scene structure in
   a tree view and the fields of a node in a table view.
+
+Extension libraries that provide additional scene objects can be loaded
+by defining the IV_LIBS environment variable, which can contain names of
+dynamically loadable libraries separated by a semicolon. Those libraries
+need to define a function called initAllClasses() that register all scene
+objects in the global database.
 """
 
 from .QIVWidget import *

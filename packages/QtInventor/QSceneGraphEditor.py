@@ -24,6 +24,15 @@ class QSceneGraphEditor(QtGui.QApplication):
     
     This class creates an instance of QSceneGraphEditorWindow as main window
     and links menu entries to it.
+
+    With the --ipython command line option an interactive shell is opened at the
+    bottom of the scene graph editor application. In this shell the scene can be
+    analyzed or edited programmatically. The following variables are added to the
+    shell environment:
+    - iv: Interface module to access Inventor functions
+    - root: Root node of currently loaded scene graph
+    - view: Instance of SceneManager driving the render viewport
+
     """
 
     def __init__(self, args):
