@@ -9,6 +9,7 @@
 <div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>
 <h1>PyInventor.QtInventor</h1><p><em>module     PyInventor.QtInventor - Helper classes for creating 3D applications with PySide.</em></p>
 
+<p />
 PySide is a binding to the Qt cross-platform application framework. This
 package contains helper classes that integrate Open Inventor / Coin3D
 into PySide based applications, namely:
@@ -21,6 +22,13 @@ Scene graph inspector showing the scene structure in
 a tree view and the fields of a node in a table view.
 
 </ul>
+Extension libraries that provide additional scene objects can be loaded
+by defining the IV_LIBS environment variable, which can contain names of
+dynamically loadable libraries separated by a semicolon. Those libraries
+need to define a function called initAllClasses() that register all scene
+objects in the global database.
+
+<p />
 <h2>Package contents:</h2><ul>
 <li><a href='PyInventor.QtInventor.QIVWidget.html'>    QIVWidget</a>
 <li><a href='PyInventor.QtInventor.QInspectorWidget.html'>    QInspectorWidget</a>
@@ -28,7 +36,9 @@ a tree view and the fields of a node in a table view.
 <li><a href='PyInventor.QtInventor.QSceneGraphEditorWindow.html'>    QSceneGraphEditorWindow</a>
 </ul>
 
+<p />
 
+<p />
 </div>
 <div id='footer_wrap' class='outer'><footer class='inner'>
 <p class='copyright'>PyInventor maintained by <a href='https://github.com/TheHubbit'>TheHubbit</a></p>

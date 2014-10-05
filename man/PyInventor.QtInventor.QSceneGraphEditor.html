@@ -10,14 +10,30 @@
 <h1>PyInventor.QtInventor.QSceneGraphEditor</h1><p><em>class QSceneGraphEditor(PySide.QtGui.QApplication)</em></p>
 Application class for a scene graph editor.
 
+<p />
 This application renders scene graph files and displays the scene strcuture
 in a tree view. It furthermore shows the properties (fields) of the scene
 objects in a table view. The structure as well as the fields can be modified
 and changes saved back to file.
 
+<p />
 This class creates an instance of QSceneGraphEditorWindow as main window
 and links menu entries to it.
 
+<p />
+With the --ipython command line option an interactive shell is opened at the
+bottom of the scene graph editor application. In this shell the scene can be
+analyzed or edited programmatically. The following variables are added to the
+shell environment:
+<ul>
+<li>iv:
+Interface module to access Inventor functions
+<li>root:
+Root node of currently loaded scene graph
+<li>view:
+Instance of SceneManager driving the render viewport
+
+</ul>
 <p><em>Method resolution order:</em></p><ul>
 <li>QSceneGraphEditor
 <li><a href='http://srinikom.github.io/pyside-docs/PySide/QtGui/QApplication'>PySide.QtGui.QApplication</a>
@@ -26,9 +42,25 @@ and links menu entries to it.
 <li>Shiboken.Object
 <li>builtins.object
 </ul>
+<h2> Methods defined here:</h2>
+<h3>addHorizontalWidget(self, widget)</h3>
+Adds a widget to the right side of the application.
 
+<p />
+<h3>addVerticalWidget(self, widget)</h3>
+Adds a widget to the bottom of the application.
+
+<p />
+<h3>show(self)</h3>
+Makes the main application window visible.
+
+<p />
+
+<br />
 <h2> Data and other attributes defined here:</h2>
 staticMetaObject = PySide.QtCore.QMetaObject object<br />
+<br />
+<p />
 
 </div>
 <div id='footer_wrap' class='outer'><footer class='inner'>

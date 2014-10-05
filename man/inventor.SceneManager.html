@@ -10,14 +10,17 @@
 <h1>inventor.SceneManager</h1><p><em>class SceneManager(object)</em></p>
 Handles the display and interactions with scene graphs.
 
+<p />
 Scene manager instances are used in an application to attach scene
 graphs to OpenGL windows for display and user interaction (using
 GLUT for example).
 
+<p />
 <h2> Methods defined here:</h2>
 <h3>interaction(...)</h3>
 Sets the mouse interaction mode.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Interaction mode (0 = SCENE, 1 = CAMERA). By default all events
@@ -25,23 +28,28 @@ are forwarded to the scene graph for processing. Setting the mode
 to 1 allows rotating the camera around the focal point and zooming
 with the scroll wheel.
 
+<p />
 </ul>
 <h3>key(...)</h3>
 Sends keyboard event into the scene for processing.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Pressed keyboard character.
 
+<p />
 </ul>
 <p><em>Note:</em></p>
 <ul>
 Pass this function to glutKeyboardFunc() in GLUT applications.
 
+<p />
 </ul>
 <h3>mouse_button(...)</h3>
 Sends mouse button event into the scene for processing.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 <li>button: Button index (0 = left, 1 = middle, 2 = right).
@@ -54,10 +62,12 @@ Sends mouse button event into the scene for processing.
 <ul>
 Pass this function to glutMouseFunc() in GLUT applications.
 
+<p />
 </ul>
 <h3>mouse_move(...)</h3>
 Sends mouse move event into the scene for processing.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 <li>x, y: Mouse position in pixel viewport coordinates.
@@ -68,46 +78,64 @@ Sends mouse move event into the scene for processing.
 <ul>
 Pass this function to glutMotionFunc() in GLUT applications.
 
+<p />
 </ul>
 <h3>render(...)</h3>
 Renders the scene into an OpenGL context.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Optionally two boolean flags can be passed as arguments indicating
 if color and depth buffer should be cleared before rendering the
 scene.
 
+<p />
 </ul>
 <h3>resize(...)</h3>
 Sets the window size.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Window width and height in pixel.
 
+<p />
 </ul>
 <h3>view_all(...)</h3>
 Initializes camera so that the entire scene is visible.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Optionally a node can be passed as argument instead of using the
 scene managers graph.
 
+<p />
 
 </ul>
+<br />
 <h2> Data descriptors defined here:</h2>
 <h3>background</h3>
 Background color.
+<br />
+<p />
 <h3>redisplay</h3>
 Render callback object.
+<br />
+<p />
 The render callback object is invoked whenever the managed scene graph
 changes and needs to be re-rendered. When using GLUT for example, it
 should be set to glutPostRedisplay.
+<br />
+<p />
 <h3>scene</h3>
 Scene graph root node.
+<br />
+<p />
 
+<br />
+<br />
 </div>
 <div id='footer_wrap' class='outer'><footer class='inner'>
 <p class='copyright'>PyInventor maintained by <a href='https://github.com/TheHubbit'>TheHubbit</a></p>

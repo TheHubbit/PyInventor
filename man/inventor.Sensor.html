@@ -10,13 +10,16 @@
 <h1>inventor.Sensor</h1><p><em>class Sensor(object)</em></p>
 Represents node, field, timer and alarm sensors.
 
+<p />
 Sensors can be used to observe changes in scene graphs or to trigger actions
 at given times.
 
+<p />
 <h2> Methods defined here:</h2>
 <h3>attach(...)</h3>
 Attaches sensor to node or field.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 If only a Node instance is given then the sensor triggers on any
@@ -24,47 +27,64 @@ change of that node or children. If both a scene object instance
 and a field name are passed, the sensor triggers on field changes
 only.
 
+<p />
 </ul>
 <h3>detach(...)</h3>
 Deactivates a sensor.
 
+<p />
 <h3>isscheduled(...)</h3>
 Returns scheduled state of the sensor.
 
+<p />
 <p><em>Returns:</em></p>
 <ul>
 True is sensor is currently scheduled, otherwise False.
 
+<p />
 </ul>
 <h3>schedule(...)</h3>
 Schedules a timer sensor.
 
+<p />
 <h3>setinterval(...)</h3>
 Sets up a timer sensor with a regular interval.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Timer interval in milliseconds.
 
+<p />
 </ul>
 <h3>settime(...)</h3>
 Sets up an alarm sensor that is trigegred at a given time from now.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Timer from now in milliseconds when the sensor will be triggered.
 
+<p />
 </ul>
 <h3>unschedule(...)</h3>
 Unschedules a timer sensor.
 
+<p />
 
+<br />
 <h2> Data descriptors defined here:</h2>
 <h3>callback</h3>
 Sensor callback function.
+<br />
+<p />
 An object can be assigned to that property which is called when a
 sensor is triggered.
+<br />
+<p />
 
+<br />
+<br />
 </div>
 <div id='footer_wrap' class='outer'><footer class='inner'>
 <p class='copyright'>PyInventor maintained by <a href='https://github.com/TheHubbit'>TheHubbit</a></p>

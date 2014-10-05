@@ -10,27 +10,33 @@
 <h1>inventor.FieldContainer</h1><p><em>class FieldContainer(object)</em></p>
 Base class for scene objects of type SoFieldContainer.
 
+<p />
 All field values and node kit parts are dynamically added as class
 attributes. Please refer to the Open Inventor documentation for the
 fields of each scene object type.
 
+<p />
 <h2> Methods defined here:</h2>
 <h3>check_type(...)</h3>
 Checks if a scene object is derived form a given type.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Name of type to check for as string.
 
+<p />
 </ul>
 <p><em>Returns:</em></p>
 <ul>
 True if the instance is derived from the given type.
 
+<p />
 </ul>
 <h3>connect(...)</h3>
 Connects a field from another field or engine output.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 <li>toField: Field name of this instance that will be conntected.
@@ -43,6 +49,7 @@ toField.
 <h3>disconnect(...)</h3>
 Disconnects any incoming connection from a field.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 <li>field: Field name of field to be disconnected.
@@ -52,15 +59,18 @@ Disconnects any incoming connection from a field.
 <h3>enable_notify(...)</h3>
 Enables or disables change notifications for a scene object.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Boolean value indicating if notifications are enabled (True)
 or not (False).
 
+<p />
 </ul>
 <h3>get(...)</h3>
 Returns a field or part by name.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 <li>name: Field or part name to be returned.
@@ -75,35 +85,43 @@ exist yet.
 Field or node kit part if name is given. If no name is passed all
 field values are returned as string.
 
+<p />
 </ul>
 <h3>getfields(...)</h3>
 Return the names and types of this container's fields.
 
+<p />
 <p><em>Returns:</em></p>
 <ul>
 List of tuples with name and type for each field of this field
 container instance.
 
+<p />
 </ul>
 <h3>getname(...)</h3>
 Returns the instance name of a scene object.
 
+<p />
 <p><em>Returns:</em></p>
 <ul>
 String containing scene object name.
 
+<p />
 </ul>
 <h3>internal_pointer(...)</h3>
 Return the internal field container pointer.
 
+<p />
 <p><em>Returns:</em></p>
 <ul>
 Internal pointer to field container instance.
 
+<p />
 </ul>
 <h3>isconnected(...)</h3>
 Returns if a field has an incomming connection.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 <li>field: Field name whose conntection state will be checked.
@@ -115,35 +133,45 @@ Returns if a field has an incomming connection.
 True is the field field has an incoming connection from another
 field or engine output.
 
+<p />
 </ul>
 <h3>set(...)</h3>
 Initializes fields or parts of a node kit.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Initialization string containing field names and values.
 
+<p />
 </ul>
 <h3>setname(...)</h3>
 Sets the instance name of a scene object.
 
+<p />
 <p><em>Args:</em></p>
 <ul>
 Name for scene object instance.
 
+<p />
 </ul>
 <h3>sotype(...)</h3>
 Return the type name of a scene object.
 
+<p />
 <p><em>Returns:</em></p>
 <ul>
 String containing scene object type.
 
+<p />
 </ul>
 <h3>touch(...)</h3>
 Marks a scene object as modified.
 
+<p />
 
+<br />
+<br />
 </div>
 <div id='footer_wrap' class='outer'><footer class='inner'>
 <p class='copyright'>PyInventor maintained by <a href='https://github.com/TheHubbit'>TheHubbit</a></p>
