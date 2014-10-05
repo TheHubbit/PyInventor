@@ -29,7 +29,7 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
         self._filePath = ""
         self.inspectorWidget = QInspectorWidget()
         self.previewWidget = QIVWidget(format=QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers))
-        self.previewWidget.sceneManager.background = (0.3, 0.3, 0.3)
+        self.previewWidget.sceneManager.background = ((0.7, 0.7, 0.8), (0.0, 0.1, 0.3))
 
         mainLayout = QtGui.QVBoxLayout()
         mainLayout.setContentsMargins(2, 2, 0, 0)
