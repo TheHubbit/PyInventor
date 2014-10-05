@@ -18,6 +18,8 @@
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInteraction.h>
+#include <Inventor/errors/SoErrors.h>
+
 
 #ifdef __COIN__
 #include <Inventor/annex/ForeignFiles/SoForeignFileKit.h>
@@ -124,6 +126,41 @@ void __declspec( dllimport ) PRESODBINIT();
 			memcpy(data + (i * n), ((SoMF ## t *) f)->getValues(i)->getValue(), n * sizeof(float)); \
 		return PyArray_Return(arr); \
 	}
+
+
+// reports all Inventor errors with PyErr_SetString()
+static void inventorErrorCallback(const SoError *error, void *data)
+{
+	SbString str = error->getDebugString();
+
+	int trim = str.getLength();
+	while ((trim > 0) && strchr(" \t\n\r", str[trim - 1]))
+		trim--;
+
+	if (trim < str.getLength())
+		str.deleteSubString(trim);
+
+	if (error->isOfType(SoDebugError::getClassTypeId()))
+	{
+		switch (((SoDebugError*) error)->getSeverity())
+		{
+		case SoDebugError::INFO:	return; // not an error: don't report
+		case SoDebugError::WARNING:	PyErr_SetString(PyExc_Warning, str.getString()); return;
+		}
+
+		PyErr_SetString(PyExc_AssertionError, str.getString());
+	}
+	else if (error->isOfType(SoMemoryError::getClassTypeId()))
+	{
+		PyErr_SetString(PyExc_MemoryError, str.getString());
+	}
+	else if (error->isOfType(SoReadError::getClassTypeId()))
+	{
+		PyErr_SetString(PyExc_SyntaxError, str.getString());
+	}
+
+	PyErr_SetString(PyExc_Exception, str.getString());
+}
 
 
 PyTypeObject *PySceneObject::getFieldContainerType()
@@ -545,6 +582,12 @@ void PySceneObject::initSoDB()
 #endif
 		// VSG inventor performs HW check in first call to SoGLRenderAction
 		SoGLRenderAction aR(SbViewportRegion(1, 1));
+
+		// register callbacks to report them Python interface
+		SoError::setHandlerCallback(inventorErrorCallback, 0);
+		SoDebugError::setHandlerCallback(inventorErrorCallback, 0);
+		SoMemoryError::setHandlerCallback(inventorErrorCallback, 0);
+		SoReadError::setHandlerCallback(inventorErrorCallback, 0);
 	}
 }
 
