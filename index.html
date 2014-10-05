@@ -44,40 +44,14 @@
 <li>Compatible with Python 3</li>
 <li>Provide useful tools for 3D graphics programming such as a scene graph editor</li>
 </ul><h2>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+<a name="get-started" class="anchor" href="#get-started"><span class="octicon octicon-link"></span></a>Get Started</h2>
 
-<p>The software can be compiled and installed from source using included <em>distutils</em> setup script. Python 3.x, PyOpenGL, PySide, numpy and Open Inventor / Coin are required on the target system. The setup script is pre-configured for Coin on Windows and OS X. Adaptations to the following variables defined in setup.py might be necessary for other configurations.</p>
-
-<pre><code># Open Inventor paths and libraries:
-oivincpath = ''
-oivlibpath = ''
-oivlib = []
-</code></pre>
-
-<p>To compile and install PyInventor call:</p>
-
-<pre><code>python setup.py install [--static]
-</code></pre>
+<p>Programmers can use PyInventor to create rich, interactive 3D applications using the <a href="https://www.python.org/">Python</a> scripting language. Others may find the included scene graph viewer / editor application useful as it allows the creation of 3D objects and scenes without the requiring programming skills.</p>
 
 <h3>
-<a name="mac-os-x" class="anchor" href="#mac-os-x"><span class="octicon octicon-link"></span></a>Mac OS X</h3>
+<a name="programming-with-pyinventor" class="anchor" href="#programming-with-pyinventor"><span class="octicon octicon-link"></span></a>Programming with PyInventor</h3>
 
-<p>For Mac systems I recommend installing Python 3.x and the required packages via <a href="http://guide.macports.org/chunked/introduction.html">MacPorts</a> as it is straightforward and does not interfere with the Python 2.x installation that comes bundled with OS X.</p>
-
-<h3>
-<a name="windows-64-bit" class="anchor" href="#windows-64-bit"><span class="octicon octicon-link"></span></a>Windows (64 bit)</h3>
-
-<p>Alternatively to installing the module from source, there is also a binary <a href="dist/PyInventor-1.0.win-amd64-py3.4.exe">installation package</a> available for Windows. The prerequisites and of course PyInventor itself can be installed with the following downloadable packages:</p>
-
-<ul>
-<li><a href="https://www.python.org/downloads/release/python-341/">Python 3.4</a></li>
-<li><a href="http://www.lfd.uci.edu/%7Egohlke/pythonlibs/#scipy-stack">Scipy Stack</a></li>
-<li><a href="http://www.lfd.uci.edu/%7Egohlke/pythonlibs/#pyopengl">PyOpenGL</a></li>
-<li><a href="dist/PyInventor-1.0.win-amd64-py3.4.exe">PyInventor</a></li>
-</ul><h2>
-<a name="using-the-module" class="anchor" href="#using-the-module"><span class="octicon octicon-link"></span></a>Using the Module</h2>
-
-<p>For an overview on how to use it please visit the <a href="https://github.com/TheHubbit/PyInventor/wiki">wiki</a> where you can find a <a href="https://github.com/TheHubbit/PyInventor/wiki/Using-PyInventor">getting started guide</a> and <a href="https://github.com/TheHubbit/PyInventor/wiki/PyInventor-Examples">examples</a>.</p>
+<p>For an overview on how to create applications with PyInventor please visit the <a href="https://github.com/TheHubbit/PyInventor/wiki">wiki</a> where you can find a <a href="https://github.com/TheHubbit/PyInventor/wiki/Using-PyInventor">getting started guide</a> and <a href="https://github.com/TheHubbit/PyInventor/wiki/PyInventor-Examples">examples</a>.</p>
 
 <p><img src="images/PyInventorExamples.png?raw=true" alt="Preview"></p>
 
@@ -85,8 +59,8 @@ oivlib = []
 
 <p>For documentation on the 3D graphics toolkit itself please refer to the Coin <a href="http://coin3d.bitbucket.org/Coin/index.html">documentation</a>.</p>
 
-<h2>
-<a name="scene-graph-editor" class="anchor" href="#scene-graph-editor"><span class="octicon octicon-link"></span></a>Scene Graph Editor</h2>
+<h3>
+<a name="scene-graph-editor" class="anchor" href="#scene-graph-editor"><span class="octicon octicon-link"></span></a>Scene Graph Editor</h3>
 
 <p>The included Scene Graph Editor application can render scene graph files (Inventor, VRML, 3D Studio, STL) and show their structure in a tree view. It furthermore allows adding, removing or rearranging nodes within the scene graph as well as editing of field values, immediately making those changes visible in the viewport.</p>
 
@@ -109,6 +83,37 @@ oivlib = []
 <p><img src="images/SceneGraphEditor.png?raw=true" alt="Scene Graph Editor"></p>
 
 <h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>The software can be compiled and installed from source using included <em>distutils</em> setup script. Python 3.x, PyOpenGL, PySide, numpy and Open Inventor / Coin are required on the target system. The setup script is pre-configured for Coin on Windows and OS X. Adaptations to the following variables defined in setup.py might be necessary for other configurations.</p>
+
+<pre><code># Open Inventor paths and libraries:
+oivincpath = ''
+oivlibpath = ''
+oivlib = []
+</code></pre>
+
+<p>To compile and install PyInventor, call:</p>
+
+<pre><code>python setup.py install [--static]
+</code></pre>
+
+<h3>
+<a name="mac-os-x" class="anchor" href="#mac-os-x"><span class="octicon octicon-link"></span></a>Mac OS X</h3>
+
+<p>For Mac systems I recommend installing Python 3.x and the required packages via <a href="http://guide.macports.org/chunked/introduction.html">MacPorts</a> as it is straightforward and does not interfere with the Python 2.x installation that comes bundled with OS X.</p>
+
+<h3>
+<a name="windows-64-bit" class="anchor" href="#windows-64-bit"><span class="octicon octicon-link"></span></a>Windows (64 bit)</h3>
+
+<p>Alternatively to installing the module from source, there is also a binary <a href="dist/PyInventor-1.0.win-amd64-py3.4.exe">installation package</a> available for Windows. The prerequisites and of course PyInventor itself can be installed with the following downloadable packages:</p>
+
+<ul>
+<li><a href="https://www.python.org/downloads/release/python-341/">Python 3.4</a></li>
+<li><a href="http://www.lfd.uci.edu/%7Egohlke/pythonlibs/#scipy-stack">Scipy Stack</a></li>
+<li><a href="http://www.lfd.uci.edu/%7Egohlke/pythonlibs/#pyopengl">PyOpenGL</a></li>
+<li><a href="dist/PyInventor-1.0.win-amd64-py3.4.exe">PyInventor</a></li>
+</ul><h2>
 <a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
 
 <p>PyInventor is distributed under the <a href="http://opensource.org/licenses/BSD-3-Clause">BSD 3-Clause License</a>. For full terms see the included <a href="https://raw.githubusercontent.com/TheHubbit/PyInventor/master/COPYING">COPYING</a> file.</p>
