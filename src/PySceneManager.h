@@ -16,6 +16,7 @@
 #include <Inventor/nodes/SoCamera.h>
 
 class SoSceneManager;
+class SoSeparator;
 class SbSphereSheetProjector;
 class SoEvent;
 
@@ -27,7 +28,8 @@ class PySceneManager
 {
 public:
 	static PyTypeObject *getType();
-	static bool getScene(PyObject* self, PyObject *&scene_out, int &viewportWidth_out, int &viewportHeight_out, SbColor &backgroundColor_out);
+	static bool getScene(PyObject* self, PyObject *&scene_out, int &viewportWidth_out, int &viewportHeight_out, SbColor &backgroundColor_out, SoSeparator **backgroundScene_out = 0);
+	static SbBool getBackgroundFromObject(PyObject *object, SbColor &color_out, SoSeparator **scene_inout);
 
 private:
 	typedef struct 
@@ -35,6 +37,7 @@ private:
 		PyObject_HEAD
 		SoSceneManager *sceneManager;
 		SbSphereSheetProjector *sphereSheetProjector;
+		SoSeparator *gradientBackground;
 		PyObject *scene;
 		PyObject *renderCallback;
 		PyObject *backgroundColor;

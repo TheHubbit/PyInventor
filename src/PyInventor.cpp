@@ -16,6 +16,7 @@
 #include <Inventor/actions/SoRayPickAction.h>
 #include <Inventor/SoPickedPoint.h>
 #include <Inventor/actions/SoWriteAction.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/SoInput.h>
 #include <Inventor/SoOffscreenRenderer.h>
@@ -414,8 +415,9 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 		// if scene manager then use scene node and viewport size from there if undefined
 		int vpWidth = -1, vpHeight = -1;
 		SbColor backgroundColor(0, 0, 0);
+		SoSeparator *gradientBackground = 0;
 
-		PySceneManager::getScene(applyTo, applyTo, vpWidth, vpHeight, backgroundColor);
+		PySceneManager::getScene(applyTo, applyTo, vpWidth, vpHeight, backgroundColor, &gradientBackground);
 
 		if (width < 0) width = vpWidth;
 		if (width < 0) width = 512;
@@ -449,31 +451,22 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 				}
 
 				// configure background color
-				if (background && PySequence_Check(background))
-				{
-					PyObject *seq = PySequence_Fast(background, "expected a sequence");
-					size_t n = PySequence_Size(seq);
-					if (n == 3)
-					{
-						for (int i = 0; i < 3; ++i)
-						{
-							PyObject *seqItem = PySequence_GetItem(seq, i);
-							if (seqItem)
-							{
-								if (PyFloat_Check(seqItem))
-									backgroundColor[i] = (float) PyFloat_AsDouble(seqItem);
-								else if (PyLong_Check(seqItem))
-									backgroundColor[i] = (float) PyLong_AsDouble(seqItem);
-							}
-						}
-					}
-					Py_XDECREF(seq);
-				}
+				PySceneManager::getBackgroundFromObject(background, backgroundColor, &gradientBackground);
 				offscreenRenderer->setBackgroundColor(backgroundColor);
+				if (gradientBackground)
+				{
+					gradientBackground->addChild((SoNode*) sceneObj->inventorObject);
+				}
 
 				// render scene
-				if (offscreenRenderer->render((SoNode*) sceneObj->inventorObject))
+				if (offscreenRenderer->render(gradientBackground ? gradientBackground : (SoNode*) sceneObj->inventorObject))
 				{
+					if (gradientBackground)
+					{
+						gradientBackground->unref();
+						gradientBackground = 0;
+					}
+
 					if (file)
 					{
 						// save to file
@@ -514,6 +507,12 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 					}
 				}
 			}
+		}
+
+		if (gradientBackground)
+		{
+			gradientBackground->unref();
+			gradientBackground = 0;
 		}
 	}
 

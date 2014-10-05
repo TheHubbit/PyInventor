@@ -15,10 +15,12 @@
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoKeyboardEvent.h>
 #include <Inventor/nodes/SoNode.h>
+#include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/engines/SoEngine.h>
 #include <Inventor/elements/SoGLLazyElement.h> // for GL.h, whose location is distribution specific under system/ or sys/
-#include <Inventor/fields/SoSFColor.h>
+#include <Inventor/fields/SoMFColor.h>
 #include <Inventor/actions/SoSearchAction.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/projectors/SbSphereSheetProjector.h>
 #include <Inventor/SoDB.h>
 
@@ -201,6 +203,12 @@ void PySceneManager::tp_dealloc(Object* self)
 		self->sphereSheetProjector = 0;
 	}
 
+	if (self->gradientBackground)
+	{
+		self->gradientBackground->unref();
+		self->gradientBackground = 0;
+	}
+
 	SOGLCONTEXT_UNREF(self->context);
 
 	Py_XDECREF(self->scene);
@@ -221,6 +229,7 @@ PyObject* PySceneManager::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObjec
 		self->renderCallback = 0;
 		self->sceneManager = 0;
 		self->sphereSheetProjector = 0;
+		self->gradientBackground = 0;
 		self->context = 0;
 		self->manipMode = Object::SCENE;
 		self->isManipulating = false;
@@ -260,29 +269,14 @@ int PySceneManager::tp_init(Object *self, PyObject *args, PyObject *kwds)
 	self->renderCallback = Py_None;
 
     // configure background color
-	if (background && PySequence_Check(background))
+	if (background)
 	{
-		PyObject *seq = PySequence_Fast(background, "expected a sequence");
-		size_t n = PySequence_Size(seq);
-        if (n == 3)
-        {
-            SbColor color(0, 0, 0);
-            for (int i = 0; i < 3; ++i)
-            {
-                PyObject *seqItem = PySequence_GetItem(seq, i);
-                if (seqItem)
-                {
-                    if (PyFloat_Check(seqItem))
-                        color[i] = (float) PyFloat_AsDouble(seqItem);
-                    else if (PyLong_Check(seqItem))
-                        color[i] = (float) PyLong_AsDouble(seqItem);
-                }
-            }
-            if (self->sceneManager)
-                self->sceneManager->setBackgroundColor(color);
-        }
-        
-		Py_XDECREF(seq);
+		SbColor color;
+		if (getBackgroundFromObject(background, color, &self->gradientBackground))
+		{
+			self->sceneManager->setBackgroundColor(color);
+            self->sceneManager->scheduleRedraw();
+		}
 	}
     
 	return 0;
@@ -318,13 +312,12 @@ int PySceneManager::tp_setattro(Object* self, PyObject *attrname, PyObject *valu
 	}
 	else if (attr && (strcmp(attr, "background") == 0))
 	{
-        SoSFColor tmp;
-        tmp.setValue(SbColor(0, 0, 0));
-        if (PySceneObject::setField(&tmp, value) == 0)
-        {
-            self->sceneManager->setBackgroundColor(tmp.getValue());
+		SbColor color;
+		if (getBackgroundFromObject(value, color, &self->gradientBackground))
+		{
+			self->sceneManager->setBackgroundColor(color);
             self->sceneManager->scheduleRedraw();
-        }
+		}
     }
 
 	return result;
@@ -353,7 +346,13 @@ PyObject* PySceneManager::render(Object *self, PyObject *args)
         SOGLCONTEXT_CREATE(self->context);
         SOGLCONTEXT_BIND(self->context);
 
-        self->sceneManager->render(clearColor ? TRUE : FALSE, clearZ ? TRUE : FALSE);
+		if (clearColor && self->gradientBackground && self->sceneManager->getGLRenderAction())
+		{
+			self->sceneManager->getGLRenderAction()->apply(self->gradientBackground);
+			clearColor = false;
+		}
+
+		self->sceneManager->render(clearColor ? TRUE : FALSE, clearZ ? TRUE : FALSE);
         
         // need to flush or nothing will be shown on OS X
         glFlush();
@@ -635,7 +634,7 @@ PyObject* PySceneManager::interaction(Object *self, PyObject *args)
 }
 
 
-bool PySceneManager::getScene(PyObject* self, PyObject *&scene_out, int &viewportWidth_out, int &viewportHeight_out, SbColor &backgroundColor_out)
+bool PySceneManager::getScene(PyObject* self, PyObject *&scene_out, int &viewportWidth_out, int &viewportHeight_out, SbColor &backgroundColor_out, SoSeparator **backgroundScene_out)
 {
 	if (PyObject_TypeCheck(self, PySceneManager::getType()))
 	{
@@ -649,10 +648,90 @@ bool PySceneManager::getScene(PyObject* self, PyObject *&scene_out, int &viewpor
 			viewportHeight_out = size[0];
 			backgroundColor_out = sm->sceneManager->getBackgroundColor();
 
+			if (backgroundScene_out)
+			{
+				if (*backgroundScene_out)
+				{
+					(*backgroundScene_out)->unref();
+					*backgroundScene_out = 0;
+				}
+
+				if (sm->gradientBackground)
+				{
+					*backgroundScene_out = sm->gradientBackground;
+					(*backgroundScene_out)->ref();
+				}
+			}
+
 			return true;
 		}
 	}
 
 	return false;
+}
+
+
+// returns background color or background gradient graph based first argument
+SbBool PySceneManager::getBackgroundFromObject(PyObject *object, SbColor &color_out, SoSeparator **scene_inout)
+{
+	if (!object)
+		return FALSE;
+
+    SoMFColor tmp;
+    tmp.setNum(0);
+    if (PySceneObject::setField(&tmp, object) == 0)
+    {
+		color_out = SbColor(0, 0, 0);
+
+		if (*scene_inout)
+		{
+			(*scene_inout)->unref();
+			*scene_inout = 0;
+		}
+
+		if (tmp.getNum() > 0)
+		{
+			color_out = *tmp.getValues(0);
+
+			// gradient background
+			if (tmp.getNum() == 2)
+			{
+				SbColor c0 = tmp.getValues(0)[0];
+				SbColor c1 = tmp.getValues(0)[1];
+				tmp.set1Value(1, c0);
+				tmp.set1Value(2, c1);
+				tmp.set1Value(3, c1);
+				SbString colorStr;
+				tmp.get(colorStr);
+
+				SbString bgScene(
+					"#Inventor V2.1 ascii\n"
+					"Separator {\n"
+					" Separator {\n"
+					"  DirectionalLight { }\n"
+					"  OrthographicCamera { viewportMapping LEAVE_ALONE }\n"
+					"  LightModel { model BASE_COLOR }\n"
+					"  BaseColor { rgb ");
+				bgScene += colorStr;
+				bgScene += " }\n"
+					"  MaterialBinding { value PER_VERTEX }\n"
+					"  DepthBuffer { test FALSE write FALSE }\n"
+					"  Coordinate3 { point [ -1 -1 0, 1 -1 0, 1 1 0, -1 1 0 ] }\n"
+					"  FaceSet { }\n"
+					" }\n"
+					"}\n";
+
+				SoInput in;
+				in.setBuffer(bgScene.getString(), bgScene.getLength());
+				*scene_inout = SoDB::readAll(&in);
+				if (*scene_inout)
+					(*scene_inout)->ref();
+			}
+		}
+
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
