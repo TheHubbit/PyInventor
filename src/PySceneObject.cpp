@@ -861,6 +861,18 @@ PyObject *PySceneObject::getField(SoField *field)
         Py_INCREF(Py_None);
         return Py_None;
 	}
+	else if (field->isOfType(SoMFNode::getClassTypeId()))
+	{
+        SoMFNode *nodeField = (SoMFNode*) field;
+		PyObject *result = PyList_New(nodeField->getNum());
+		for (Py_ssize_t i = 0; i < nodeField->getNum(); ++i)
+		{
+			SoNode *node = (SoNode*) *nodeField->getValues(i);
+			PyList_SetItem(result, i, createWrapper(node->getTypeId().getName().getString(), node));
+		}
+
+		return result;
+	}
 	else if (field->isOfType(SoSFMatrix::getClassTypeId()))
 	{
         // special case for single matrix: return as [4][4] rather than [16]
@@ -1008,6 +1020,35 @@ int PySceneObject::setField(SoField *field, PyObject *value)
         {
             nodeField->setValue(0);
         }
+	}
+	else if (field->isOfType(SoMFNode::getClassTypeId()))
+	{
+        SoMFNode *nodeField = (SoMFNode*) field;
+        if (PyNode_Check(value))
+		{
+			Object *child = (Object *) value;
+			if (child->inventorObject && child->inventorObject->isOfType(SoNode::getClassTypeId()))
+			{
+                nodeField->setValue((SoNode*) child->inventorObject);
+			}
+		}
+        else
+		{
+			PyObject *seq = PySequence_Fast(value, "expected a sequence");
+			size_t n = PySequence_Size(seq);
+			nodeField->setNum(n);
+			for (size_t i = 0; i < n; ++i)
+			{
+				PyObject *seqItem = PySequence_GetItem(seq, i);
+				if (seqItem && PyNode_Check(seqItem))
+				{
+					Object *child = (Object *) seqItem;
+	                nodeField->set1Value(i, (SoNode*) child->inventorObject);
+				}
+			}
+
+			Py_XDECREF(seq);
+		}
 	}
 	else if (field->isOfType(SoSFString::getClassTypeId()))
 	{
