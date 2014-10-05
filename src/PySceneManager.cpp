@@ -69,7 +69,8 @@ PyTypeObject *PySceneManager::getType()
             "should be set to glutPostRedisplay.\n"
         },
 		{"background", T_OBJECT_EX, offsetof(Object, backgroundColor), 0,
-            "Background color."
+            "Background color. Also two colors can be given thereby creating a\n"
+			"gradient background.\n"
         },
 		{NULL}  /* Sentinel */
 	};
