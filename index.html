@@ -39,7 +39,7 @@
 <li>Enable the creation, modification and viewing of scene graphs in Python</li>
 <li>Offer a flexible yet easy to use "Python-like" interface to Open Inventor</li>
 <li>Support of Open Inventor extensions without introducing compile time dependencies</li>
-<li>Platform independent and compatible with all major implementations (<a href="https://bitbucket.org/Coin3D/coin/wiki/Home">Coin3D</a>, <a href="http://oss.sgi.com/projects/inventor/">SGI</a> and <a href="http://www.vsg3d.com/open-inventor/sdk">VSG</a>)</li>
+<li>Platform independent and compatible with all major implementations (<a href="https://bitbucket.org/Coin3D/coin/wiki/Home">Coin</a>, <a href="http://oss.sgi.com/projects/inventor/">SGI</a> and <a href="http://www.vsg3d.com/open-inventor/sdk">VSG</a>)</li>
 <li>Undemanding maintenance of the library</li>
 <li>Compatible with Python 3</li>
 <li>Provide useful tools for 3D graphics programming such as a scene graph editor</li>
@@ -56,8 +56,13 @@ oivlib = []
 
 <p>To compile and install PyInventor call:</p>
 
-<pre><code>python setup.py install
+<pre><code>python setup.py install [--static]
 </code></pre>
+
+<h3>
+<a name="mac-os-x" class="anchor" href="#mac-os-x"><span class="octicon octicon-link"></span></a>Mac OS X</h3>
+
+<p>For Mac systems I recommend installing Python 3.x and the required packages via <a href="http://guide.macports.org/chunked/introduction.html">MacPorts</a> as it is straightforward and does not interfere with the Python 2.x installation that comes bundled with OS X.</p>
 
 <h3>
 <a name="windows-64-bit" class="anchor" href="#windows-64-bit"><span class="octicon octicon-link"></span></a>Windows (64 bit)</h3>
@@ -76,9 +81,9 @@ oivlib = []
 
 <p><img src="images/PyInventorExamples.png?raw=true" alt="Preview"></p>
 
-<p>The documentation for all classes, functions and data used to interface with the Open Inventor toolkit is built into the library and therefore available in the help system of the <em>IPython</em> shell and most development environments. Furthermore the PyInventor class reference can be read <a href="man/PyInventor.html">online</a> or with the <em>pydoc</em> tool.</p>
+<p>The documentation for all classes, functions and data used to interface with the Open Inventor toolkit is built into the library and therefore displayed in the help system of the <em>IPython</em> shell and most development environments. Furthermore the PyInventor class reference is available <a href="man/PyInventor.html">here</a>.</p>
 
-<p>For documentation on the 3D graphics toolkit itself see <a href="http://coin3d.bitbucket.org/Coin/index.html">here</a>.</p>
+<p>For documentation on the 3D graphics toolkit itself please refer to the Coin <a href="http://coin3d.bitbucket.org/Coin/index.html">documentation</a>.</p>
 
 <h2>
 <a name="scene-graph-editor" class="anchor" href="#scene-graph-editor"><span class="octicon octicon-link"></span></a>Scene Graph Editor</h2>
@@ -87,10 +92,19 @@ oivlib = []
 
 <p>To run the editor, simply type the following command:</p>
 
-<pre><code>python -m PyInventor
+<pre><code>python -m PyInventor [--ipython] [&lt;scene graph file&gt;]
 </code></pre>
 
-<p>Extension libraries that provide additional scene objects can be loaded by defining the <em>IV_LIBS</em> environment variable, which can contain dynamically loadable libraries separated by a semicolon. Those libraries need to define a function called <em>initAllClasses()</em> that register all scene objects in the global database.</p>
+<p>Using the <em>--ipython</em> option an <a href="http://ipython.org/">interactive shell</a> is opened at the bottom of the scene graph editor application. Using this shell the scene can be analyzed or edited programmatically. The following variables are added to the shell environment:</p>
+
+<ul>
+<li>
+<em>iv</em>: <a href="http://thehubbit.github.io/PyInventor/man/inventor.html">Interface module</a> to access Inventor functions</li>
+<li>
+<em>root</em>: Root node of currently loaded scene graph</li>
+<li>
+<em>view</em>: Instance of <a href="http://thehubbit.github.io/PyInventor/man/inventor.SceneManager.html">SceneManager</a> driving the render viewport</li>
+</ul><p>Extension libraries that provide additional scene objects can be loaded by defining the <em>IV_LIBS</em> environment variable, which can contain dynamically loadable libraries separated by a semicolon. Those libraries need to define a function called <em>initAllClasses()</em> that register all scene objects in the global database.</p>
 
 <p><img src="images/SceneGraphEditor.png?raw=true" alt="Scene Graph Editor"></p>
 
