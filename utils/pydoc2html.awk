@@ -98,7 +98,9 @@ END     {
           if (!isBullet) print "<ul>";
           target = substr($2, 0, length($2) -1);
           if (target == "inventor") print "<li><a href='" target ".html'>" $2 "</a>";
-          else print "<li><a href='" module "." target ".html'>" $2 "</a>";
+          else if (match(target, /^[A-Z]/)) print "<li><a href='" module "." target ".html'>" $2 "</a>";
+          else print "<li>" $2;
+
           sub(/^[ ]*\- [a-zA-Z0-9_, ]+: /, ""); 
           print; 
           isBullet = 1; next; 
@@ -131,11 +133,18 @@ END     {
               }
               else print $0;
             }
+            else print "<br />";
           }
           else if (!eatEmptyLines || length($0) > 0)
           {
             print;
-          } 
+          }
+
+          if (!isBullet && !eatEmptyLines && length($0) == 0)
+          {
+            print "<p />";
+          }
+
           if (length($0) > 0) eatEmptyLines = 0; else if (isBullet)
           {
             print "</ul>";
