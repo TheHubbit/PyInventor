@@ -17,6 +17,6 @@
 
 # Visual Studio
 *.ncb
-*.sln
-*.vcproj
+*.suo
 *.user
+*.ccexclude
