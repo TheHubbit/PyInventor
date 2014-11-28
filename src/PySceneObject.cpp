@@ -1165,17 +1165,38 @@ int PySceneObject::setField(SoField *field, PyObject *value)
 			{
 				if ((width * height * nc) > 0 )
 				{
-					PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(pixelObj, NPY_UBYTE, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
-					if (arr)
+					if (PyBytes_Check(pixelObj))
 					{
-						size_t n = PyArray_SIZE(arr);
+						size_t n = PyBytes_Size(pixelObj);
 						if ((width * height * nc) <= n)
 						{
-							const unsigned char *data = (const unsigned char *) PyArray_GETPTR1(arr, 0);
+							const unsigned char *data = (const unsigned char *) PyBytes_AsString(pixelObj);
 							((SoSFImage*) field)->setValue(SbVec2s(width, height), nc, data);
 						}
+					}
+					else if (PyByteArray_Check(pixelObj))
+					{
+						size_t n = PyByteArray_Size(pixelObj);
+						if ((width * height * nc) <= n)
+						{
+							const unsigned char *data = (const unsigned char *) PyByteArray_AsString(pixelObj);
+							((SoSFImage*) field)->setValue(SbVec2s(width, height), nc, data);
+						}
+					}
+					else
+					{
+						PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(pixelObj, NPY_UBYTE, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
+						if (arr)
+						{
+							size_t n = PyArray_SIZE(arr);
+							if ((width * height * nc) <= n)
+							{
+								const unsigned char *data = (const unsigned char *) PyArray_GETPTR1(arr, 0);
+								((SoSFImage*) field)->setValue(SbVec2s(width, height), nc, data);
+							}
 
-						Py_DECREF(arr);
+							Py_DECREF(arr);
+						}
 					}
 				}
 				else
