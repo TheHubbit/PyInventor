@@ -24,7 +24,7 @@
 #include "PySceneManager.h"
 #include "PySensor.h"
 
-#include <numpy/libnumarray.h>
+#include <numpy/ndarrayobject.h>
 
 
 #ifndef _WIN32

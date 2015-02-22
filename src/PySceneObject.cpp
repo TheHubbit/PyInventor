@@ -36,7 +36,7 @@
 #pragma warning ( disable : 4267 ) // possible loss of data in GET/SET macros
 
 #include <numpy/arrayobject.h>
-#include <numpy/libnumarray.h>
+#include <numpy/ndarrayobject.h>
 
 
 typedef std::map<std::string, PyTypeObject> WrapperTypes;
