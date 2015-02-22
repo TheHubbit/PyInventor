@@ -148,6 +148,7 @@ class QSceneGraphEditor(QtGui.QApplication):
             control.kernel_manager = kernel_manager
             control.kernel_client = kernel_client
             control.exit_requested.connect(stop)
+            control.font = QtGui.QFont(control.font.family(), 10);
 
             self.addVerticalWidget(control)
 
