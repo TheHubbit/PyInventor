@@ -723,7 +723,7 @@ SbBool PySceneManager::getBackgroundFromObject(PyObject *object, SbColor &color_
 					"}\n";
 
 				SoInput in;
-				in.setBuffer(bgScene.getString(), bgScene.getLength());
+				in.setBuffer(static_cast<void*>(const_cast<char*>(bgScene.getString())), bgScene.getLength());
 				*scene_inout = SoDB::readAll(&in);
 				if (*scene_inout)
 					(*scene_inout)->ref();
