@@ -9,7 +9,7 @@ PyInventor provides a Python binding for the Open Inventor 3D graphics toolkit. 
 - Support of Open Inventor extensions without introducing compile time dependencies
 - Platform independent and compatible with all major implementations of Open Inventor  (SGI, VSG and Coin)
 - Undemanding maintenance of the library
-- Compatible with Python 3
+- Compatible with Python 3 (Python 2.x is unsupported)
 
 ## Using the Module
 This module provides capabilities to work with Inventor scene objects from Python. For an overview on how to use it please visit wiki where you can find a getting started guide and examples (see https://github.com/TheHubbit/PyInventor/wiki). 
