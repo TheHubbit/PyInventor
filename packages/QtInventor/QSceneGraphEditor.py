@@ -25,7 +25,7 @@ class QSceneGraphEditor(QtGui.QApplication):
     This class creates an instance of QSceneGraphEditorWindow as main window
     and links menu entries to it.
 
-    With the --ipython command line option an interactive shell is opened at the
+    With the --console command line option an interactive shell is opened at the
     bottom of the scene graph editor application. In this shell the scene can be
     analyzed or edited programmatically. The following variables are added to the
     shell environment:
@@ -122,11 +122,10 @@ class QSceneGraphEditor(QtGui.QApplication):
         viewMenu.addAction(viewAllAction)
         viewMenu.addAction(viewManipAction)
 
-        if "--ipython" in self.arguments():
+        if "--console" in self.arguments() or "--ipython" in self.arguments():
             # start with IPython console at bottom of application
-            from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
-            from IPython.qt.inprocess import QtInProcessKernelManager
-            from IPython.lib import guisupport
+            from qtconsole.rich_jupyter_widget import RichJupyterWidget
+            from qtconsole.inprocess import QtInProcessKernelManager
             import inventor
             
             # Create an in-process kernel
@@ -144,7 +143,7 @@ class QSceneGraphEditor(QtGui.QApplication):
                 kernel_manager.shutdown_kernel()
                 self.exit()
 
-            control = RichIPythonWidget()
+            control = RichJupyterWidget()
             control.kernel_manager = kernel_manager
             control.kernel_client = kernel_client
             control.exit_requested.connect(stop)
