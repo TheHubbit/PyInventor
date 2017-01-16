@@ -9,29 +9,37 @@ oivincpath = '/Library/Frameworks/Inventor.framework/Resources/include'
 oivlibpath = '/Library/Frameworks/Inventor.framework/Libraries'
 oivlibname = 'Coin'
 
-# Check for "--static" option (Coin only)
-if "--static" in sys.argv:
-    sys.argv.remove("--static")
-    libsuffix = "s"
-    oivcompileargs = ['-DCOIN_NOT_DLL']
-    oivlibs = ['simage1s']
+oivlibs = []
+oivcompileargs = []
+libsuffix = ''
+
+# Check for '--debug' option
+if '--debug' in sys.argv:
+    sys.argv.remove('--debug')
+    if os.environ.get('windir') is not None:
+        libsuffix += 'd'
+        oivcompileargs.append('/MDd')
+
+# Check for '--static' option
+if '--static' in sys.argv:
+    sys.argv.remove('--static')
+    libsuffix = 's' + libsuffix
+    oivcompileargs.append('-DCOIN_NOT_DLL')
+    if os.environ.get('windir') is not None:
+        oivlibs.append('simage1' + libsuffix)
 else:
-    libsuffix = ""
-    oivcompileargs = ['-DCOIN_DLL']
-    oivlibs = [ ]
+    oivcompileargs.append('-DCOIN_DLL')
 
 # Coin environment variable?
 if os.environ.get('COINDIR') is not None:
     oivincpath = os.environ.get('COINDIR') + '/include'
     oivlibpath = os.environ.get('COINDIR') + '/lib'
-    if os.environ.get('windir') is not None:
-        # Coin on Windows uses Coin4 rather than just Coin as library name
-        oivlibname = oivlibname + '4'
 
 # Additional libs
-oivlibs += [ oivlibname + libsuffix ]
 if os.environ.get('windir') is not None:
-    oivlibs += [ 'Opengl32', 'Gdi32', 'User32', 'Gdiplus' ]
+    oivlibs += ['Opengl32', 'Gdi32', 'User32', 'Gdiplus']
+else:
+    oivlibs += [oivlibname + libsuffix]
 
 
 # numpy paths are generated automatically:
