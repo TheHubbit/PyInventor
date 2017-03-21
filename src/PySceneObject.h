@@ -104,6 +104,7 @@ private:
 	static PyObject* set(Object *self, PyObject *args);
 	static PyObject* get(Object *self, PyObject *args);
     static PyObject* getfields(Object *self);
+    static PyObject* getoutputs(Object *self);
 
     // generic field container
     static PyObject* internal_pointer(Object *self);

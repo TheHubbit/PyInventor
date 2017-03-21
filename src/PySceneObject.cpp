@@ -424,6 +424,17 @@ PyTypeObject *PySceneObject::getNodeType()
 
 PyTypeObject *PySceneObject::getEngineType()
 {
+    static PyMethodDef methods[] =
+    {
+        { "getoutputs", (PyCFunction)getoutputs, METH_NOARGS,
+        "Return the names of this engines' outputs.\n"
+        "\n"
+        "Returns:\n"
+        "    List of tuples with name and type for each engine output.\n"
+        },
+        { NULL }  /* Sentinel */
+    };
+
 	static PyTypeObject engineType = 
 	{
 		PyVarObject_HEAD_INIT(NULL, 0)
@@ -454,7 +465,7 @@ PyTypeObject *PySceneObject::getEngineType()
 		0,                         /* tp_weaklistoffset */
 		0,                         /* tp_iter */
 		0,                         /* tp_iternext */
-		0,                         /* tp_methods */
+        methods,                   /* tp_methods */
 		0,                         /* tp_members */
 		0,                         /* tp_getset */
 		getFieldContainerType(),   /* tp_base */
@@ -2054,6 +2065,37 @@ PyObject* PySceneObject::getfields(Object* self)
             }
             PyTuple_SetItem(fieldNameType, 1, PyUnicode_FromString(fieldList[i]->getTypeId().getName().getString()));
             PyList_SetItem(result, i, fieldNameType);
+		}
+		return result;
+	}
+    
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+PyObject* PySceneObject::getoutputs(Object* self)
+{
+	if (self->inventorObject)
+	{
+        SoEngineOutputList outputList;
+        int numOutputs = ((SoEngine*)(self->inventorObject))->getOutputs(outputList);
+        
+        PyObject *result = PyList_New(numOutputs);
+		for (int i = 0; i < numOutputs; ++i)
+		{
+            PyObject* outputNameType = PyTuple_New(2);
+            SbName outputName("");
+            if (((SoEngine*)(self->inventorObject))->getOutputName(outputList[i], outputName))
+            {
+                PyTuple_SetItem(outputNameType, 0, PyUnicode_FromString(outputName.getString()));
+            }
+            else
+            {
+                PyTuple_SetItem(outputNameType, 0, PyUnicode_FromString(""));
+            }
+            PyTuple_SetItem(outputNameType, 1, PyUnicode_FromString(outputList[i]->getConnectionType().getName().getString()));
+            PyList_SetItem(result, i, outputNameType);
 		}
 		return result;
 	}
