@@ -88,19 +88,19 @@ PyTypeObject *PySceneObject::getFieldContainerType()
 {
 	static PyMethodDef methods[] = 
 	{
-		{"setname", (PyCFunction) setname, METH_VARARGS,
+		{"set_name", (PyCFunction) set_name, METH_VARARGS,
             "Sets the instance name of a scene object.\n"
             "\n"
             "Args:\n"
             "    Name for scene object instance.\n"
         },
-		{"getname", (PyCFunction) getname, METH_NOARGS,
+		{"get_name", (PyCFunction) get_name, METH_NOARGS,
             "Returns the instance name of a scene object.\n"
             "\n"
             "Returns:\n"
             "    String containing scene object name.\n"
         },
-		{"sotype", (PyCFunction) sotype, METH_NOARGS,
+		{"get_type", (PyCFunction) get_type, METH_NOARGS,
             "Return the type name of a scene object.\n"
             "\n"
             "Returns:\n"
@@ -125,31 +125,6 @@ PyTypeObject *PySceneObject::getFieldContainerType()
             "    Boolean value indicating if notifications are enabled (True)\n"
             "    or not (False).\n"
         },
-		{"connect", (PyCFunction) connect, METH_VARARGS,
-            "Connects a field from another field or engine output.\n"
-            "\n"
-            "Args:\n"
-            "    toField: Field name of this instance that will be conntected.\n"
-            "    fromObject: Scene objects whose output or field serve as input.\n"
-            "    fromField: Field or engine output name that will be connected to\n"
-            "               toField.\n"
-        },
-		{"isconnected", (PyCFunction) isconnected, METH_VARARGS,
-            "Returns if a field has an incomming connection.\n"
-            "\n"
-            "Args:\n"
-            "    field: Field name whose conntection state will be checked.\n"
-            "\n"
-            "Returns:\n"
-            "    True is the field field has an incoming connection from another\n"
-            "    field or engine output.\n"
-        },
-		{"disconnect", (PyCFunction) disconnect, METH_VARARGS,
-            "Disconnects any incoming connection from a field.\n"
-            "\n"
-            "Args:\n"
-            "    field: Field name of field to be disconnected.\n"
-        },
 		{"set", (PyCFunction) set, METH_VARARGS,
             "Initializes fields or parts of a node kit.\n"
             "\n"
@@ -169,14 +144,14 @@ PyTypeObject *PySceneObject::getFieldContainerType()
             "    Field or node kit part if name is given. If no name is passed all\n"
             "    field values are returned as string.\n"
         },
-		{"getfields", (PyCFunction) getfields, METH_NOARGS,
-            "Return the names and types of this container's fields.\n"
+        { "get_field", (PyCFunction)get_field, METH_VARARGS,
+            "Returns a field object by name or list of all fields.\n"
             "\n"
             "Returns:\n"
-            "    List of tuples with name and type for each field of this field\n"
-            "    container instance.\n"
+            "    Field matching the provided name or list of all fields if no name\n"
+            "    was given.\n"
         },
-		{"internal_pointer", (PyCFunction) internal_pointer, METH_NOARGS,
+        {"internal_pointer", (PyCFunction) internal_pointer, METH_NOARGS,
             "Return the internal field container pointer.\n"
             "\n"
             "Returns:\n"
@@ -347,11 +322,12 @@ PyTypeObject *PySceneObject::getEngineType()
 {
     static PyMethodDef methods[] =
     {
-        { "getoutputs", (PyCFunction)getoutputs, METH_NOARGS,
-        "Return the names of this engines' outputs.\n"
-        "\n"
-        "Returns:\n"
-        "    List of tuples with name and type for each engine output.\n"
+        { "get_output", (PyCFunction)get_output, METH_VARARGS,
+            "Return the engine output by name or list of all outputs.\n"
+            "\n"
+            "Returns:\n"
+            "    Engine output instance for provided name or list of all outputs if\n"
+            "    no name is given.\n"
         },
         { NULL }  /* Sentinel */
     };
@@ -1239,7 +1215,7 @@ PyObject* PySceneObject::remove(Object *self, PyObject *args)
 }
 
 
-PyObject* PySceneObject::setname(Object* self, PyObject *args)
+PyObject* PySceneObject::set_name(Object* self, PyObject *args)
 {
 	char *name = 0;
 	if (self->inventorObject && PyArg_ParseTuple(args, "s", &name))
@@ -1252,7 +1228,7 @@ PyObject* PySceneObject::setname(Object* self, PyObject *args)
 }
 
 
-PyObject* PySceneObject::getname(Object* self)
+PyObject* PySceneObject::get_name(Object* self)
 {
 	SbName n("");
 
@@ -1265,7 +1241,7 @@ PyObject* PySceneObject::getname(Object* self)
 }
 
 
-PyObject* PySceneObject::sotype(Object* self)
+PyObject* PySceneObject::get_type(Object* self)
 {
 	SbName n("");
 
@@ -1340,88 +1316,9 @@ PyObject* PySceneObject::enable_notify(Object* self, PyObject *args)
 }
 
 
-PyObject* PySceneObject::connect(Object *self, PyObject *args)
-{
-	long connected = 0;
-	PyObject *sceneObject = NULL;
-	char *fieldToName = 0, *fieldFromName = 0;
-	if (self->inventorObject && PyArg_ParseTuple(args, "sOs", &fieldToName, &sceneObject, &fieldFromName))
-	{
-		if (sceneObject && PySceneObject_Check(sceneObject) && fieldToName && fieldFromName)
-		{
-			if (((Object*) sceneObject)->inventorObject)
-			{
-				SoField *fieldTo = 0, *fieldFrom = 0;
-
-				fieldTo = self->inventorObject->getField(fieldToName);
-				fieldFrom = ((Object*) sceneObject)->inventorObject->getField(fieldFromName);
-
-				if (fieldTo && fieldFrom)
-				{
-					fieldTo->connectFrom(fieldFrom);
-					connected = 1;
-				}
-				else if (!fieldFrom && ((Object*) sceneObject)->inventorObject->isOfType(SoEngine::getClassTypeId()))
-				{
-					SoEngineOutput *outputFrom = ((SoEngine*) ((Object*) sceneObject)->inventorObject)->getOutput(fieldFromName);
-					if (fieldTo && outputFrom)
-					{
-						fieldTo->connectFrom(outputFrom);
-						connected = 1;
-					}
-				}
-			}
-		}
-	}
-
-	return PyBool_FromLong(connected);
-}
-
-
-PyObject* PySceneObject::disconnect(Object *self, PyObject *args)
-{
-	char *fieldToName = 0;
-	if (self->inventorObject && PyArg_ParseTuple(args, "s", &fieldToName))
-	{
-		if (fieldToName)
-		{
-			SoField *fieldTo = self->inventorObject->getField(fieldToName);
-			if (fieldTo)
-			{
-				fieldTo->disconnect();
-			}
-		}
-	}
-
-	Py_INCREF(Py_None);
-	return Py_None;
-}
-
-
-PyObject* PySceneObject::isconnected(Object *self, PyObject *args)
-{
-	long connected = 0;
-
-	char *fieldToName = 0;
-	if (self->inventorObject && PyArg_ParseTuple(args, "s", &fieldToName))
-	{
-		if (fieldToName)
-		{
-			SoField *fieldTo = self->inventorObject->getField(fieldToName);
-			if (fieldTo)
-			{
-				connected = fieldTo->isConnected();
-			}
-		}
-	}
-
-	return PyBool_FromLong(connected);
-}
-
-
 PyObject* PySceneObject::set(Object *self, PyObject *args)
 {
-	char *name = 0, *value = 0;;
+	char *name = 0, *value = 0;
 	if (self->inventorObject && PyArg_ParseTuple(args, "s|s", &name, &value))
 	{
         if (!value)
@@ -1502,73 +1399,89 @@ PyObject* PySceneObject::get(Object *self, PyObject *args)
 }
 
 
-PyObject* PySceneObject::getfields(Object* self)
+PyObject* PySceneObject::get_field(Object* self, PyObject *args)
 {
-	if (self->inventorObject)
-	{
-        SoFieldList fieldList;
-        int numFields = self->inventorObject->getFields(fieldList);
-        
-        PyObject *result = PyList_New(numFields);
-		for (int i = 0; i < numFields; ++i)
-		{
-            PyObject* fieldNameType = PyTuple_New(3);
-            SbName fieldName("");
-            if (self->inventorObject->getFieldName(fieldList[i], fieldName))
+    char *name = 0;
+    if (self->inventorObject && PyArg_ParseTuple(args, "|s", &name))
+    {
+        if (name)
+        {
+            // lookup field
+            SoField *field = self->inventorObject->getField(SbName(name));
+            if (field)
             {
-                PyTuple_SetItem(fieldNameType, 0, PyUnicode_FromString(fieldName.getString()));
+                PyObject *fieldWrapper = PyObject_CallObject((PyObject*)PyField::getType(), NULL);
+                ((PyField*)fieldWrapper)->setInstance(field);
+                return fieldWrapper;
             }
             else
             {
-                PyTuple_SetItem(fieldNameType, 0, PyUnicode_FromString(""));
+                Py_INCREF(Py_None);
+                return Py_None;
             }
-            PyTuple_SetItem(fieldNameType, 1, PyUnicode_FromString(fieldList[i]->getTypeId().getName().getString()));
+        }
+        else
+        {
+            // return all fields
+            SoFieldList fieldList;
+            int numFields = self->inventorObject->getFields(fieldList);
 
-            PyObject *fieldWrapper = PyObject_CallObject((PyObject*)PyField::getType(), NULL);
-            ((PyField*)fieldWrapper)->setInstance(fieldList[i]);
-            PyTuple_SetItem(fieldNameType, 2, fieldWrapper);
-            PyList_SetItem(result, i, fieldNameType);
-		}
-		return result;
-	}
-    
-	Py_INCREF(Py_None);
-	return Py_None;
+            PyObject *result = PyList_New(numFields);
+            for (int i = 0; i < numFields; ++i)
+            {
+                PyObject *fieldWrapper = PyObject_CallObject((PyObject*)PyField::getType(), NULL);
+                ((PyField*)fieldWrapper)->setInstance(fieldList[i]);
+                PyList_SetItem(result, i, fieldWrapper);
+            }
+            return result;
+        }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 
-PyObject* PySceneObject::getoutputs(Object* self)
+PyObject* PySceneObject::get_output(Object* self, PyObject *args)
 {
-	if (self->inventorObject)
-	{
-        SoEngineOutputList outputList;
-        int numOutputs = ((SoEngine*)(self->inventorObject))->getOutputs(outputList);
-        
-        PyObject *result = PyList_New(numOutputs);
-		for (int i = 0; i < numOutputs; ++i)
-		{
-            PyObject* outputNameType = PyTuple_New(3);
-            SbName outputName("");
-            if (((SoEngine*)(self->inventorObject))->getOutputName(outputList[i], outputName))
+    char *name = 0;
+    if (self->inventorObject && PyArg_ParseTuple(args, "|s", &name))
+    {
+        if (name)
+        {
+            // lookup output
+            SoEngineOutput *output = ((SoEngine*)self->inventorObject)->getOutput(SbName(name));
+            if (output)
             {
-                PyTuple_SetItem(outputNameType, 0, PyUnicode_FromString(outputName.getString()));
+                PyObject *outputWrapper = PyObject_CallObject((PyObject*)PyEngineOutput::getType(), NULL);
+                ((PyEngineOutput*)outputWrapper)->setInstance(output);
+                return outputWrapper;
             }
             else
             {
-                PyTuple_SetItem(outputNameType, 0, PyUnicode_FromString(""));
+                Py_INCREF(Py_None);
+                return Py_None;
             }
-            PyTuple_SetItem(outputNameType, 1, PyUnicode_FromString(outputList[i]->getConnectionType().getName().getString()));
+        }
+        else
+        {
+            // return all outputs
+            SoEngineOutputList outputList;
+            int numOutputs = ((SoEngine*)(self->inventorObject))->getOutputs(outputList);
 
-            PyObject *outputWrapper = PyObject_CallObject((PyObject*)PyEngineOutput::getType(), NULL);
-            ((PyEngineOutput*)outputWrapper)->setInstance(outputList[i]);
-            PyTuple_SetItem(outputNameType, 2, outputWrapper);
-            PyList_SetItem(result, i, outputNameType);
-		}
-		return result;
-	}
-    
-	Py_INCREF(Py_None);
-	return Py_None;
+            PyObject *result = PyList_New(numOutputs);
+            for (int i = 0; i < numOutputs; ++i)
+            {
+                PyObject *outputWrapper = PyObject_CallObject((PyObject*)PyEngineOutput::getType(), NULL);
+                ((PyEngineOutput*)outputWrapper)->setInstance(outputList[i]);
+                PyList_SetItem(result, i, outputWrapper);
+            }
+            return result;
+        }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 

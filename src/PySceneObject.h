@@ -83,22 +83,19 @@ private:
 	static PyObject* remove(Object *self, PyObject *args);
 
 	// inventor methods
-	static PyObject* getname(Object *self);
-	static PyObject* setname(Object *self, PyObject *args);
-	static PyObject* sotype(Object *self);
+	static PyObject* get_name(Object *self);
+	static PyObject* set_name(Object *self, PyObject *args);
+	static PyObject* get_type(Object *self);
 	static PyObject* check_type(Object *self, PyObject *args);
 	static PyObject* node_id(Object *self);
 	static PyObject* touch(Object *self);
 	static PyObject* enable_notify(Object *self, PyObject *args);
 
 	// field methods
-	static PyObject* connect(Object *self, PyObject *args);
-	static PyObject* disconnect(Object *self, PyObject *args);
-	static PyObject* isconnected(Object *self, PyObject *args);
 	static PyObject* set(Object *self, PyObject *args);
 	static PyObject* get(Object *self, PyObject *args);
-    static PyObject* getfields(Object *self);
-    static PyObject* getoutputs(Object *self);
+    static PyObject* get_field(Object *self, PyObject *args);
+    static PyObject* get_output(Object *self, PyObject *args);
 
     // generic field container
     static PyObject* internal_pointer(Object *self);

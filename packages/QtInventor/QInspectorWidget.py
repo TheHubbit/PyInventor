@@ -35,7 +35,7 @@ class QSceneObjectProxy(QtCore.QObject):
         self._parent = parent
         
         if self._sceneObject is not None:
-            self._name = sceneObject.getname()
+            self._name = sceneObject.get_name()
 
         if parent is not None:
             parent._children.append(self)
@@ -69,7 +69,7 @@ class QSceneObjectProxy(QtCore.QObject):
         if self._sceneObject is None:
             return ""
         
-        return self._sceneObject.sotype()
+        return self._sceneObject.get_type()
 
 
     def isGroup(self):
@@ -85,13 +85,13 @@ class QSceneObjectProxy(QtCore.QObject):
         if self._sceneObject is None:
             return ""
 
-        return self._sceneObject.getname()
+        return self._sceneObject.get_name()
     
 
     def setName(self, name):
         """Sets new scene object instance name"""
         if self._sceneObject is not None:
-            self._sceneObject.setname(name)
+            self._sceneObject.set_name(name)
     
 
     def sceneObject(self):
@@ -152,11 +152,11 @@ class QSceneObjectProxy(QtCore.QObject):
     
     
     def fields(self):
-        """Returns field names for this scene object"""
+        """Returns field instances for this scene object"""
         if self._sceneObject is None:
             return []
 
-        return self._sceneObject.getfields()
+        return self._sceneObject.get_field()
 
 
     def fieldValue(self, index):
@@ -164,11 +164,11 @@ class QSceneObjectProxy(QtCore.QObject):
         if self._sceneObject is None:
             return None
 
-        fields = self._sceneObject.getfields()
+        fields = self._sceneObject.get_field()
         if len(fields) > index:
-            fieldName = fields[index][0]
+            fieldName = fields[index].get_name()
             # don't serialize value if SFNode or MFNode field
-            if "FNode" in fields[index][1]:
+            if "FNode" in fields[index].get_type():
                 return "..."
             else:
                 return self._sceneObject.get(fieldName)
@@ -180,9 +180,9 @@ class QSceneObjectProxy(QtCore.QObject):
         if self._sceneObject is None:
             return None
 
-        fields = self._sceneObject.getfields()
+        fields = self._sceneObject.get_field()
         if len(fields) > index:
-            fieldName = fields[index][0]
+            fieldName = fields[index].get_name()
             return self._sceneObject.set(fieldName, value)
         return None
 
@@ -478,7 +478,7 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
         
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if index.column() == 0:
-                return self._rootNode.fields()[index.row()][0]
+                return self._rootNode.fields()[index.row()].get_name()
             else:
                 return self._rootNode.fieldValue(index.row())
        
