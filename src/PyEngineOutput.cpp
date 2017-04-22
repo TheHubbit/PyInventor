@@ -25,18 +25,34 @@ PyTypeObject *PyEngineOutput::getType()
 	{
         { "get_name", (PyCFunction)get_name, METH_NOARGS,
             "Returns the engine name.\n"
+            "\n"
+            "Returns:\n"
+            "    String containing the name under which the output is known in\n"
+            "    the engine.\n"
         },
         { "get_type", (PyCFunction)get_type, METH_NOARGS,
             "Returns the type of the engine output.\n"
+            "\n"
+            "Returns:\n"
+            "    Engine connection type as string."
         },
         { "get_container", (PyCFunction)get_container, METH_NOARGS,
             "Returns the engine of this output.\n"
+            "\n"
+            "Returns:\n"
+            "    Engine instance that this output is a part of."
         },
         { "enable", (PyCFunction)enable, METH_VARARGS,
             "Enables or disables the connections from this output.\n"
+            "\n"
+            "Args:\n"
+            "    True to enable and False to disable connection.\n"
         },
         { "is_enabled", (PyCFunction)is_enabled, METH_NOARGS,
             "Returns if connections from this output are enabled.\n"
+            "\n"
+            "Returns:\n"
+            "    True if connection is active, otherwise False."
         },
         {NULL}  /* Sentinel */
 	};

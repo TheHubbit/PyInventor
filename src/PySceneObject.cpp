@@ -187,7 +187,10 @@ PyTypeObject *PySceneObject::getFieldContainerType()
         "\n"
         "All field values and node kit parts are dynamically added as class\n"
         "attributes. Please refer to the Open Inventor documentation for the\n"
-        "fields of each scene object type.\n"
+        "fields of each scene object type. Use the get_field() function to\n"
+        "manage field connections, see also:\n"
+        "- Field: Object representing a field.\n"
+        "- EngineOutput: Object representing an engine output.\n"
         ,   /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */

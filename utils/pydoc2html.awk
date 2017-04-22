@@ -86,7 +86,7 @@ END     {
           }
           print "<h3>" $0 "</h3>"; next;
         }
-/Args:|Returns:|Note:/ {
+/Args:|Returns:|Note:|Attributes:|Example:/ {
           if (indendet)
           {
             indendet = 0;

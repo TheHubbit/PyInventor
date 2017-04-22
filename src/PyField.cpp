@@ -116,30 +116,46 @@ PyTypeObject *PyField::getType()
         { "disconnect", (PyCFunction)disconnect, METH_VARARGS,
             "Disconnects connections from this field as a slave to master(s).\n"
              "\n"
-            "Args:\n"
-            "    Field or engine output. If none is provided then all connections\n"
-            "    will be disconnected.\n"
+             "Args:\n"
+             "    Field or engine output. If none is provided then all connections\n"
+             "    will be disconnected.\n"
         },
         {"is_connected", (PyCFunction)is_connected, METH_NOARGS,
             "Returns true if the field is connected to a master.\n"
         },
         { "enable_connection", (PyCFunction)enable_connection, METH_VARARGS,
             "Enables or disables the connections to this field.\n"
+            "\n"
+            "Args:\n"
+            "    True to enable and False to disable connection.\n"
         },
         { "is_connection_enabled", (PyCFunction)is_connection_enabled, METH_NOARGS,
             "Returns if connections to this field is considered active.\n"
+            "\n"
+            "Returns:\n"
+            "    True if connection is active, otherwise False."
         },
         { "touch", (PyCFunction)touch, METH_NOARGS,
             "Notify the field as well as the field's owner that it has been changed.\n"
         },
         { "get_name", (PyCFunction)get_name, METH_NOARGS,
             "Returns the field name.\n"
+            "\n"
+            "Returns:\n"
+            "    String containing the name under which the field is known in\n"
+            "    its field container.\n"
         },
         { "get_type", (PyCFunction)get_type, METH_NOARGS,
             "Returns the type of the field.\n"
+            "\n"
+            "Returns:\n"
+            "    Inventor field type as string."
         },
         { "get_container", (PyCFunction)get_container, METH_NOARGS,
             "Returns the container object of this field.\n"
+            "\n"
+            "Returns:\n"
+            "    Instance of field container that the field is part of."
         },
         {NULL}  /* Sentinel */
 	};
