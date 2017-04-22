@@ -11,7 +11,7 @@
 
 
 #include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/engines/SoEngine.h>
+#include <Inventor/engines/SoEngines.h>
 #include <Inventor/fields/SoFields.h>
 #include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
@@ -552,24 +552,42 @@ int PySceneObject::tp_init(Object *self, PyObject *args, PyObject *kwds)
 	{
 		// create new instance
 		SoType t = SoType::fromName(type);
-		if (t.canCreateInstance())
+
+        // special handling for "templated" types (Gate, Concatenate, SelectOne)
+        if (init && t.isDerivedFrom(SoGate::getClassTypeId()))
+        {
+            self->inventorObject = new SoGate(SoType::fromName(init));
+            init = NULL;
+        }
+        else if (init && t.isDerivedFrom(SoConcatenate::getClassTypeId()))
+        {
+            self->inventorObject = new SoConcatenate(SoType::fromName(init));
+            init = NULL;
+        }
+        else if (init && t.isDerivedFrom(SoSelectOne::getClassTypeId()))
+        {
+            self->inventorObject = new SoSelectOne(SoType::fromName(init));
+            init = NULL;
+        }
+        else if (t.canCreateInstance())
+        {
+            self->inventorObject = (SoFieldContainer *)t.createInstance();
+        }
+
+        if (self->inventorObject)
 		{
-			self->inventorObject = (SoFieldContainer *) t.createInstance();
-			if (self->inventorObject)
+			self->inventorObject->ref();
+			if ((PyEngine_Check(self) && self->inventorObject->isOfType(SoEngine::getClassTypeId())) || 
+				(PyNode_Check(self) && self->inventorObject->isOfType(SoNode::getClassTypeId())) )
 			{
-				self->inventorObject->ref();
-				if ((PyEngine_Check(self) && self->inventorObject->isOfType(SoEngine::getClassTypeId())) || 
-					(PyNode_Check(self) && self->inventorObject->isOfType(SoNode::getClassTypeId())) )
-				{
-					if (name && name[0]) self->inventorObject->setName(name);
-					if (init && init[0]) self->inventorObject->set(init);
-				}
-				else
-				{
-					self->inventorObject->unref();
-					self->inventorObject = 0;
-					PyErr_SetString(PyExc_TypeError, "Incorrect scene object type (must be node or engine)");
-				}
+				if (name && name[0]) self->inventorObject->setName(name);
+				if (init && init[0]) self->inventorObject->set(init);
+			}
+			else
+			{
+				self->inventorObject->unref();
+				self->inventorObject = 0;
+				PyErr_SetString(PyExc_TypeError, "Incorrect scene object type (must be node or engine)");
 			}
 		}
 	}
@@ -681,24 +699,42 @@ int PySceneObject::tp_init2(Object *self, PyObject *args, PyObject *kwds)
 				// create new instance
 				type = PyUnicode_AsUTF8(className);
 				SoType t = SoType::fromName(type);
-				if (t.canCreateInstance())
+
+                // special handling for "templated" types (Gate, Concatenate, SelectOne)
+                if (init && t.isDerivedFrom(SoGate::getClassTypeId()))
+                {
+                    self->inventorObject = new SoGate(SoType::fromName(init));
+                    init = NULL;
+                }
+                else if (init && t.isDerivedFrom(SoConcatenate::getClassTypeId()))
+                {
+                    self->inventorObject = new SoConcatenate(SoType::fromName(init));
+                    init = NULL;
+                }
+                else if (init && t.isDerivedFrom(SoSelectOne::getClassTypeId()))
+                {
+                    self->inventorObject = new SoSelectOne(SoType::fromName(init));
+                    init = NULL;
+                }
+                else if (t.canCreateInstance())
+                {
+                    self->inventorObject = (SoFieldContainer *)t.createInstance();
+                }
+
+                if (self->inventorObject)
 				{
-					self->inventorObject = (SoFieldContainer *) t.createInstance();
-					if (self->inventorObject)
+					self->inventorObject->ref();
+					if ((PyEngine_Check(self) && self->inventorObject->isOfType(SoEngine::getClassTypeId())) || 
+						(PyNode_Check(self) && self->inventorObject->isOfType(SoNode::getClassTypeId())) )
 					{
-						self->inventorObject->ref();
-						if ((PyEngine_Check(self) && self->inventorObject->isOfType(SoEngine::getClassTypeId())) || 
-							(PyNode_Check(self) && self->inventorObject->isOfType(SoNode::getClassTypeId())) )
-						{
-							if (name && name[0]) self->inventorObject->setName(name);
-							if (init && init[0]) setFields(self->inventorObject, init);
-						}
-						else
-						{
-							self->inventorObject->unref();
-							self->inventorObject = 0;
-							PyErr_SetString(PyExc_TypeError, "Incorrect scene object type (must be node or engine)");
-						}
+						if (name && name[0]) self->inventorObject->setName(name);
+						if (init && init[0]) setFields(self->inventorObject, init);
+					}
+					else
+					{
+						self->inventorObject->unref();
+						self->inventorObject = 0;
+						PyErr_SetString(PyExc_TypeError, "Incorrect scene object type (must be node or engine)");
 					}
 				}
 			}
