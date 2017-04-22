@@ -11,7 +11,6 @@
 
 
 #include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/nodekits/SoBaseKit.h>
 #include <Inventor/engines/SoEngine.h>
 #include <Inventor/fields/SoFields.h>
 #include <Inventor/actions/SoSearchAction.h>
@@ -30,13 +29,9 @@
 #include <string>
 
 #include "PySceneObject.h"
+#include "PyField.h"
 
 #pragma warning ( disable : 4127 ) // conditional expression is constant in Py_DECREF
-#pragma warning ( disable : 4244 ) // possible loss of data in GET/SET macros
-#pragma warning ( disable : 4267 ) // possible loss of data in GET/SET macros
-
-#include <numpy/arrayobject.h>
-#include <numpy/ndarrayobject.h>
 
 
 typedef std::map<std::string, PyTypeObject> WrapperTypes;
@@ -51,81 +46,6 @@ void __declspec( dllimport ) PRESODBINIT();
 #define PRESODBINIT() /* unused */
 #endif
 
-
-// macro for setting numerical multi-field (SoMField)
-#define SOFIELD_SET_N(t, ct, nt, n, f, d) \
-	if (f->isOfType(SoSF ## t ::getClassTypeId())) \
-	{ \
-		if (PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(d, nt, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST)) \
-		{ \
-			if (PyArray_SIZE(arr) == n) \
-			{ \
-				Sb ## t v; v.setValue((ct*) PyArray_BYTES(arr)); \
-				((SoSF ## t *) f)->setValue(v); \
-			} \
-			Py_DECREF(arr); \
-		} \
-	} \
-	else if (f->isOfType(SoMF ## t ::getClassTypeId())) \
-	{ \
-		if (PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(d, nt, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST)) \
-		{ \
-			if ((PyArray_SIZE(arr) % n) == 0) \
-			{ \
-				((SoMF ## t *) f)->setNum(PyArray_SIZE(arr) / n); \
-				for (int i = 0; i < (PyArray_SIZE(arr) / n); ++i) \
-				{ \
-					Sb ## t v; v.setValue(((ct*) PyArray_BYTES(arr)) + (i * n)); \
-					((SoMF ## t *) f)->set1Value(i, v); \
-				} \
-			} \
-			Py_DECREF(arr); \
-		} \
-	}
-
-
-// macro for setting numerical single-field (SoSField)
-#define SOFIELD_SET(t, ct, nt, f, d) \
-	if (f->isOfType(SoSF ## t ::getClassTypeId())) \
-	{ \
-		if (PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(d, nt, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST)) \
-		{ \
-			if (PyArray_SIZE(arr) == 1) \
-				((SoSF ## t *) f)->setValue(*((ct*) PyArray_BYTES(arr))); \
-			Py_DECREF(arr); \
-		} \
-	} \
-	else if (f->isOfType(SoMF ## t ::getClassTypeId())) \
-	{ \
-		if (PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(d, nt, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST)) \
-		{ \
-			((SoMF ## t *) f)->setValues(0, PyArray_SIZE(arr), (ct*) PyArray_BYTES(arr)); \
-			Py_DECREF(arr); \
-		} \
-	}
-
-// macro for getting floating point single-field
-#define SOFIELD_GETF(t, ct, nt, f) \
-	if (f->isOfType(SoSF ## t ::getClassTypeId())) { return PyFloat_FromDouble(((SoSF ## t *) f)->getValue()); } \
-	else if (f->isOfType(SoMF ## t ::getClassTypeId())) { return getPyObjectArrayFromData(nt, ((SoMF ## t *) f)->getValues(0), ((SoMF ## t *) f)->getNum()); }
-
-// macro for getting integer single-field
-#define SOFIELD_GETL(t, ct, nt, f) \
-	if (f->isOfType(SoSF ## t ::getClassTypeId())) { return PyLong_FromLong(((SoSF ## t *) f)->getValue()); } \
-	else if (f->isOfType(SoMF ## t ::getClassTypeId())) { return getPyObjectArrayFromData(nt, ((SoMF ## t *) f)->getValues(0), ((SoMF ## t *) f)->getNum()); }
-
-// macro for getting numerical multi-field (SoMField)
-#define SOFIELD_GET_N(t, ct, nt, n, f) \
-	if (f->isOfType(SoSF ## t ::getClassTypeId())) { return getPyObjectArrayFromData(nt, ((SoSF ## t *) f)->getValue().getValue(), n); } \
-	else if (f->isOfType(SoMF ## t ::getClassTypeId())) \
-	{ \
-		npy_intp dims[] = { ((SoMF ## t *) f)->getNum() , n }; \
-		PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNew(2, dims, nt); \
-		float *data = (float *) PyArray_BYTES(arr); \
-		for (int i = 0; data && (i < dims[0]); ++i) \
-			memcpy(data + (i * n), ((SoMF ## t *) f)->getValues(i)->getValue(), n * sizeof(float)); \
-		return PyArray_Return(arr); \
-	}
 
 
 // reports all Inventor errors with PyErr_SetString()
@@ -567,17 +487,6 @@ PyObject *PySceneObject::createWrapper(const char *typeName, SoFieldContainer *i
 }
 
 
-bool PySceneObject::initNumpy()
-{
-	if (PyArray_API == NULL)
-	{
-		import_array1(false);
-	}
-
-	return true;
-}
-
-
 void PySceneObject::initSoDB()
 {
 	if (!SoDB::isInitialized())
@@ -895,457 +804,6 @@ void PySceneObject::setInstance(Object *self, SoFieldContainer *obj)
 }
 
 
-PyObject *PySceneObject::getField(SoField *field)
-{
-	initNumpy();
-	PyObject *result = NULL;
-
-	if (field->isOfType(SoSFNode::getClassTypeId()))
-	{
-        SoSFNode *nodeField = (SoSFNode*) field;
-        SoNode *node = nodeField->getValue();
-        if (node)
-        {
-            PyObject *found = createWrapper(node->getTypeId().getName().getString(), node);
-            if (found)
-            {
-                return found;
-            }
-        }
-        Py_INCREF(Py_None);
-        return Py_None;
-	}
-	else if (field->isOfType(SoMFNode::getClassTypeId()))
-	{
-        SoMFNode *nodeField = (SoMFNode*) field;
-		PyObject *result = PyList_New(nodeField->getNum());
-		for (Py_ssize_t i = 0; i < nodeField->getNum(); ++i)
-		{
-			SoNode *node = (SoNode*) *nodeField->getValues(i);
-			PyList_SetItem(result, i, createWrapper(node->getTypeId().getName().getString(), node));
-		}
-
-		return result;
-	}
-	else if (field->isOfType(SoSFMatrix::getClassTypeId()))
-	{
-        // special case for single matrix: return as [4][4] rather than [16]
-		return getPyObjectArrayFromData(NPY_FLOAT32, ((SoSFMatrix *) field)->getValue().getValue(), 4, 4);
-	}
-	else if (field->isOfType(SoSFImage::getClassTypeId()))
-	{
-		SbVec2s size;
-		int nc;
-		const unsigned char *pixel = ((SoSFImage*) field)->getValue(size, nc);
-		if (pixel)
-		{
-			PyObject *obj = PyTuple_New(4);
-			PyTuple_SetItem(obj, 0, PyLong_FromLong(size[0]));
-			PyTuple_SetItem(obj, 1, PyLong_FromLong(size[1]));
-			PyTuple_SetItem(obj, 2, PyLong_FromLong(nc));
-			PyTuple_SetItem(obj, 3, getPyObjectArrayFromData(NPY_UBYTE, pixel, size[0] * size[1] * nc));
-
-			return obj;
-		}
-
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	else if (field->isOfType(SoSFPlane::getClassTypeId()))
-	{
-		SbPlane p = ((SoSFPlane*) field)->getValue();
-		SbVec4f v;
-		v[0] = p.getNormal()[0]; v[1] = p.getNormal()[1]; v[2] = p.getNormal()[2];
-		v[3] = p.getDistanceFromOrigin();
-
-		return getPyObjectArrayFromData(NPY_FLOAT32, v.getValue(), 4);
-	}
-	else if (field->isOfType(SoMFPlane::getClassTypeId()))
-	{
-		npy_intp dims[] = { ((SoMFPlane*) field)->getNum() , 4 };
-		PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNew(2, dims, NPY_FLOAT32);
-		float *data = (float *) PyArray_GETPTR1(arr, 0);
-		for (int i = 0; data && (i < dims[0]); ++i)
-		{
-			SbPlane p = *((SoMFPlane *) field)->getValues(i);
-			data[i * 4 + 0] = p.getNormal()[0];
-			data[i * 4 + 1] = p.getNormal()[1]; 
-			data[i * 4 + 2] = p.getNormal()[2];
-			data[i * 4 + 3] = p.getDistanceFromOrigin();
-		}
-		return PyArray_Return(arr);			
-	}
-	else if (field->isOfType(SoSFString::getClassTypeId()))
-	{
-		SbString s = ((SoSFString*) field)->getValue();
-		#ifdef TGS_VERSION
-		result = PyUnicode_FromUnicode(s.toWideChar(), s.getLength());
-		#else
-		result = PyUnicode_FromString(s.getString());
-		#endif
-		return result;
-	}
-	else if (field->isOfType(SoMFString::getClassTypeId()))
-	{
-		result = PyList_New(((SoMField*) field)->getNum());
-		for (int i = 0; i < ((SoMField*) field)->getNum(); ++i)
-		{
-			SbString s = *(((SoMFString*) field)->getValues(i));
-			PyList_SetItem(result, i,
-				#ifdef TGS_VERSION
-				PyUnicode_FromUnicode(s.toWideChar(), s.getLength())
-				#else
-				PyUnicode_FromString(s.getString())
-				#endif
-				);
-		}
-		return result;
-	}
-
-	SOFIELD_GETF(Float, float, NPY_FLOAT32, field);
-	SOFIELD_GETF(Double, float, NPY_FLOAT64, field);
-	SOFIELD_GETL(Int32, int, NPY_INT32, field);
-	SOFIELD_GETL(UInt32, unsigned int, NPY_UINT32, field);
-	SOFIELD_GETL(Short, short, NPY_INT16, field);
-	SOFIELD_GETL(UShort, unsigned short, NPY_UINT16, field);
-	SOFIELD_GETL(Bool, int, NPY_INT32, field);
-
-	SOFIELD_GET_N(Vec2f, float, NPY_FLOAT32, 2, field);
-	SOFIELD_GET_N(Vec3f, float, NPY_FLOAT32, 3, field);
-	SOFIELD_GET_N(Vec4f, float, NPY_FLOAT32, 4, field);
-	SOFIELD_GET_N(Color, float, NPY_FLOAT32, 3, field);
-	SOFIELD_GET_N(Rotation, float, NPY_FLOAT32, 4, field);
-	SOFIELD_GET_N(Matrix, float, NPY_FLOAT32, 16, field);
-
-	if (field->isOfType(SoMField::getClassTypeId()))
-	{
-		// generic string array
-		result = PyList_New(((SoMField*) field)->getNum());
-		for (int i = 0; i < ((SoMField*) field)->getNum(); ++i)
-		{
-			SbString s;
-			((SoMField*) field)->get1(i, s);
-			PyList_SetItem(result, i, PyUnicode_FromString(s.getString()));
-		}
-		return result;
-	}
-
-	// generic string based fallback
-	SbString s;
-	field->get(s);
-	result = PyUnicode_FromString(s.getString());
-
-	return result;
-}
-
-
-int PySceneObject::setField(SoField *field, PyObject *value)
-{
-	initNumpy();
-	int result = 0;
-
-	if (field->isOfType(SoSFNode::getClassTypeId()))
-	{
-        SoSFNode *nodeField = (SoSFNode*) field;
-        if (PyNode_Check(value))
-		{
-			Object *child = (Object *) value;
-			if (child->inventorObject && child->inventorObject->isOfType(SoNode::getClassTypeId()))
-			{
-				if (field->getContainer() && field->getContainer()->isOfType(SoBaseKit::getClassTypeId()))
-				{
-					SoBaseKit *baseKit = (SoBaseKit *) field->getContainer();
-					SbName fieldName;
-					if (baseKit->getFieldName(field, fieldName))
-					{
-						if (baseKit->getNodekitCatalog()->getPartNumber(fieldName) >= 0)
-						{
-							// update part of a node kit
-							baseKit->setPart(fieldName, (SoNode*) child->inventorObject);
-							return result;
-						}
-					}
-				}
-
-                nodeField->setValue((SoNode*) child->inventorObject);
-			}
-		}
-        else
-        {
-            nodeField->setValue(0);
-        }
-	}
-	else if (field->isOfType(SoMFNode::getClassTypeId()))
-	{
-        SoMFNode *nodeField = (SoMFNode*) field;
-        if (PyNode_Check(value))
-		{
-			Object *child = (Object *) value;
-			if (child->inventorObject && child->inventorObject->isOfType(SoNode::getClassTypeId()))
-			{
-                nodeField->setValue((SoNode*) child->inventorObject);
-			}
-		}
-        else
-		{
-			PyObject *seq = PySequence_Fast(value, "expected a sequence");
-			size_t n = PySequence_Size(seq);
-			nodeField->setNum(n);
-			for (size_t i = 0; i < n; ++i)
-			{
-				PyObject *seqItem = PySequence_GetItem(seq, i);
-				if (seqItem && PyNode_Check(seqItem))
-				{
-					Object *child = (Object *) seqItem;
-	                nodeField->set1Value(i, (SoNode*) child->inventorObject);
-				}
-			}
-
-			Py_XDECREF(seq);
-		}
-	}
-	else if (field->isOfType(SoSFString::getClassTypeId()))
-	{
-		PyObject *str = PyObject_Str(value);
-		if (str)
-		{
-			Py_ssize_t len;
-			#ifdef TGS_VERSION
-			((SoSFString*) field)->setValue(PyUnicode_AsWideCharString(str, &len));
-			#else
-			((SoSFString*) field)->setValue(PyUnicode_AsUTF8AndSize(str, &len));
-			#endif
-			Py_DECREF(str);
-		}
-	}
-	else if (field->isOfType(SoMFString::getClassTypeId()))
-	{
-		if (!PyUnicode_Check(value) && PySequence_Check(value))
-		{
-			PyObject *seq = PySequence_Fast(value, "expected a sequence");
-			size_t n = PySequence_Size(seq);
-			((SoMFString*) field)->setNum(n);
-
-			for (size_t i = 0; i < n; ++i)
-			{
-				PyObject *item = PySequence_GetItem(seq, i);
-				if (item)
-				{
-					PyObject *str = PyObject_Str(item);
-					if (str)
-					{
-						Py_ssize_t len;
-						#ifdef TGS_VERSION
-						((SoMFString*) field)->set1Value(i, PyUnicode_AsWideCharString(str, &len));
-						#else
-						((SoMFString*) field)->set1Value(i, PyUnicode_AsUTF8AndSize(str, &len));
-						#endif
-						Py_DECREF(str);
-					}
-				}
-			}
-
-			Py_DECREF(seq);
-		}
-		else
-		{
-			PyObject *str = PyObject_Str(value);
-			if (str)
-			{
-				Py_ssize_t len;
-				#ifdef TGS_VERSION
-				((SoMFString*) field)->setValue(PyUnicode_AsWideCharString(str, &len));
-				#else
-				((SoMFString*) field)->setValue(PyUnicode_AsUTF8AndSize(str, &len));
-				#endif
-				Py_DECREF(str);
-			}
-		}
-	}
-	else if (field->isOfType(SoSFTrigger::getClassTypeId()))
-	{
-		field->touch();
-	}
-	else if (!PyUnicode_Check(value))
-	{
-		if (field->isOfType(SoSFImage::getClassTypeId()))
-		{
-			PyObject *pixelObj = 0;
-			int width = 0, height = 0, nc = 0;
-			if (PyArg_ParseTuple(value, "iii|O", &width, &height, &nc, &pixelObj))
-			{
-				if ((width * height * nc) > 0 )
-				{
-					if (PyBytes_Check(pixelObj))
-					{
-						size_t n = PyBytes_Size(pixelObj);
-						if ((width * height * nc) <= n)
-						{
-							const unsigned char *data = (const unsigned char *) PyBytes_AsString(pixelObj);
-							((SoSFImage*) field)->setValue(SbVec2s(width, height), nc, data);
-						}
-					}
-					else if (PyByteArray_Check(pixelObj))
-					{
-						size_t n = PyByteArray_Size(pixelObj);
-						if ((width * height * nc) <= n)
-						{
-							const unsigned char *data = (const unsigned char *) PyByteArray_AsString(pixelObj);
-							((SoSFImage*) field)->setValue(SbVec2s(width, height), nc, data);
-						}
-					}
-					else
-					{
-						PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(pixelObj, NPY_UBYTE, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
-						if (arr)
-						{
-							size_t n = PyArray_SIZE(arr);
-							if ((width * height * nc) <= n)
-							{
-								const unsigned char *data = (const unsigned char *) PyArray_GETPTR1(arr, 0);
-								((SoSFImage*) field)->setValue(SbVec2s(width, height), nc, data);
-							}
-
-							Py_DECREF(arr);
-						}
-					}
-				}
-				else
-				{
-					((SoSFImage*) field)->setValue(SbVec2s(0, 0), 0, 0);
-				}
-			}
-		}
-		else if (field->isOfType(SoSFPlane::getClassTypeId()) || field->isOfType(SoMFPlane::getClassTypeId()))
-		{
-			PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(value, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
-			if (arr)
-			{
-				size_t n = PyArray_SIZE(arr);
-				float *data = (float *) PyArray_GETPTR1(arr, 0);
-
-				if (field->isOfType(SoSFPlane::getClassTypeId()))
-				{
-					if (n == 4)
-					{
-						((SoSFPlane*) field)->setValue(SbPlane(SbVec3f(data[0], data[1], data[2]), data[3]));
-					}
-				}
-				else if (field->isOfType(SoMFPlane::getClassTypeId()))
-				{
-					if ((n % 4) == 0)
-					{
-						((SoMFPlane*) field)->setNum(n / 4);
-						for (int i = 0; i < (n / 4); ++i)
-						{
-							float *p = data + (i * 3);
-							((SoMFPlane*) field)->set1Value(i, SbPlane(SbVec3f(p[0], p[1], p[2]), p[3]));
-						}
-					}
-				}
-				Py_DECREF(arr);
-			}
-		}
-		else if (field->isOfType(SoSFRotation::getClassTypeId()))
-		{
-			bool valueWasSet = false;
-			PyObject *axis = 0, *fromVec = 0, *toVec = 0;
-			float angle = 0.;
-
-			if (PyArg_ParseTuple(value, "Of", &axis, &angle))
-			{
-				// axis plus angle
-				float axisValue[3];
-				if (getFloatsFromPyObject(axis, 3, axisValue))
-				{
-					((SoSFRotation*) field)->setValue(SbVec3f(axisValue), angle);
-					valueWasSet = true;
-				}
-			}
-			else if (PyArg_ParseTuple(value, "OO", &fromVec, &toVec))
-			{
-				// from & to vectors
-				float fromValue[3], toValue[3];
-				if (getFloatsFromPyObject(fromVec, 3, fromValue) && getFloatsFromPyObject(toVec, 3, toValue))
-				{
-					((SoSFRotation*) field)->setValue(SbRotation(SbVec3f(fromValue), SbVec3f(toValue)));
-					valueWasSet = true;
-				}
-			}
-			
-			if (!valueWasSet)
-			{
-				float value[16];
-				if (getFloatsFromPyObject(axis, 16, value))
-				{
-					// matrix
-					SbMatrix m;
-					m.setValue(value);
-					((SoSFRotation*) field)->setValue(SbRotation(m));
-				}
-				else if (getFloatsFromPyObject(axis, 4, value))
-				{
-					// quaternion
-					((SoSFRotation*) field)->setValue(value);
-				}
-			}
-		}
-		else SOFIELD_SET(Float, float, NPY_FLOAT32, field, value)
-		else SOFIELD_SET(Double, double, NPY_FLOAT64, field, value)
-		else SOFIELD_SET(Int32, int, NPY_INT32, field, value)
-		else SOFIELD_SET(UInt32, unsigned int, NPY_UINT32, field, value)
-		else SOFIELD_SET(Short, short, NPY_INT16, field, value)
-		else SOFIELD_SET(UShort, unsigned short, NPY_UINT16, field, value)
-		else SOFIELD_SET(Bool, int, NPY_INT32, field, value)
-		else SOFIELD_SET_N(Vec2f, float, NPY_FLOAT32, 2, field, value)
-		else SOFIELD_SET_N(Vec3f, float, NPY_FLOAT32, 3, field, value)
-		else SOFIELD_SET_N(Vec4f, float, NPY_FLOAT32, 4, field, value)
-		else SOFIELD_SET_N(Color, float, NPY_FLOAT32, 3, field, value)
-		else SOFIELD_SET_N(Rotation, float, NPY_FLOAT32, 4, field, value)
-		else SOFIELD_SET_N(Matrix, float, NPY_FLOAT32, 16, field, value)
-	}
-	else
-	{
-		// generic string API
-		if (!PyUnicode_Check(value) && PySequence_Check(value) && field->isOfType(SoMField::getClassTypeId()))
-		{
-			PyObject *seq = PySequence_Fast(value, "expected a sequence");
-			size_t n = PySequence_Size(seq);
-			((SoMFString*) field)->setNum(n);
-
-			for (size_t i = 0; i < n; ++i)
-			{
-				PyObject *item = PySequence_GetItem(seq, i);
-				if (item)
-				{
-					PyObject *str = PyObject_Str(item);
-					if (str)
-					{
-						Py_ssize_t len;
-						((SoMField*) field)->set1(i, PyUnicode_AsUTF8AndSize(str, &len));
-						Py_DECREF(str);
-					}
-				}
-			}
-
-			Py_DECREF(seq);
-		}
-		else
-		{
-			PyObject *str = PyObject_Str(value);
-			if (str)
-			{
-				Py_ssize_t len;
-				field->set(PyUnicode_AsUTF8AndSize(str, &len));
-				Py_DECREF(str);
-			}
-		}
-	}
-
-	return result;
-}
-
-
 PyObject* PySceneObject::tp_getattro(Object* self, PyObject *attrname)
 {
 	const char *fieldName = PyUnicode_AsUTF8(attrname);
@@ -1394,7 +852,7 @@ PyObject* PySceneObject::tp_getattro(Object* self, PyObject *attrname)
 				}
 			}
 
-			return getField(field);
+			return PyField::getFieldValue(field);
 		}
 	}
 
@@ -1410,7 +868,7 @@ int PySceneObject::tp_setattro(Object* self, PyObject *attrname, PyObject *value
 		SoField *field = self->inventorObject->getField(fieldName);
 		if (field)
 		{
-			return setField(field, value);
+			return PyField::setFieldValue(field, value);
 		}
 	}
 
@@ -2053,7 +1511,7 @@ PyObject* PySceneObject::getfields(Object* self)
         PyObject *result = PyList_New(numFields);
 		for (int i = 0; i < numFields; ++i)
 		{
-            PyObject* fieldNameType = PyTuple_New(2);
+            PyObject* fieldNameType = PyTuple_New(3);
             SbName fieldName("");
             if (self->inventorObject->getFieldName(fieldList[i], fieldName))
             {
@@ -2064,6 +1522,10 @@ PyObject* PySceneObject::getfields(Object* self)
                 PyTuple_SetItem(fieldNameType, 0, PyUnicode_FromString(""));
             }
             PyTuple_SetItem(fieldNameType, 1, PyUnicode_FromString(fieldList[i]->getTypeId().getName().getString()));
+
+            PyObject *fieldWrapper = PyObject_CallObject((PyObject*)PyField::getType(), NULL);
+            ((PyField*)fieldWrapper)->setInstance(fieldList[i]);
+            PyTuple_SetItem(fieldNameType, 2, fieldWrapper);
             PyList_SetItem(result, i, fieldNameType);
 		}
 		return result;
@@ -2116,44 +1578,3 @@ PyObject* PySceneObject::internal_pointer(Object* self)
 	return Py_None;
 }
 
-
-bool PySceneObject::getFloatsFromPyObject(PyObject *obj, int size, float *value_out)
-{
-	initNumpy();
-
-	if (obj)
-	{
-		if (PyArrayObject *arr = (PyArrayObject*) PyArray_FROM_OTF(obj, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST))
-		{
-			if (PyArray_SIZE(arr) == size)
-			{
-				memcpy(value_out, PyArray_BYTES(arr), sizeof(float) * size);
-			}
-			Py_DECREF(arr);
-
-			return true;
-		}
-	}
-
-	return false;
-}
-
-
-PyObject *PySceneObject::getPyObjectArrayFromData(int type, const void* data, int dim1, int dim2, int dim3)
-{
-	initNumpy();
-    
-    npy_intp dims[] = { dim1, dim2, dim3 };
-	int num = 1;
-	if (dim2 > 0) num++;
-	if (dim3 > 0) num++;
-
-	PyArrayObject *arr = (PyArrayObject*) PyArray_SimpleNew(num, dims, type);
-	if (arr)
-	{
-		memcpy(PyArray_DATA(arr), data, PyArray_NBYTES(arr));
-	    return PyArray_Return(arr);
-	}
-
-	return Py_None;
-}

@@ -48,6 +48,7 @@ class SoGLContext;
 
 
 #include "PySceneManager.h"
+#include "PyField.h"
 
 #pragma warning ( disable : 4127 ) // conditional expression is constant in Py_DECREF
 #pragma warning ( disable : 4244 ) // possible loss of data when converting int to short in SbVec2s
@@ -680,7 +681,7 @@ SbBool PySceneManager::getBackgroundFromObject(PyObject *object, SbColor &color_
 
     SoMFColor tmp;
     tmp.setNum(0);
-    if (PySceneObject::setField(&tmp, object) == 0)
+    if (PyField::setFieldValue(&tmp, object) == 0)
     {
 		color_out = SbColor(0, 0, 0);
 

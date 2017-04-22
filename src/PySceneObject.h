@@ -42,14 +42,8 @@ public:
 	
 	static PyObject *createWrapper(const char *typeName, SoFieldContainer *instance = 0);
 
-	static PyObject *getField(SoField *field);
-	static int setField(SoField *field, PyObject *value);
 	static int setFields(SoFieldContainer *fieldContainer, char *value);
 
-	static bool getFloatsFromPyObject(PyObject *obj, int size, float *value_out);
-	static PyObject *getPyObjectArrayFromData(int type, const void* data, int dim1, int dim2 = 0, int dim3 = 0);
-
-	static bool initNumpy();
 	static void initSoDB();
 
 	typedef struct 

@@ -73,7 +73,7 @@ PyTypeObject *PySensor::getType()
 		{NULL}  /* Sentinel */
 	};
 
-	static PyTypeObject managerType = 
+	static PyTypeObject sensorType = 
 	{
 		PyVarObject_HEAD_INIT(NULL, 0)
 		"Sensor",                  /* tp_name */
@@ -119,7 +119,7 @@ PyTypeObject *PySensor::getType()
 		tp_new,                    /* tp_new */
 	};
 
-	return &managerType;
+	return &sensorType;
 }
 
 

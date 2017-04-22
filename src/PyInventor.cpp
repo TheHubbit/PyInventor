@@ -23,6 +23,7 @@
 #include "PySceneObject.h"
 #include "PySceneManager.h"
 #include "PySensor.h"
+#include "PyField.h"
 
 #include <numpy/ndarrayobject.h>
 
@@ -337,11 +338,11 @@ PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 				}
 
 				float startVec[3], dirVec[3];
-				if (!PySceneObject::getFloatsFromPyObject(start, 3, startVec))
+				if (!PyField::getFloatsFromPyObject(start, 3, startVec))
 				{
 					start = 0;
 				}
-				if (!PySceneObject::getFloatsFromPyObject(dir, 3, dirVec))
+				if (!PyField::getFloatsFromPyObject(dir, 3, dirVec))
 				{
 					dir = 0;
 				}
@@ -363,8 +364,8 @@ PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 					SoPickedPoint *p = pa.getPickedPoint(i); 
 
 					PyObject *point = PyList_New(3);
-                    PyList_SetItem(point, 0, PySceneObject::getPyObjectArrayFromData(NPY_FLOAT32, p->getPoint().getValue(), 3));
-                    PyList_SetItem(point, 1, PySceneObject::getPyObjectArrayFromData(NPY_FLOAT32, p->getNormal().getValue(), 3));
+                    PyList_SetItem(point, 0, PyField::getPyObjectArrayFromData(NPY_FLOAT32, p->getPoint().getValue(), 3));
+                    PyList_SetItem(point, 1, PyField::getPyObjectArrayFromData(NPY_FLOAT32, p->getNormal().getValue(), 3));
 
 					SoNode *node = 0;
 					if (p->getPath())
@@ -502,7 +503,7 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 					{
 						// return array
 						unsigned char *buffer = offscreenRenderer->getBuffer();
-						PyObject *arr = PySceneObject::getPyObjectArrayFromData(NPY_UBYTE, buffer, height, width, components > 1 ? components : 0);
+						PyObject *arr = PyField::getPyObjectArrayFromData(NPY_UBYTE, buffer, height, width, components > 1 ? components : 0);
 						return arr;
 					}
 				}
@@ -653,6 +654,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
 			PySceneObject::getNodeType(),
 			PySceneObject::getEngineType(),
 			PySensor::getType(),
+            PyField::getType(),
 			NULL,
 		};
 
