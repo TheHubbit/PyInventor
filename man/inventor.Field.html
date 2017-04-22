@@ -1,0 +1,103 @@
+<!DOCTYPE html><html><head>
+<meta name='description' content='PyInventor : 3D Graphics in Python with Open Inventor' />
+<link rel='stylesheet' type='text/css' media='screen' href='../stylesheets/stylesheet.css'>
+<title>PyInventor</title></head>
+<body><div id='header_wrap' class='outer'><header class='inner'>
+<a id='forkme_banner' href='https://github.com/TheHubbit/PyInventor'>View on GitHub</a>
+<a href='http://thehubbit.github.io/PyInventor/'><h1 id='project_title'>PyInventor</h1></a><h2 id='project_tagline'>3D Graphics in Python with Open Inventor</h2>
+</header></div>
+<div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>
+<h1>inventor.Field</h1><p><em>class Field(object)</em></p>
+Represents a field.
+
+<p />
+Field values can be accessed as attributes of a scene object. Use the field
+objects to create connections to other fields or engine outputs.
+
+<p />
+<h2> Methods defined here:</h2>
+<h3>connect_from(...)</h3>
+Connects this field as a slave to master.
+
+<p />
+<p><em>Args:</em></p>
+<ul>
+Field or engine output to connect to.
+
+<p />
+</ul>
+<h3>disconnect(...)</h3>
+Disconnects connections from this field as a slave to master(s).
+
+<p />
+<p><em>Args:</em></p>
+<ul>
+Field or engine output. If none is provided then all connections
+will be disconnected.
+
+<p />
+</ul>
+<h3>enable_connection(...)</h3>
+Enables or disables the connections to this field.
+
+<p />
+<p><em>Args:</em></p>
+<ul>
+True to enable and False to disable connection.
+
+<p />
+</ul>
+<h3>get_container(...)</h3>
+Returns the container object of this field.
+
+<p />
+<p><em>Returns:</em></p>
+<ul>
+Instance of field container that the field is part of.
+
+<p />
+</ul>
+<h3>get_name(...)</h3>
+Returns the field name.
+
+<p />
+<p><em>Returns:</em></p>
+<ul>
+String containing the name under which the field is known in
+its field container.
+
+<p />
+</ul>
+<h3>get_type(...)</h3>
+Returns the type of the field.
+
+<p />
+<p><em>Returns:</em></p>
+<ul>
+Inventor field type as string.
+
+<p />
+</ul>
+<h3>is_connected(...)</h3>
+Returns true if the field is connected to a master.
+
+<p />
+<h3>is_connection_enabled(...)</h3>
+Returns if connections to this field is considered active.
+
+<p />
+<p><em>Returns:</em></p>
+<ul>
+True if connection is active, otherwise False.
+
+<p />
+</ul>
+<h3>touch(...)</h3>
+Notify the field as well as the field's owner that it has been changed.
+
+<p />
+</div>
+<div id='footer_wrap' class='outer'><footer class='inner'>
+<p class='copyright'>PyInventor maintained by <a href='https://github.com/TheHubbit'>TheHubbit</a></p>
+<p>Published with <a href='http://pages.github.com'>GitHub Pages</a></p></footer></div>
+</body></html>

@@ -7,29 +7,62 @@
 <a href='http://thehubbit.github.io/PyInventor/'><h1 id='project_title'>PyInventor</h1></a><h2 id='project_tagline'>3D Graphics in Python with Open Inventor</h2>
 </header></div>
 <div id='main_content_wrap' class='outer'><section id='main_content' class='inner'>
-<h1>PyInventor</h1><p><em>module     PyInventor - Python binding for the Open Inventor 3D graphics toolkit.</em></p>
+<h1>inventor.EngineOutput</h1><p><em>class EngineOutput(object)</em></p>
+Represents an engine output.
 
 <p />
-The intention of this module is to provide Python programmers tools for
-easy creation of interactive 3D applications. It interfaces to the Coin3D
-or Open Inventor 3D graphics toolkit, which implements a scene graph API
+Use this object type to create connections to fields.
+
+<p />
+<h2> Methods defined here:</h2>
+<h3>enable(...)</h3>
+Enables or disables the connections from this output.
+
+<p />
+<p><em>Args:</em></p>
 <ul>
-<li><a href='inventor.html'>inventor:</a>
-Low level interface module to the C++ Coin3D or Open Inventor
-library.
-<li><a href='PyInventor.QtInventor.html'>QtInventor:</a>
-Helper classes for creating PySide applications.
-
-</ul>
-The module also contains a simple scene graph editor application, which
-can be started from the command line with "python -m PyInventor".
+True to enable and False to disable connection.
 
 <p />
-<h2>Package contents:</h2><ul>
-<li><a href='PyInventor.QtInventor.html'>    QtInventor (package)</a>
 </ul>
+<h3>get_container(...)</h3>
+Returns the engine of this output.
 
 <p />
+<p><em>Returns:</em></p>
+<ul>
+Engine instance that this output is a part of.
+
+<p />
+</ul>
+<h3>get_name(...)</h3>
+Returns the engine name.
+
+<p />
+<p><em>Returns:</em></p>
+<ul>
+String containing the name under which the output is known in
+the engine.
+
+<p />
+</ul>
+<h3>get_type(...)</h3>
+Returns the type of the engine output.
+
+<p />
+<p><em>Returns:</em></p>
+<ul>
+Engine connection type as string.
+
+<p />
+</ul>
+<h3>is_enabled(...)</h3>
+Returns if connections from this output are enabled.
+
+<p />
+<p><em>Returns:</em></p>
+<ul>
+True if connection is active, otherwise False.
 
 <p />
 </div>
