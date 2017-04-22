@@ -16,6 +16,17 @@ objects to create connections to other fields or engine outputs.
 
 <p />
 <h2> Methods defined here:</h2>
+<h3>append_connection(...)</h3>
+Connects this field as a slave to master while keeping existing
+connections in place.
+
+<p />
+<p><em>Args:</em></p>
+<ul>
+Field or engine output to connect to.
+
+<p />
+</ul>
 <h3>connect_from(...)</h3>
 Connects this field as a slave to master.
 
@@ -44,6 +55,36 @@ Enables or disables the connections to this field.
 <p><em>Args:</em></p>
 <ul>
 True to enable and False to disable connection.
+
+<p />
+</ul>
+<h3>get_connected_engine(...)</h3>
+Returns engine output that this field is connected to.
+
+<p />
+<p><em>Returns:</em></p>
+<ul>
+Engine output that is connected to this field or None.
+
+<p />
+</ul>
+<h3>get_connected_field(...)</h3>
+Returns master field that this field is connected to.
+
+<p />
+<p><em>Returns:</em></p>
+<ul>
+Master field that is connected to this field or None.
+
+<p />
+</ul>
+<h3>get_connections(...)</h3>
+Returns a list of field connections.
+
+<p />
+<p><em>Returns:</em></p>
+<ul>
+List of fields that this fields is a slave of or None.
 
 <p />
 </ul>
@@ -82,6 +123,12 @@ Inventor field type as string.
 Returns true if the field is connected to a master.
 
 <p />
+<p><em>Returns:</em></p>
+<ul>
+True if connection from field or engine is active, otherwise False.
+
+<p />
+</ul>
 <h3>is_connection_enabled(...)</h3>
 Returns if connections to this field is considered active.
 
