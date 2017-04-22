@@ -860,10 +860,6 @@ PyObject* PyField::append_connection(Object *self, PyObject *args)
             {
                 connected = self->field->appendConnection(PyEngineOutput::getInstance(master));
             }
-
-            SbBool ec = self->field->isConnectedFromEngine();
-            int c = self->field->getNumConnections();
-            int s = 1;
         }
     }
 
