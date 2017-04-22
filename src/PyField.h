@@ -49,8 +49,12 @@ private:
 
 	// methods
     static PyObject* connect_from(Object *self, PyObject *args);
+    static PyObject* append_connection(Object *self, PyObject *args);
     static PyObject* disconnect(Object *self, PyObject *args);
     static PyObject* is_connected(Object *self);
+    static PyObject* get_connected_engine(Object *self);
+    static PyObject* get_connected_field(Object *self);
+    static PyObject* get_connections(Object *self);
     static PyObject* enable_connection(Object *self, PyObject *args);
     static PyObject* is_connection_enabled(Object *self);
     static PyObject* touch(Object *self);

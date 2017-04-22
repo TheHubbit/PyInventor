@@ -113,6 +113,13 @@ PyTypeObject *PyField::getType()
             "Args:\n"
             "    Field or engine output to connect to.\n"
         },
+		{"append_connection", (PyCFunction)append_connection, METH_VARARGS,
+            "Connects this field as a slave to master while keeping existing\n"
+            "connections in place.\n"
+            "\n"
+            "Args:\n"
+            "    Field or engine output to connect to.\n"
+        },
         { "disconnect", (PyCFunction)disconnect, METH_VARARGS,
             "Disconnects connections from this field as a slave to master(s).\n"
              "\n"
@@ -122,7 +129,28 @@ PyTypeObject *PyField::getType()
         },
         {"is_connected", (PyCFunction)is_connected, METH_NOARGS,
             "Returns true if the field is connected to a master.\n"
+            "\n"
+            "Returns:\n"
+            "    True if connection from field or engine is active, otherwise False.\n"
         },
+        {"get_connected_engine", (PyCFunction)get_connected_engine, METH_NOARGS,
+            "Returns engine output that this field is connected to.\n"
+            "\n"
+            "Returns:\n"
+            "    Engine output that is connected to this field or None.\n"
+        },
+        {"get_connected_field", (PyCFunction)get_connected_field, METH_NOARGS,
+            "Returns master field that this field is connected to.\n"
+            "\n"
+            "Returns:\n"
+            "    Master field that is connected to this field or None.\n"
+        },
+        {"get_connections", (PyCFunction)get_connections, METH_NOARGS,
+            "Returns a list of field connections.\n"
+            "\n"
+            "Returns:\n"
+            "    List of fields that this fields is a slave of or None.\n"
+        },        
         { "enable_connection", (PyCFunction)enable_connection, METH_VARARGS,
             "Enables or disables the connections to this field.\n"
             "\n"
@@ -816,6 +844,33 @@ PyObject* PyField::connect_from(Object *self, PyObject *args)
 }
 
 
+PyObject* PyField::append_connection(Object *self, PyObject *args)
+{
+    long connected = 0;
+    PyObject *master = NULL;
+    if (self->field && PyArg_ParseTuple(args, "O", &master))
+    {
+        if (master)
+        {
+            if (PyObject_TypeCheck(master, PyField::getType()))
+            {
+                connected = self->field->appendConnection(((Object*)master)->field);
+            }
+            else if (PyObject_TypeCheck(master, PyEngineOutput::getType()))
+            {
+                connected = self->field->appendConnection(PyEngineOutput::getInstance(master));
+            }
+
+            SbBool ec = self->field->isConnectedFromEngine();
+            int c = self->field->getNumConnections();
+            int s = 1;
+        }
+    }
+
+    return PyBool_FromLong(connected);
+}
+
+
 PyObject* PyField::disconnect(Object *self, PyObject *args)
 {
     PyObject *master = NULL;
@@ -855,6 +910,63 @@ PyObject* PyField::is_connected(Object *self)
 }
 
 
+PyObject* PyField::get_connected_engine(Object *self)
+{
+    if (self->field)
+    {
+        SoEngineOutput *output = 0;
+        if (self->field->getConnectedEngine(output))
+        {
+            PyObject *outputWrapper = PyObject_CallObject((PyObject*)PyEngineOutput::getType(), NULL);
+            ((PyEngineOutput*)outputWrapper)->setInstance(output);
+            return outputWrapper;
+        }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+PyObject* PyField::get_connected_field(Object *self)
+{
+    if (self->field)
+    {
+        SoField *field = 0;
+        if (self->field->getConnectedField(field))
+        {
+            PyObject *outputWrapper = PyObject_CallObject((PyObject*)getType(), NULL);
+            ((PyField*)outputWrapper)->setInstance(field);
+            return outputWrapper;
+        }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+PyObject* PyField::get_connections(Object *self)
+{
+    if (self->field)
+    {
+        SoFieldList fieldList;
+        int numFields = self->field->getConnections(fieldList);
+        PyObject *result = PyList_New(numFields);
+        for (int i = 0; i < numFields; ++i)
+        {
+            PyObject *fieldWrapper = PyObject_CallObject((PyObject*)PyField::getType(), NULL);
+            ((PyField*)fieldWrapper)->setInstance(fieldList[i]);
+            PyList_SetItem(result, i, fieldWrapper);
+        }
+        return result;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
 PyObject* PyField::enable_connection(Object *self, PyObject *args)
 {
     int enable = 0;
@@ -865,7 +977,6 @@ PyObject* PyField::enable_connection(Object *self, PyObject *args)
 
     Py_INCREF(Py_None);
     return Py_None;
-
 }
 
 
