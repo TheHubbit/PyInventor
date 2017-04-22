@@ -46,13 +46,13 @@ PyTypeObject *PySensor::getType()
 		{"detach", (PyCFunction) detach, METH_NOARGS,
             "Deactivates a sensor.\n"
         },
-		{"setinterval", (PyCFunction) setinterval, METH_VARARGS,
+		{"set_interval", (PyCFunction) set_interval, METH_VARARGS,
             "Sets up a timer sensor with a regular interval.\n"
             "\n"
             "Args:\n"
             "    Timer interval in milliseconds.\n"
         },
-		{"settime", (PyCFunction) settime, METH_VARARGS,
+		{"set_time", (PyCFunction) set_time, METH_VARARGS,
             "Sets up an alarm sensor that is trigegred at a given time from now.\n"
             "\n"
             "Args:\n"
@@ -64,7 +64,7 @@ PyTypeObject *PySensor::getType()
 		{"unschedule", (PyCFunction) unschedule, METH_NOARGS,
             "Unschedules a timer sensor."
         },
-		{"isscheduled", (PyCFunction) isscheduled, METH_NOARGS,
+		{"is_scheduled", (PyCFunction) is_scheduled, METH_NOARGS,
             "Returns scheduled state of the sensor.\n"
             "\n"
             "Returns:\n"
@@ -232,7 +232,7 @@ PyObject* PySensor::detach(Object *self)
 }
 
 
-PyObject* PySensor::setinterval(Object *self, PyObject *args)
+PyObject* PySensor::set_interval(Object *self, PyObject *args)
 {
 	double interval = 0.;
 	if (PyArg_ParseTuple(args, "d", &interval))
@@ -252,7 +252,7 @@ PyObject* PySensor::setinterval(Object *self, PyObject *args)
 }
 
 
-PyObject* PySensor::settime(Object *self, PyObject *args)
+PyObject* PySensor::set_time(Object *self, PyObject *args)
 {
 	double time = 0.;
 	if (PyArg_ParseTuple(args, "d", &time))
@@ -296,7 +296,7 @@ PyObject* PySensor::unschedule(Object *self)
 }
 
 
-PyObject* PySensor::isscheduled(Object *self)
+PyObject* PySensor::is_scheduled(Object *self)
 {
 	long val = 0;
 

@@ -39,11 +39,11 @@ private:
 	// methods
 	static PyObject* attach(Object *self, PyObject *args);
 	static PyObject* detach(Object *self);
-	static PyObject* setinterval(Object *self, PyObject *args);
-	static PyObject* settime(Object *self, PyObject *args);
+	static PyObject* set_interval(Object *self, PyObject *args);
+	static PyObject* set_time(Object *self, PyObject *args);
 	static PyObject* schedule(Object *self);
 	static PyObject* unschedule(Object *self);
-	static PyObject* isscheduled(Object *self);
+	static PyObject* is_scheduled(Object *self);
 
 	// internal
 	static void sensorCBFunc(void *userdata, SoSensor *sensor);
