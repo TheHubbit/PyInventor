@@ -24,6 +24,7 @@
 #include "PySceneManager.h"
 #include "PySensor.h"
 #include "PyField.h"
+#include "PyEngineOutput.h"
 
 #include <numpy/ndarrayobject.h>
 
@@ -655,6 +656,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
 			PySceneObject::getEngineType(),
 			PySensor::getType(),
             PyField::getType(),
+            PyEngineOutput::getType(),
 			NULL,
 		};
 

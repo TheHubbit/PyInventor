@@ -239,12 +239,14 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="PyEngineOutput.h" />
     <ClInclude Include="PyField.h" />
     <ClInclude Include="PySceneManager.h" />
     <ClInclude Include="PySceneObject.h" />
     <ClInclude Include="PySensor.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="PyEngineOutput.cpp" />
     <ClCompile Include="PyField.cpp" />
     <ClCompile Include="PyInventor.cpp" />
     <ClCompile Include="PySceneManager.cpp" />

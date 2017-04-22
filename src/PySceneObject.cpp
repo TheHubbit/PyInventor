@@ -30,6 +30,7 @@
 
 #include "PySceneObject.h"
 #include "PyField.h"
+#include "PyEngineOutput.h"
 
 #pragma warning ( disable : 4127 ) // conditional expression is constant in Py_DECREF
 
@@ -1546,7 +1547,7 @@ PyObject* PySceneObject::getoutputs(Object* self)
         PyObject *result = PyList_New(numOutputs);
 		for (int i = 0; i < numOutputs; ++i)
 		{
-            PyObject* outputNameType = PyTuple_New(2);
+            PyObject* outputNameType = PyTuple_New(3);
             SbName outputName("");
             if (((SoEngine*)(self->inventorObject))->getOutputName(outputList[i], outputName))
             {
@@ -1557,6 +1558,10 @@ PyObject* PySceneObject::getoutputs(Object* self)
                 PyTuple_SetItem(outputNameType, 0, PyUnicode_FromString(""));
             }
             PyTuple_SetItem(outputNameType, 1, PyUnicode_FromString(outputList[i]->getConnectionType().getName().getString()));
+
+            PyObject *outputWrapper = PyObject_CallObject((PyObject*)PyEngineOutput::getType(), NULL);
+            ((PyEngineOutput*)outputWrapper)->setInstance(outputList[i]);
+            PyTuple_SetItem(outputNameType, 2, outputWrapper);
             PyList_SetItem(result, i, outputNameType);
 		}
 		return result;

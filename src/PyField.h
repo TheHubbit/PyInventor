@@ -22,6 +22,7 @@ class PyField
 public:
 	static PyTypeObject *getType();
     void setInstance(SoField *field);
+    static SoField *getInstance(PyObject *self);
 
     // helper methods for converting C into Python arrays
     static bool initNumpy();
@@ -50,8 +51,11 @@ private:
     static PyObject* connect_from(Object *self, PyObject *args);
     static PyObject* disconnect(Object *self, PyObject *args);
     static PyObject* is_connected(Object *self);
+    static PyObject* enable_connection(Object *self, PyObject *args);
+    static PyObject* is_connection_enabled(Object *self);
     static PyObject* touch(Object *self);
     static PyObject* get_name(Object *self);
     static PyObject* get_type(Object *self);
+    static PyObject* get_container(Object *self);
 };
 

@@ -55,7 +55,8 @@ module1 = Extension('inventor',
                                'src/PySceneManager.cpp', 
                                'src/PySceneObject.cpp', 
                                'src/PySensor.cpp',
-							   'src/PyField.cpp'])
+							   'src/PyField.cpp',
+                               'src/PyEngineOutput.cpp'])
 
 setup (name = 'PyInventor',
        version = '1.0',

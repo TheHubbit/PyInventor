@@ -10,11 +10,11 @@
  */
 
 
-//#include <Inventor/sensors/SoSensors.h>
 #include <Inventor/fields/SoFields.h>
 #include <Inventor/fields/SoFieldContainer.h>
 #include <Inventor/nodekits/SoBaseKit.h>
 #include "PyField.h"
+#include "PyEngineOutput.h"
 
 #pragma warning ( disable : 4127 ) // conditional expression is constant in Py_DECREF
 #pragma warning ( disable : 4244 ) // possible loss of data when converting int to short in SbVec2s
@@ -123,6 +123,12 @@ PyTypeObject *PyField::getType()
         {"is_connected", (PyCFunction)is_connected, METH_NOARGS,
             "Returns true if the field is connected to a master.\n"
         },
+        { "enable_connection", (PyCFunction)enable_connection, METH_VARARGS,
+            "Enables or disables the connections to this field.\n"
+        },
+        { "is_connection_enabled", (PyCFunction)is_connection_enabled, METH_NOARGS,
+            "Returns if connections to this field is considered active.\n"
+        },
         { "touch", (PyCFunction)touch, METH_NOARGS,
             "Notify the field as well as the field's owner that it has been changed.\n"
         },
@@ -131,6 +137,9 @@ PyTypeObject *PyField::getType()
         },
         { "get_type", (PyCFunction)get_type, METH_NOARGS,
             "Returns the type of the field.\n"
+        },
+        { "get_container", (PyCFunction)get_container, METH_NOARGS,
+            "Returns the container object of this field.\n"
         },
         {NULL}  /* Sentinel */
 	};
@@ -158,10 +167,10 @@ PyTypeObject *PyField::getType()
 		0,                         /* tp_as_buffer */
 		Py_TPFLAGS_DEFAULT |
 		Py_TPFLAGS_BASETYPE,       /* tp_flags */
-        "Represents node, field, timer and alarm sensors.\n"
+        "Represents a field.\n"
         "\n"
-        "Sensors can be used to observe changes in scene graphs or to trigger actions\n"
-        "at given times.\n",       /* tp_doc */
+        "Field values can be accessed as attributes of a scene object. Use the field\n"
+        "objects to create connections to other fields or engine outputs.\n", /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
 		0,                         /* tp_richcompare */
@@ -250,6 +259,17 @@ void PyField::setInstance(SoField *field)
     {
         self->field->getContainer()->ref();
     }
+}
+
+
+SoField *PyField::getInstance(PyObject *self)
+{
+    if (PyObject_TypeCheck(self, getType()))
+    {
+        return ((Object*)self)->field;
+    }
+
+    return 0;
 }
 
 
@@ -769,7 +789,10 @@ PyObject* PyField::connect_from(Object *self, PyObject *args)
             {
                 connected = self->field->connectFrom(((Object*)master)->field);
             }
-            // else engine
+            else if (PyObject_TypeCheck(master, PyEngineOutput::getType()))
+            {
+                connected = self->field->connectFrom(PyEngineOutput::getInstance(master));
+            }
         }
     }
 
@@ -788,7 +811,10 @@ PyObject* PyField::disconnect(Object *self, PyObject *args)
             {
                 self->field->disconnect(((Object*)master)->field);
             }
-            // else engine
+            else if (PyObject_TypeCheck(master, PyEngineOutput::getType()))
+            {
+                self->field->disconnect(PyEngineOutput::getInstance(master));
+            }
         }
         else
         {
@@ -810,6 +836,32 @@ PyObject* PyField::is_connected(Object *self)
     }
 
     return PyBool_FromLong(connected);
+}
+
+
+PyObject* PyField::enable_connection(Object *self, PyObject *args)
+{
+    int enable = 0;
+    if (self->field && PyArg_ParseTuple(args, "p", &enable))
+    {
+        self->field->enableConnection(enable);
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+
+}
+
+
+PyObject* PyField::is_connection_enabled(Object *self)
+{
+    long enabled = 0;
+    if (self->field)
+    {
+        enabled = self->field->isConnectionEnabled();
+    }
+
+    return PyBool_FromLong(enabled);
 }
 
 
@@ -844,6 +896,19 @@ PyObject* PyField::get_type(Object *self)
     if (self->field)
     {
         return PyUnicode_FromString(self->field->getTypeId().getName().getString());
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+PyObject* PyField::get_container(Object *self)
+{
+    if (self->field && self->field->getContainer())
+    {
+        SoFieldContainer *obj = self->field->getContainer();
+        return PySceneObject::createWrapper(obj->getTypeId().getName().getString(), obj);
     }
 
     Py_INCREF(Py_None);
