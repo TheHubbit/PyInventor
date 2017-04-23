@@ -59,7 +59,7 @@ module1 = Extension('inventor',
                                'src/PyEngineOutput.cpp'])
 
 setup (name = 'PyInventor',
-       version = '1.0',
+       version = '1.1',
        description = 'Python integration for Open Inventor toolkit',
        author = 'Thomas Moeller',
        author_email = '',
