@@ -25,7 +25,7 @@ class QSceneObjectProxy(QtCore.QObject):
     to one relationship between parents and children.
     """
     
-    def __init__(self, sceneObject=None, parent=None):
+    def __init__(self, sceneObject=None, parent=None, connectedFrom=None, connectedTo=None):
         """Initializes node instance (pass scene object and parent)"""
         super(QSceneObjectProxy, self).__init__()
 
@@ -33,6 +33,8 @@ class QSceneObjectProxy(QtCore.QObject):
         self._name = ""
         self._children = []
         self._parent = parent
+        self._connectedFrom = connectedFrom
+        self._connectedTo = connectedTo
         
         if self._sceneObject is not None:
             self._name = sceneObject.get_name()
@@ -62,6 +64,24 @@ class QSceneObjectProxy(QtCore.QObject):
             return self._parent._children.index(self)
 
         return -1
+
+
+    def isChildNode(self):
+        return self._connectedFrom is None
+
+
+    def title(self):
+        """Returns the scene object display title"""
+        title = ""
+
+        if self._sceneObject is not None:
+            title += self._sceneObject.get_type()
+            if self._connectedFrom is not None:
+                title += " " + self._connectedFrom.get_name()
+            if self._connectedTo is not None:
+                title += "->" + self._connectedTo.get_name()
+        
+        return title
 
 
     def type(self):
@@ -107,9 +127,9 @@ class QSceneObjectProxy(QtCore.QObject):
     def changeChildType(self, position, typeName):
         """Changes the type of a child node"""
         node = iv.Node(type = typeName)
-        if node is not None:
+        if (node is not None) and (position >= 0) and (position < len(self._children)):
             self._children[position].setSceneObject(node)
-            if self._sceneObject is not None:
+            if (self._sceneObject is not None) and (position < len(self._sceneObject)):
                 # before replacing child of Inventor object copy children if both are groups
                 if self._sceneObject[position].check_type("Group") and node.check_type("Group"):
                     node += self._sceneObject[position][:]
@@ -147,6 +167,10 @@ class QSceneObjectProxy(QtCore.QObject):
         
         child = self._children.pop(position)
         child._parent = None
+
+        # disconnect field if it was a field connection
+        if (child._connectedFrom is not None) and (child._connectedTo is not None):
+            child._connectedTo.disconnect(child._connectedFrom)
         
         return True
     
@@ -224,11 +248,22 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         return 2
 
 
-    def createSceneGraphProxy(self, sceneObject, parent=None):
+    def createSceneGraphProxy(self, sceneObject, parent=None, connectedFrom=None, connectedTo=None):
         """Creates abstract item model proxy instances for the given scene object"""
-        node = QSceneObjectProxy(sceneObject, parent)
-        for child in sceneObject:
-            self.createSceneGraphProxy(child, node)
+        node = QSceneObjectProxy(sceneObject, parent, connectedFrom, connectedTo)
+
+        # add all child nodes
+        if isinstance(sceneObject, iv.Node):
+            for child in sceneObject:
+                self.createSceneGraphProxy(child, node)
+
+        # add all objects connected through fields
+        for field in sceneObject.get_field():
+            for conn in field.get_connections():
+                self.createSceneGraphProxy(conn.get_container(), node, conn, field)
+            if field.get_connected_engine() is not None:
+                output = field.get_connected_engine()
+                self.createSceneGraphProxy(output.get_container(), node, output, field)
         
         return node
 
@@ -317,10 +352,15 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         node = index.internalPointer()
         if role == QtCore.Qt.UserRole:
             return index
+
+        if role == QtCore.Qt.FontRole:
+            font = QtGui.QFont()
+            font.setItalic(not node.isChildNode());
+            return font
         
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if index.column() == 0:
-                return node.type()
+                return node.title()
             if index.column() == 1:
                 return node.name()
         
@@ -339,15 +379,16 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
             if role == QtCore.Qt.EditRole:
                 if (index.column() == 0) and (index.parent() is not None):
                     # type changes: need to call changeChildType on parent so old
-                    # scene object can be replaced bz new one
+                    # scene object can be replaced by new one
                     parentGroup = self._rootNode
-                    if index.parent().internalPointer() is not None:
-                        parentGroup = index.parent().internalPointer()
-                    parentGroup.changeChildType(index.row(), value)
-                    if (not node.isGroup()) and (node.childCount() > 0):
-                        # if previous node was a group but new one isn't all children
-                        # must be removed
-                        self.removeRows(0, node.childCount(), index)
+                    if index.internalPointer().isChildNode():
+                        if index.parent().internalPointer() is not None:
+                            parentGroup = index.parent().internalPointer()
+                        parentGroup.changeChildType(index.row(), value)
+                        if (not node.isGroup()) and (node.childCount() > 0):
+                            # if previous node was a group but new one isn't all children
+                            # must be removed
+                            self.removeRows(0, node.childCount(), index)
                 
                 if index.column() == 1:
                     node.setName(value)
@@ -373,9 +414,17 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
     
 
     def flags(self, index):
-        """All items can be selected and modified"""
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
-    
+        """Return flags if items can be selected and modified"""
+        flags = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+        if isinstance(index.internalPointer(), QSceneObjectProxy) and index.internalPointer().isChildNode():
+            flags |= QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
+
+        if index.column() == 1:
+            flags |= QtCore.Qt.ItemIsEditable
+
+        return flags
+  
     
     def parent(self, index):
         """Returns parent proxy node"""
