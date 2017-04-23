@@ -825,11 +825,12 @@ class QInspectorWidget(QtGui.QSplitter):
         viewIndex = self._graphView.currentIndex()
         if viewIndex.isValid():
             dataIndex = viewIndex.data(QtCore.Qt.UserRole)
-            if self._sceneModel.insertRow(dataIndex.row() + 1, dataIndex.parent()):
-                viewIndex = viewIndex.sibling(viewIndex.row() + 1, viewIndex.column())
-                self._fieldView.setModel(None)
-                self._graphView.edit(viewIndex.sibling(viewIndex.row(), 0))
-                self._graphView.clearSelection()
+            if dataIndex.internalPointer().isChildNode():
+                if self._sceneModel.insertRow(dataIndex.row() + 1, dataIndex.parent()):
+                    viewIndex = viewIndex.sibling(viewIndex.row() + 1, viewIndex.column())
+                    self._fieldView.setModel(None)
+                    self._graphView.edit(viewIndex.sibling(viewIndex.row(), 0))
+                    self._graphView.clearSelection()
 
 
     def insertObject(self):
@@ -837,10 +838,11 @@ class QInspectorWidget(QtGui.QSplitter):
         viewIndex = self._graphView.currentIndex()
         if viewIndex.isValid():
             dataIndex = viewIndex.data(QtCore.Qt.UserRole)
-            if self._sceneModel.insertRow(dataIndex.row(), dataIndex.parent()):
-                self._fieldView.setModel(None)
-                dataIndex = viewIndex.data(QtCore.Qt.UserRole)
-                self._graphView.edit(viewIndex.sibling(viewIndex.row(), 0))
-                self._graphView.clearSelection()
+            if dataIndex.internalPointer().isChildNode():
+                if self._sceneModel.insertRow(dataIndex.row(), dataIndex.parent()):
+                    self._fieldView.setModel(None)
+                    dataIndex = viewIndex.data(QtCore.Qt.UserRole)
+                    self._graphView.edit(viewIndex.sibling(viewIndex.row(), 0))
+                    self._graphView.clearSelection()
 
 
