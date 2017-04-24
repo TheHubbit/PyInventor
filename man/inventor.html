@@ -54,6 +54,29 @@ Type names of all classes matching the given filter.
 Creates Python classes for all registered Inventor scene objects.
 
 <p />
+<h3>create_object(...)</h3>
+Creates a scene object instance for a given type, scene object name
+or existing native pointer.
+
+<p />
+<p><em>Args:</em></p>
+<ul>
+<ul>
+<li>type:
+Scene object type of instance to be created (string).
+<li>name:
+Name of existing scene object to represented.
+<li>pointer:
+Native pointer of existing scene object to represented.
+
+</ul>
+</ul>
+<p><em>Returns:</em></p>
+<ul>
+Scene object instance or None.
+
+<p />
+</ul>
 <h3>image(...)</h3>
 Renders a scene into an offscreen buffer using the inventor
 SoOffscreenRenderer class. Note that this class creates a private,
