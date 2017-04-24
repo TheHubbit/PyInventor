@@ -162,7 +162,7 @@ class QSceneObjectProxy(QtCore.QObject):
             return False
         
         # also remove child from scene object
-        if (self._sceneObject is not None) and (position < len(self._sceneObject)):
+        if (self._sceneObject is not None) and isinstance(self._sceneObject, iv.Node) and (position < len(self._sceneObject)):
             del self._sceneObject[position]
         
         child = self._children.pop(position)
@@ -517,7 +517,7 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
 
     def columnCount(self, parent):
         """Returns two as column count for field name and value"""
-        return 2
+        return 3
     
 
     def data(self, index, role):
@@ -528,38 +528,78 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if index.column() == 0:
                 return self._rootNode.fields()[index.row()].get_name()
-            else:
+            elif index.column() == 1:
                 return self._rootNode.fieldValue(index.row())
+            else:
+                text = ""
+                field = self._rootNode.fields()[index.row()]
+                if field.get_connected_field() is not None:
+                    text = field.get_connected_field().get_container().get_type() + " " + field.get_connected_field().get_name()
+                if field.get_connected_engine() is not None:
+                    text = field.get_connected_engine().get_container().get_type() + " " + field.get_connected_engine().get_name()
+                return text
        
         
+    def addFieldConnection(self, typeName, masterName, field):
+        sceneObject = None
+        if typeName.startswith('"') and typeName.endswith('"'):
+            # if type name is in quotes, interpret as instance name
+            sceneObject = iv.create_object(name = typeName[1:-1])
+        else:
+            typeAndArgs = typeName.split("(")
+            if len(typeAndArgs) > 1:
+                # support initialization arguments in brackets for templated types (e.g. Gate)
+                sceneObject = iv.create_object(type = typeAndArgs[0], init = typeAndArgs[1][:-1])
+            else:
+                # no round brackets means just type name is given
+                sceneObject = iv.create_object(typeName)
+
+        if sceneObject is not None:
+            master = None
+            if isinstance(sceneObject, iv.Engine):
+                master = sceneObject.get_output(masterName)
+            if master is None:
+                master = sceneObject.get_field(masterName)
+            if field is not None and master is not None:
+                field.connect_from(master)
+
+
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         """Updates field values"""
-        if index.isValid():
-            if role == QtCore.Qt.EditRole:
+        if index.isValid() and role == QtCore.Qt.EditRole:
+            if index.column() == 1:
                 self._rootNode.setFieldValue(index.row(), value)
                 self.dataChanged.emit(index, index)
                 return True
+            elif index.column() == 2:
+                objAndField = value.split(" ")
+                if len(objAndField) == 2:
+                    self.addFieldConnection(objAndField[0], objAndField[1], self._rootNode._sceneObject.get_field()[index.row()])
+                    self.dataChanged.emit(index, index)
+                    return True
         
         return False
-    
-    
+
+
     def headerData(self, section, orientation, role):
         """Returns field name and value titles"""
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
                 if section == 0:
                     return "Field"
-                else:
+                elif section == 1:
                     return "Value"
+                else:
+                    return "Connection"
         return None
 
 
     def flags(self, index):
         """Values are editable but names aren't"""
-        if index.column() == 0:
-            return QtCore.Qt.ItemIsEnabled
-        else:
+        if index.column() > 0:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable
+        else:
+            return QtCore.Qt.ItemIsEnabled
 
 
 
@@ -773,6 +813,14 @@ class QInspectorWidget(QtGui.QSplitter):
         if current.isValid():
             self._fieldsModel = QFieldContainerModel(current.data(QtCore.Qt.UserRole).internalPointer())
             self._fieldView.setModel(self._fieldsModel)
+            QtCore.QObject.connect(self._fieldView.model(), QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.fieldChanged)
+
+
+    def fieldChanged(self, current, old):
+        """Updates field editor after selection in tree view changed"""
+        if current.isValid() and current.column() == 2:
+            # to do: refresh scene object after connection change
+            return
 
 
     def keyPressEvent(self, event):
