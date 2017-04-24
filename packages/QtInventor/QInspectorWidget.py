@@ -42,6 +42,28 @@ class QSceneObjectProxy(QtCore.QObject):
         if parent is not None:
             parent._children.append(self)
 
+        self.initializeChildren(sceneObject, parent)
+
+
+    def createChildProxy(self, sceneObject, parent=None, connectedFrom=None, connectedTo=None):
+        node = QSceneObjectProxy(sceneObject, parent, connectedFrom, connectedTo)
+
+
+    def initializeChildren(self, sceneObject, parent=None, connectedFrom=None, connectedTo=None):
+        if sceneObject is not None:
+            # add all child nodes
+            if isinstance(sceneObject, iv.Node):
+                for child in sceneObject:
+                    self.createChildProxy(child, self)
+
+            # add all objects connected through fields
+            for field in sceneObject.get_field():
+                for conn in field.get_connections():
+                    self.createChildProxy(conn.get_container(), self, conn, field)
+                if field.get_connected_engine() is not None:
+                    output = field.get_connected_engine()
+                    self.createChildProxy(output.get_container(), self, output, field)
+
 
     def child(self, row):
         """Returns child node at given index"""
@@ -210,6 +232,16 @@ class QSceneObjectProxy(QtCore.QObject):
             return self._sceneObject.set(fieldName, value)
         return None
 
+    def refreshNode(self, node):
+        if (self._sceneObject is not None) and (node._sceneObject is not None):
+            if self._sceneObject is node._sceneObject:
+                self._children.clear()
+                self.initializeChildren(self._sceneObject, self.parent)
+        
+            # update all instances recursively
+            for child in self._children:
+                child.refreshNode(node)
+
 
 
 class QSceneGraphModel(QtCore.QAbstractItemModel):
@@ -224,7 +256,7 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         """Initializes scene graph model from scene object"""
         super(QSceneGraphModel, self).__init__(parent)
 
-        self._rootNode = self.createSceneGraphProxy(root)
+        self._rootNode = QSceneObjectProxy(root)
         self._draggedNodes = None
 
    
@@ -246,26 +278,6 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
     def columnCount(self, parent):
         """Returns two as column count (type and name)"""
         return 2
-
-
-    def createSceneGraphProxy(self, sceneObject, parent=None, connectedFrom=None, connectedTo=None):
-        """Creates abstract item model proxy instances for the given scene object"""
-        node = QSceneObjectProxy(sceneObject, parent, connectedFrom, connectedTo)
-
-        # add all child nodes
-        if isinstance(sceneObject, iv.Node):
-            for child in sceneObject:
-                self.createSceneGraphProxy(child, node)
-
-        # add all objects connected through fields
-        for field in sceneObject.get_field():
-            for conn in field.get_connections():
-                self.createSceneGraphProxy(conn.get_container(), node, conn, field)
-            if field.get_connected_engine() is not None:
-                output = field.get_connected_engine()
-                self.createSceneGraphProxy(output.get_container(), node, output, field)
-        
-        return node
 
 
     def mimeTypes(self):
@@ -330,7 +342,7 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
                 parentNode = self.getProxyNodeFromIndex(parent)
                 self.beginInsertRows(parent, beginRow, beginRow + len(self._draggedNodes) - 1)
                 for n in self._draggedNodes:
-                    success = parentNode.insertChild(beginRow, self.createSceneGraphProxy(n.sceneObject()))
+                    success = parentNode.insertChild(beginRow, QSceneObjectProxy(n.sceneObject()))
                 self.endInsertRows()
                 self._draggedNodes = None
         else:
@@ -488,6 +500,13 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         self.endRemoveRows()
 
         return success
+
+
+    def refreshNode(self, node):
+        self.beginResetModel()
+        self._rootNode.refreshNode(node)
+        self.endResetModel()
+
 
 
 class QFieldContainerModel(QtCore.QAbstractTableModel):
@@ -819,8 +838,7 @@ class QInspectorWidget(QtGui.QSplitter):
     def fieldChanged(self, current, old):
         """Updates field editor after selection in tree view changed"""
         if current.isValid() and current.column() == 2:
-            # to do: refresh scene object after connection change
-            return
+            self._sceneModel.refreshNode(self._fieldsModel._rootNode)
 
 
     def keyPressEvent(self, event):
