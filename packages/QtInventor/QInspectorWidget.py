@@ -126,7 +126,7 @@ class QSceneObjectProxy(QtCore.QObject):
 
     def changeChildType(self, position, typeName):
         """Changes the type of a child node"""
-        node = iv.Node(type = typeName)
+        node = iv.create_object(typeName)
         if (node is not None) and (position >= 0) and (position < len(self._children)):
             self._children[position].setSceneObject(node)
             if (self._sceneObject is not None) and (position < len(self._sceneObject)):

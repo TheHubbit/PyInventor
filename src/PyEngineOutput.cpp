@@ -194,7 +194,7 @@ PyObject* PyEngineOutput::get_container(Object *self)
     if (self->output && self->output->getContainer())
     {
         SoFieldContainer *obj = self->output->getContainer();
-        return PySceneObject::createWrapper(obj->getTypeId().getName().getString(), obj);
+        return PySceneObject::createWrapper(obj);
     }
 
     Py_INCREF(Py_None);

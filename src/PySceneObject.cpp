@@ -206,7 +206,7 @@ PyTypeObject *PySceneObject::getFieldContainerType()
 		0,                         /* tp_descr_get */
 		0,                         /* tp_descr_set */
 		0,                         /* tp_dictoffset */
-		(initproc) tp_init,        /* tp_init */
+		0,                         /* tp_init */
 		0,                         /* tp_alloc */
 		tp_new,                    /* tp_new */
 	};
@@ -312,7 +312,7 @@ PyTypeObject *PySceneObject::getNodeType()
 		0,                         /* tp_descr_get */
 		0,                         /* tp_descr_set */
 		0,                         /* tp_dictoffset */
-		(initproc) tp_init,        /* tp_init */
+		0,                         /* tp_init */
 		0,                         /* tp_alloc */
 		tp_new,                    /* tp_new */
 	};
@@ -373,7 +373,7 @@ PyTypeObject *PySceneObject::getEngineType()
 		0,                         /* tp_descr_get */
 		0,                         /* tp_descr_set */
 		0,                         /* tp_dictoffset */
-		(initproc) tp_init,        /* tp_init */
+		0,                         /* tp_init */
 		0,                         /* tp_alloc */
 		tp_new,                    /* tp_new */
 	};
@@ -432,7 +432,7 @@ PyTypeObject *PySceneObject::getWrapperType(const char *typeName, PyTypeObject *
 			0,                         /* tp_descr_get */
 			0,                         /* tp_descr_set */
 			0,                         /* tp_dictoffset */
-			(initproc) tp_init2,       /* tp_init */
+			(initproc) tp_init,        /* tp_init */
 			0,                         /* tp_alloc */
 			tp_new,                    /* tp_new */
 		};
@@ -443,27 +443,38 @@ PyTypeObject *PySceneObject::getWrapperType(const char *typeName, PyTypeObject *
 }
 
 
-PyObject *PySceneObject::createWrapper(const char *typeName, SoFieldContainer *instance)
+PyObject *PySceneObject::createWrapper(SoFieldContainer *instance, bool createClone)
 {
-	PyObject *obj = 0;
-	if (getWrapperType(typeName))
-	{
-		obj = PyObject_CallObject((PyObject*) getWrapperType(typeName, getNodeType()), NULL);
-	}
-	else
-	{
-		PyObject* args = PyTuple_New(1);
-		PyTuple_SetItem(args, 0, PyUnicode_FromString(typeName));
-		obj = PyObject_CallObject((PyObject*) getNodeType(), args);
-		Py_DECREF(args);
-	}
+    if (instance)
+    {
+        PyObject *obj = 0;
 
-	if (obj && instance)
-	{
-		setInstance((Object*) obj, instance);
-	}
+        SbName typeName = instance->getTypeId().getName();
+        if (getWrapperType(typeName.getString()))
+        {
+            obj = PyObject_CallObject((PyObject*)getWrapperType(typeName.getString(), getNodeType()), NULL);
+        }
+        else
+        {
+            PyObject* args = PyTuple_New(1);
+            PyTuple_SetItem(args, 0, PyUnicode_FromString(typeName.getString()));
+            obj = PyObject_CallObject((PyObject*)getNodeType(), args);
+            Py_DECREF(args);
+        }
 
-	return obj;
+        if (obj && instance && !createClone)
+        {
+            setInstance((Object*)obj, instance);
+        }
+
+        if (obj)
+        {
+            return obj;
+        }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 
@@ -517,114 +528,6 @@ PyObject* PySceneObject::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObject
 }
 
 
-int PySceneObject::tp_init(Object *self, PyObject *args, PyObject *kwds)
-{
-	char *type = NULL, *name = NULL, *init = NULL;
-	PyObject *pointer = NULL;
-	static char *kwlist[] = { "type", "init", "name", "pointer", NULL};
-
-	if (! PyArg_ParseTupleAndKeywords(args, kwds, "|sssO", kwlist, &type, &init, &name, &pointer))
-		return -1;
-
-	if (self->inventorObject)
-	{
-		self->inventorObject->unref();
-		self->inventorObject = 0;
-	}
-
-    
-	if (pointer)
-	{
-		// pointer provided
-		if (PyCapsule_CheckExact(pointer))
-		{
-			void* ptr = PyCapsule_GetPointer(pointer, NULL);
-			if (ptr)
-			{
-				self->inventorObject = (SoFieldContainer *) ptr;
-				self->inventorObject->ref();
-				if (name && name[0]) self->inventorObject->setName(name);
-				if (init && init[0]) setFields(self->inventorObject, init);
-			}
-		}
-	}
-	else if (type && type[0])
-	{
-		// create new instance
-		SoType t = SoType::fromName(type);
-
-        // special handling for "templated" types (Gate, Concatenate, SelectOne)
-        if (init && t.isDerivedFrom(SoGate::getClassTypeId()))
-        {
-            self->inventorObject = new SoGate(SoType::fromName(init));
-            init = NULL;
-        }
-        else if (init && t.isDerivedFrom(SoConcatenate::getClassTypeId()))
-        {
-            self->inventorObject = new SoConcatenate(SoType::fromName(init));
-            init = NULL;
-        }
-        else if (init && t.isDerivedFrom(SoSelectOne::getClassTypeId()))
-        {
-            self->inventorObject = new SoSelectOne(SoType::fromName(init));
-            init = NULL;
-        }
-        else if (t.canCreateInstance())
-        {
-            self->inventorObject = (SoFieldContainer *)t.createInstance();
-        }
-
-        if (self->inventorObject)
-		{
-			self->inventorObject->ref();
-			if ((PyEngine_Check(self) && self->inventorObject->isOfType(SoEngine::getClassTypeId())) || 
-				(PyNode_Check(self) && self->inventorObject->isOfType(SoNode::getClassTypeId())) )
-			{
-				if (name && name[0]) self->inventorObject->setName(name);
-				if (init && init[0]) self->inventorObject->set(init);
-			}
-			else
-			{
-				self->inventorObject->unref();
-				self->inventorObject = 0;
-				PyErr_SetString(PyExc_TypeError, "Incorrect scene object type (must be node or engine)");
-			}
-		}
-	}
-	else if (name)
-	{
-		// instance lookup by name
-		if (PyNode_Check(self))
-		{
-			self->inventorObject = SoNode::getByName(name);
-		}
-		else if (PyEngine_Check(self))
-		{
-			self->inventorObject = SoEngine::getByName(name);
-		}
-		else
-		{
-			PyErr_SetString(PyExc_TypeError, "Name lookup requires Node or Engine instance");
-			return -1;
-		}
-
-		if (self->inventorObject)
-		{
-			self->inventorObject->ref();
-		}
-		else
-		{
-			PyErr_SetString(PyExc_ValueError, "No scene object with given name exists");
-			return -1;
-		}
-	}
-
-	initDictionary(self);
-
-	return 0;
-}
-
-
 void PySceneObject::initDictionary(Object *self)
 {
 	if (self->inventorObject)
@@ -658,13 +561,12 @@ int PySceneObject::setFields(SoFieldContainer *fieldContainer, char *value)
 }
 
 
-int PySceneObject::tp_init2(Object *self, PyObject *args, PyObject *kwds)
+int PySceneObject::tp_init(Object *self, PyObject *args, PyObject *kwds)
 {
 	char *type = NULL, *name = NULL, *init = NULL;
-	PyObject *pointer = NULL;
-	static char *kwlist[] = { "init", "name", "pointer", NULL};
+	static char *kwlist[] = { "init", "name", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ssO", kwlist, &init, &name, &pointer))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ss", kwlist, &init, &name))
 		return -1;
 
 	if (self->inventorObject)
@@ -673,77 +575,59 @@ int PySceneObject::tp_init2(Object *self, PyObject *args, PyObject *kwds)
 		self->inventorObject = 0;
 	}
 
-	if (pointer)
+	PyObject *classObj = PyObject_GetAttrString((PyObject*) self, "__class__");
+	if (classObj != NULL)
 	{
-		// pointer provided
-		if (PyCapsule_CheckExact(pointer))
+		PyObject *className = PyObject_GetAttrString(classObj, "__name__");
+		if (className != NULL)
 		{
-			void* ptr = PyCapsule_GetPointer(pointer, NULL);
-			if (ptr)
+			// create new instance
+			type = PyUnicode_AsUTF8(className);
+			SoType t = SoType::fromName(type);
+
+            // special handling for "templated" types (Gate, Concatenate, SelectOne)
+            if (init && t.isDerivedFrom(SoGate::getClassTypeId()))
+            {
+                self->inventorObject = new SoGate(SoType::fromName(init));
+                init = NULL;
+            }
+            else if (init && t.isDerivedFrom(SoConcatenate::getClassTypeId()))
+            {
+                self->inventorObject = new SoConcatenate(SoType::fromName(init));
+                init = NULL;
+            }
+            else if (init && t.isDerivedFrom(SoSelectOne::getClassTypeId()))
+            {
+                self->inventorObject = new SoSelectOne(SoType::fromName(init));
+                init = NULL;
+            }
+            else if (t.canCreateInstance())
+            {
+                self->inventorObject = (SoFieldContainer *)t.createInstance();
+            }
+
+            if (self->inventorObject)
 			{
-				self->inventorObject = (SoFieldContainer *) ptr;
 				self->inventorObject->ref();
-				if (name && name[0]) self->inventorObject->setName(name);
-				if (init && init[0]) setFields(self->inventorObject, init);
-			}
-		}
-	}
-	else
-	{
-		PyObject *classObj = PyObject_GetAttrString((PyObject*) self, "__class__");
-		if (classObj != NULL)
-		{
-			PyObject *className = PyObject_GetAttrString(classObj, "__name__");
-			if (className != NULL)
-			{
-				// create new instance
-				type = PyUnicode_AsUTF8(className);
-				SoType t = SoType::fromName(type);
-
-                // special handling for "templated" types (Gate, Concatenate, SelectOne)
-                if (init && t.isDerivedFrom(SoGate::getClassTypeId()))
-                {
-                    self->inventorObject = new SoGate(SoType::fromName(init));
-                    init = NULL;
-                }
-                else if (init && t.isDerivedFrom(SoConcatenate::getClassTypeId()))
-                {
-                    self->inventorObject = new SoConcatenate(SoType::fromName(init));
-                    init = NULL;
-                }
-                else if (init && t.isDerivedFrom(SoSelectOne::getClassTypeId()))
-                {
-                    self->inventorObject = new SoSelectOne(SoType::fromName(init));
-                    init = NULL;
-                }
-                else if (t.canCreateInstance())
-                {
-                    self->inventorObject = (SoFieldContainer *)t.createInstance();
-                }
-
-                if (self->inventorObject)
+				if (self->inventorObject->isOfType(SoEngine::getClassTypeId()) || 
+					self->inventorObject->isOfType(SoNode::getClassTypeId()) )
 				{
-					self->inventorObject->ref();
-					if ((PyEngine_Check(self) && self->inventorObject->isOfType(SoEngine::getClassTypeId())) || 
-						(PyNode_Check(self) && self->inventorObject->isOfType(SoNode::getClassTypeId())) )
-					{
-						if (name && name[0]) self->inventorObject->setName(name);
-						if (init && init[0]) setFields(self->inventorObject, init);
-					}
-					else
-					{
-						self->inventorObject->unref();
-						self->inventorObject = 0;
-						PyErr_SetString(PyExc_TypeError, "Incorrect scene object type (must be node or engine)");
-					}
+					if (name && name[0]) self->inventorObject->setName(name);
+					if (init && init[0]) setFields(self->inventorObject, init);
+				}
+				else
+				{
+					self->inventorObject->unref();
+					self->inventorObject = 0;
+					PyErr_SetString(PyExc_TypeError, "Incorrect scene object type (must be node or engine)");
 				}
 			}
-
-			Py_DECREF(className);
 		}
-		Py_DECREF(classObj);
-	}
 
+		Py_DECREF(className);
+	}
+	Py_DECREF(classObj);
+	
 	initDictionary(self);
 
 	return 0;
@@ -834,7 +718,7 @@ PyObject* PySceneObject::tp_getattro(Object* self, PyObject *attrname)
 				SoNode *node = ((SoForeignFileKit*) self->inventorObject)->convert();
 				if (node)
 				{
-					PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
+					PyObject *obj = createWrapper(node);
 					if (obj)
 					{
 						return obj;
@@ -855,7 +739,7 @@ PyObject* PySceneObject::tp_getattro(Object* self, PyObject *attrname)
 					SoNode *node = baseKit->getPart(fieldName, TRUE);
 					if (node)
 					{
-						PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
+						PyObject *obj = createWrapper(node);
 						if (obj)
 						{
 							return obj;
@@ -907,7 +791,7 @@ PyObject * PySceneObject::sq_concat(Object *self, PyObject *item)
 {
 	if (self->inventorObject && self->inventorObject->isOfType(SoGroup::getClassTypeId()))
 	{
-		PyObject *obj = createWrapper(self->inventorObject->getTypeId().getName().getString());
+		PyObject *obj = createWrapper(self->inventorObject, true);
 		if (obj)
 		{
 			sq_inplace_concat((Object*) obj, (PyObject*) self);
@@ -983,7 +867,7 @@ PyObject *PySceneObject::sq_item(Object *self, Py_ssize_t idx)
 		if (idx < ((SoGroup*) self->inventorObject)->getNumChildren())
 		{
 			SoNode *node = ((SoGroup*) self->inventorObject)->getChild(idx);
-			PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
+			PyObject *obj = createWrapper(node);
 			if (obj)
 			{
 				return obj;
@@ -1400,7 +1284,7 @@ PyObject* PySceneObject::get(Object *self, PyObject *args)
                         SoNode *node = baseKit->getPart(name, createIfNeeded ? TRUE : FALSE);
                         if (node)
                         {
-                            PyObject *obj = createWrapper(node->getTypeId().getName().getString(), node);
+                            PyObject *obj = createWrapper(node);
                             if (obj)
                             {
                                 return obj;

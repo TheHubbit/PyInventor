@@ -20,6 +20,9 @@
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/SoInput.h>
 #include <Inventor/SoOffscreenRenderer.h>
+#include <Inventor/engines/SoGate.h>
+#include <Inventor/engines/SoSelectOne.h>
+#include <Inventor/engines/SoConcatenate.h>
 #include "PySceneObject.h"
 #include "PySceneManager.h"
 #include "PySensor.h"
@@ -138,6 +141,80 @@ PyObject* iv_classes(PyObject * /*self*/, PyObject *args)
 }
 
 
+PyObject* iv_create_object(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+{
+    SoFieldContainer *inventorObject = NULL;
+    char *type = NULL, *name = NULL, *init = NULL;
+    PyObject *pointer = NULL;
+    static char *kwlist[] = { "type", "init", "name", "pointer", NULL };
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|sssO", kwlist, &type, &init, &name, &pointer))
+    {
+        PyErr_SetString(PyExc_TypeError, "Incorrect arguments provided!");
+    }
+    else if (pointer)
+    {
+        // pointer provided
+        if (PyCapsule_CheckExact(pointer))
+        {
+            void* ptr = PyCapsule_GetPointer(pointer, NULL);
+            if (ptr)
+            {
+                inventorObject = (SoFieldContainer *)ptr;
+            }
+        }
+    }
+    else if (type && type[0])
+    {
+        // create new instance
+        SoType t = SoType::fromName(type);
+
+        // special handling for "templated" types (Gate, Concatenate, SelectOne)
+        if (init && t.isDerivedFrom(SoGate::getClassTypeId()))
+        {
+            inventorObject = new SoGate(SoType::fromName(init));
+            init = NULL;
+        }
+        else if (init && t.isDerivedFrom(SoConcatenate::getClassTypeId()))
+        {
+            inventorObject = new SoConcatenate(SoType::fromName(init));
+            init = NULL;
+        }
+        else if (init && t.isDerivedFrom(SoSelectOne::getClassTypeId()))
+        {
+            inventorObject = new SoSelectOne(SoType::fromName(init));
+            init = NULL;
+        }
+        else if (t.canCreateInstance())
+        {
+            inventorObject = (SoFieldContainer *)t.createInstance();
+        }
+    }
+    else if (name)
+    {
+        // instance lookup by name
+        inventorObject = SoNode::getByName(name);
+        if (!inventorObject)
+        {
+            inventorObject = SoEngine::getByName(name);
+        }
+        name = NULL;
+    }
+
+    if (inventorObject)
+    {
+        inventorObject->ref();
+        if (name && name[0]) inventorObject->setName(name);
+        if (init && init[0]) PySceneObject::setFields(inventorObject, init);
+
+        return PySceneObject::createWrapper(inventorObject);
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
 PyObject* iv_read(PyObject * /*self*/, PyObject *args)
 {
 	char *iv = 0;
@@ -161,7 +238,7 @@ PyObject* iv_read(PyObject * /*self*/, PyObject *args)
 				SoSeparator *root = SoDB::readAll(&in);
 				if (root)
 				{
-					PyObject *scene = PySceneObject::createWrapper(root->getTypeId().getName().getString(), root);
+					PyObject *scene = PySceneObject::createWrapper(root);
 					if (scene)
 					{
 						return scene;
@@ -258,7 +335,7 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 
 						if (node)
 						{
-							PyObject *found = PySceneObject::createWrapper(node->getTypeId().getName().getString(), node);
+							PyObject *found = PySceneObject::createWrapper(node);
 							if (found)
 							{
 								return found;
@@ -280,7 +357,7 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 
 						if (node)
 						{
-							PyObject *obj = PySceneObject::createWrapper(node->getTypeId().getName().getString(), node);
+							PyObject *obj = PySceneObject::createWrapper(node);
 							if (obj)
 							{
 								PyList_SetItem(found, i, obj);
@@ -376,7 +453,7 @@ PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 
 					if (node)
 					{
-						PyObject *obj = PySceneObject::createWrapper(p->getPath()->getTail()->getTypeId().getName().getString(), p->getPath()->getTail());
+						PyObject *obj = PySceneObject::createWrapper(p->getPath()->getTail());
 						if (obj)
 						{
 							PyList_SetItem(point, 2, obj);
@@ -545,6 +622,18 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "\n"
             "Returns:\n"
             "    Type names of all classes matching the given filter."
+        },
+		{ "create_object", (PyCFunction) iv_create_object, METH_VARARGS | METH_KEYWORDS,
+            "Creates a scene object instance for a given type, scene object name\n"
+            "or existing native pointer.\n"
+            "\n"
+            "Args:\n"
+            "    - type: Scene object type of instance to be created (string).\n"
+            "    - name: Name of existing scene object to represented.\n"
+            "    - pointer: Native pointer of existing scene object to represented.\n"
+            "\n"
+            "Returns:\n"
+            "    Scene object instance or None."
         },
 		{ "read", (PyCFunction) iv_read, METH_VARARGS,
             "Reads a scene graph from string or file.\n"

@@ -40,7 +40,7 @@ public:
 	static PyTypeObject *getEngineType();
 	static PyTypeObject *getWrapperType(const char *typeName, PyTypeObject *baseType = 0);
 	
-	static PyObject *createWrapper(const char *typeName, SoFieldContainer *instance = 0);
+	static PyObject *createWrapper(SoFieldContainer *instance, bool createClone = false);
 
 	static int setFields(SoFieldContainer *fieldContainer, char *value);
 

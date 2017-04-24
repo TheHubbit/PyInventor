@@ -381,7 +381,7 @@ PyObject *PyField::getFieldValue(SoField *field)
         SoNode *node = nodeField->getValue();
         if (node)
         {
-            PyObject *found = PySceneObject::createWrapper(node->getTypeId().getName().getString(), node);
+            PyObject *found = PySceneObject::createWrapper(node);
             if (found)
             {
                 return found;
@@ -397,7 +397,7 @@ PyObject *PyField::getFieldValue(SoField *field)
         for (Py_ssize_t i = 0; i < nodeField->getNum(); ++i)
         {
             SoNode *node = (SoNode*)*nodeField->getValues(i);
-            PyList_SetItem(result, i, PySceneObject::createWrapper(node->getTypeId().getName().getString(), node));
+            PyList_SetItem(result, i, PySceneObject::createWrapper(node));
         }
 
         return result;
@@ -1031,7 +1031,7 @@ PyObject* PyField::get_container(Object *self)
     if (self->field && self->field->getContainer())
     {
         SoFieldContainer *obj = self->field->getContainer();
-        return PySceneObject::createWrapper(obj->getTypeId().getName().getString(), obj);
+        return PySceneObject::createWrapper(obj);
     }
 
     Py_INCREF(Py_None);

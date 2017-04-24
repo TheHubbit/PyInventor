@@ -249,7 +249,7 @@ int PySceneManager::tp_init(Object *self, PyObject *args, PyObject *kwds)
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwlist, &background))
         return -1;
 
-	self->scene = PySceneObject::createWrapper("Separator");
+	self->scene = PySceneObject::createWrapper(new SoSeparator);
 	self->sceneManager = new SoSceneManager();
 	if (self->scene && self->sceneManager)
 	{
