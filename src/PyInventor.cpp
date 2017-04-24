@@ -157,7 +157,7 @@ PyObject* iv_create_object(PyObject * /*self*/, PyObject *args, PyObject *kwds)
         // pointer provided
         if (PyCapsule_CheckExact(pointer))
         {
-            void* ptr = PyCapsule_GetPointer(pointer, NULL);
+            void* ptr = PyCapsule_GetPointer(pointer, "SoFieldContainer");
             if (ptr)
             {
                 inventorObject = (SoFieldContainer *)ptr;
