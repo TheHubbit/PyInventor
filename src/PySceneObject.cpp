@@ -1408,11 +1408,18 @@ PyObject* PySceneObject::get_output(Object* self, PyObject *args)
 }
 
 
+static void unref_fieldcontainer(PyObject* object) 
+{
+    ((SoFieldContainer*)PyCapsule_GetPointer(object, "SoFieldContainer"))->unref();
+}
+
+
 PyObject* PySceneObject::internal_pointer(Object* self)
 {
 	if (self->inventorObject)
 	{
-        return PyCapsule_New((void*) self->inventorObject, NULL, NULL);
+        self->inventorObject->ref();
+        return PyCapsule_New((void*) self->inventorObject, "SoFieldContainer", unref_fieldcontainer);
 	}
 
 	Py_INCREF(Py_None);
