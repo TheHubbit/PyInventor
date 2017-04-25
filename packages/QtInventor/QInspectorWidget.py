@@ -173,7 +173,7 @@ class QSceneObjectProxy(QtCore.QObject):
                 self._sceneObject.insert(position, child._sceneObject)
             else:
                 # insert label node as placeholder
-                if isinstance(self._sceneObject, iv.Group):
+                if isinstance(self._sceneObject, iv.Node):
                     self._sceneObject.insert(position, iv.Label())
             
         return True
