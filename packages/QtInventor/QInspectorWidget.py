@@ -541,11 +541,19 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return None
         
+        if role == QtCore.Qt.CheckStateRole and index.column() == 1:
+            if self._rootNode.fields()[index.row()].get_type() == "SFBool":
+                if self._rootNode.fieldValue(index.row()).startswith("TRUE"):
+                    return QtCore.Qt.Checked
+                else:
+                    return QtCore.Qt.Unchecked
+
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if index.column() == 0:
                 return self._rootNode.fields()[index.row()].get_name()
             elif index.column() == 1:
-                return self._rootNode.fieldValue(index.row())
+                if self._rootNode.fields()[index.row()].get_type() != "SFBool":
+                    return self._rootNode.fieldValue(index.row())
             else:
                 text = ""
                 field = self._rootNode.fields()[index.row()]
@@ -581,6 +589,10 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
                     self._connectionRequest = (self._rootNode._sceneObject.get_field()[index.row()], objAndField[0], objAndField[1])
                     self.dataChanged.emit(index, index)
                     return True
+
+        if role == QtCore.Qt.CheckStateRole:
+            self._rootNode.setFieldValue(index.row(), ("FALSE", "", "TRUE")[value])
+            return True
         
         return False
 
@@ -600,11 +612,18 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
 
     def flags(self, index):
         """Values are editable but names aren't"""
-        if index.column() > 0:
-            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable
-        else:
-            return QtCore.Qt.ItemIsEnabled
+        flags = QtCore.Qt.ItemIsEnabled
 
+        if index.column() == 1:
+            if self._rootNode.fields()[index.row()].get_type() == "SFBool":
+                flags |= QtCore.Qt.ItemIsUserCheckable;
+            else:
+                flags |= QtCore.Qt.ItemIsEditable
+
+        if index.column() == 2:
+            flags |= QtCore.Qt.ItemIsEditable
+
+        return flags
 
 
 class QSceneGraphFilter(QtGui.QSortFilterProxyModel):
@@ -714,6 +733,7 @@ class QSceneObjectTypeDelegate(QtGui.QStyledItemDelegate):
     def sizeHint(self, option, index):
         """Returns default size for items, enlarged from default size for combo box"""
         return QtCore.QSize(200, 19)
+
 
 
 class QInspectorWidget(QtGui.QSplitter):
