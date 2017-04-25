@@ -584,9 +584,9 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
                 return True
             elif index.column() == 2:
                 objAndField = value.split(" ")
-                if len(objAndField) == 2:
+                if len(objAndField) > 0:
                     # trigger that connection field was edited to request the connection to be made
-                    self._connectionRequest = (self._rootNode._sceneObject.get_field()[index.row()], objAndField[0], objAndField[1])
+                    self._connectionRequest = (self._rootNode._sceneObject.get_field()[index.row()], objAndField[0], objAndField[1] if len(objAndField) > 1 else "")
                     self.dataChanged.emit(index, index)
                     return True
 
@@ -851,14 +851,20 @@ class QInspectorWidget(QtGui.QSplitter):
                 sceneObject = iv.create_object(type = typeAndArgs[0], init = typeAndArgs[1][:-1])
             else:
                 # no round brackets means just type name is given
-                sceneObject = iv.create_object(typeName)
+
+                # check for template types and add type argument based on field type
+                initString = ""
+                if typeName in ("Gate", "SelectOne", "Concatenate"):
+                    initString = field.get_type().replace("SF", "MF", 1)
+
+                sceneObject = iv.create_object(type = typeName, init = initString)
 
         if sceneObject is not None:
             master = None
             if isinstance(sceneObject, iv.Engine):
-                master = sceneObject.get_output(masterName)
+                master = sceneObject.get_output(masterName) if len(masterName) > 0 else sceneObject.get_output()[0] if len(sceneObject.get_output()) > 0 else None
             if master is None:
-                master = sceneObject.get_field(masterName)
+                master = sceneObject.get_field(masterName) if len(masterName) > 0 else sceneObject.get_field()[0] if len(sceneObject.get_field()) > 0 else None
             if field is not None and master is not None:
                 prevConnection = field.is_connected()
                 if field.connect_from(master) and not prevConnection:
