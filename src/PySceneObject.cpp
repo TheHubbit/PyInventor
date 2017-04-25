@@ -768,7 +768,14 @@ int PySceneObject::tp_setattro(Object* self, PyObject *attrname, PyObject *value
 		SoField *field = self->inventorObject->getField(fieldName);
 		if (field)
 		{
-			return PyField::setFieldValue(field, value);
+            if (!field->isOfType(SoSFTrigger::getClassTypeId()))
+            {
+                return PyField::setFieldValue(field, value);
+            }
+            else
+            {
+                field->touch();
+            }
 		}
 	}
 
@@ -1254,7 +1261,14 @@ PyObject* PySceneObject::set(Object *self, PyObject *args)
             SoField *field = self->inventorObject->getField(name);
             if (field)
             {
-                field->set(value);
+                if (!field->isOfType(SoSFTrigger::getClassTypeId()))
+                {
+                    field->set(value);
+                }
+                else
+                {
+                    field->touch();
+                }
             }
         }
 	}
