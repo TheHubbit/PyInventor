@@ -173,7 +173,8 @@ class QSceneObjectProxy(QtCore.QObject):
                 self._sceneObject.insert(position, child._sceneObject)
             else:
                 # insert label node as placeholder
-                self._sceneObject.insert(position, iv.Label())
+                if isinstance(self._sceneObject, iv.Group):
+                    self._sceneObject.insert(position, iv.Label())
             
         return True
 
@@ -460,7 +461,8 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         parentNode = self.getProxyNodeFromIndex(parent)
         childItem = None
         if parentNode is not None:
-            childItem = parentNode.child(row)
+            if row < parentNode.childCount():
+                childItem = parentNode.child(row)
         if childItem:
             return self.createIndex(row, column, childItem)
         else:
@@ -483,7 +485,7 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         self.beginInsertRows(parent, position, position + rows - 1)
         for row in range(rows):
             childCount = parentNode.childCount()
-            childNode = QSceneObjectProxy() #TODO iv.Separator(), None, True)
+            childNode = QSceneObjectProxy()
             success = parentNode.insertChild(position, childNode)
         self.endInsertRows()
         
@@ -502,12 +504,6 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         return success
 
 
-    def refreshNode(self, node):
-        self.beginResetModel()
-        self._rootNode.refreshNode(node)
-        self.endResetModel()
-
-
 
 class QFieldContainerModel(QtCore.QAbstractTableModel):
     """
@@ -518,6 +514,7 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
         """Initializes model from a proxy node (QSceneObjectProxy)"""
         super(QFieldContainerModel, self).__init__(parent)
         self._rootNode = root
+        self._connectionRequest = ()
     
 
     def rowCount(self, parent):
@@ -552,35 +549,22 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
             else:
                 text = ""
                 field = self._rootNode.fields()[index.row()]
+                master = None
                 if field.get_connected_field() is not None:
-                    text = field.get_connected_field().get_container().get_type() + " " + field.get_connected_field().get_name()
+                    master = field.get_connected_field()
                 if field.get_connected_engine() is not None:
-                    text = field.get_connected_engine().get_container().get_type() + " " + field.get_connected_engine().get_name()
+                    master = field.get_connected_engine()
+                if master is not None:
+                    if len(master.get_container().get_name()) > 0:
+                        text = '"' + master.get_container().get_name() + '"'
+                    else:
+                        text = master.get_container().get_type()
+                    text += " " + master.get_name()
+
                 return text
        
-        
-    def addFieldConnection(self, typeName, masterName, field):
-        sceneObject = None
-        if typeName.startswith('"') and typeName.endswith('"'):
-            # if type name is in quotes, interpret as instance name
-            sceneObject = iv.create_object(name = typeName[1:-1])
-        else:
-            typeAndArgs = typeName.split("(")
-            if len(typeAndArgs) > 1:
-                # support initialization arguments in brackets for templated types (e.g. Gate)
-                sceneObject = iv.create_object(type = typeAndArgs[0], init = typeAndArgs[1][:-1])
-            else:
-                # no round brackets means just type name is given
-                sceneObject = iv.create_object(typeName)
-
-        if sceneObject is not None:
-            master = None
-            if isinstance(sceneObject, iv.Engine):
-                master = sceneObject.get_output(masterName)
-            if master is None:
-                master = sceneObject.get_field(masterName)
-            if field is not None and master is not None:
-                field.connect_from(master)
+        if role == QtCore.Qt.UserRole and index.column() == 2:
+            return self._connectionRequest
 
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
@@ -593,7 +577,8 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
             elif index.column() == 2:
                 objAndField = value.split(" ")
                 if len(objAndField) == 2:
-                    self.addFieldConnection(objAndField[0], objAndField[1], self._rootNode._sceneObject.get_field()[index.row()])
+                    # trigger that connection field was edited to request the connection to be made
+                    self._connectionRequest = (self._rootNode._sceneObject.get_field()[index.row()], objAndField[0], objAndField[1])
                     self.dataChanged.emit(index, index)
                     return True
         
@@ -791,7 +776,6 @@ class QInspectorWidget(QtGui.QSplitter):
         self._fieldView.setShowGrid(False)
 
         QtCore.QObject.connect(self._graphView.selectionModel(), QtCore.SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.setSelection)
-        QtCore.QObject.connect(self._graphView.model(), QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.setSelection)
         QtCore.QObject.connect(self._filterEdit, QtCore.SIGNAL("textChanged(QString)"), self.setFilter)
 
 
@@ -835,10 +819,49 @@ class QInspectorWidget(QtGui.QSplitter):
             QtCore.QObject.connect(self._fieldView.model(), QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.fieldChanged)
 
 
+    def addFieldConnection(self, field, typeName, masterName):
+        sceneObject = None
+        if typeName.startswith('"') and typeName.endswith('"'):
+            # if type name is in quotes, interpret as instance name
+            sceneObject = iv.create_object(name = typeName[1:-1])
+        else:
+            typeAndArgs = typeName.split("(")
+            if len(typeAndArgs) > 1:
+                # support initialization arguments in brackets for templated types (e.g. Gate)
+                sceneObject = iv.create_object(type = typeAndArgs[0], init = typeAndArgs[1][:-1])
+            else:
+                # no round brackets means just type name is given
+                sceneObject = iv.create_object(typeName)
+
+        if sceneObject is not None:
+            master = None
+            if isinstance(sceneObject, iv.Engine):
+                master = sceneObject.get_output(masterName)
+            if master is None:
+                master = sceneObject.get_field(masterName)
+            if field is not None and master is not None:
+                prevConnection = field.is_connected()
+                if field.connect_from(master) and not prevConnection:
+                    return True
+            return False
+
+
     def fieldChanged(self, current, old):
         """Updates field editor after selection in tree view changed"""
         if current.isValid() and current.column() == 2:
-            self._sceneModel.refreshNode(self._fieldsModel._rootNode)
+            # Don't even know how I got here after a lot of try and error. This is a 
+            # massive hack for getting the graph view to update after field connection
+            # changes. Need to understand the model indices and then rework.
+            viewIndex = self._graphView.currentIndex()
+            dataIndex = viewIndex.data(QtCore.Qt.UserRole)
+            connectionDetail = current.data(QtCore.Qt.UserRole)
+            if self.addFieldConnection(connectionDetail[0], connectionDetail[1], connectionDetail[2]):
+                self._sceneModel.insertRow(0, dataIndex)
+            self._sceneModel._rootNode.refreshNode(self._fieldsModel._rootNode)
+            self._sceneModel.dataChanged.emit(dataIndex, dataIndex)
+            n = dataIndex.internalPointer()
+            for i in range(0, n.childCount()):
+                self._sceneModel.dataChanged.emit(dataIndex.child(i,0), dataIndex.child(i,1))
 
 
     def keyPressEvent(self, event):
