@@ -571,8 +571,11 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
 
                 return text
        
-        if role == QtCore.Qt.UserRole and index.column() == 2:
-            return self._connectionRequest
+        if role == QtCore.Qt.UserRole:
+            if index.column() == 1:
+                return self._rootNode.fields()[index.row()]
+            if index.column() == 2:
+                return self._connectionRequest
 
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
@@ -736,6 +739,53 @@ class QSceneObjectTypeDelegate(QtGui.QStyledItemDelegate):
 
 
 
+class QFieldValueDelegate(QtGui.QStyledItemDelegate):
+    """
+    Item delegate for entering field values. A combo box is created if the
+    field type is SFEnum. Otherwise a text input is used.
+    """
+
+    def createEditor(self, parent, option, index):
+        """Creates field edit control depending on type."""
+        editor = None
+        field = index.model().data(index, QtCore.Qt.UserRole)
+
+        if field.get_enums() is not None:
+            editor = QtGui.QComboBox(parent)
+            editor.setInsertPolicy(QtGui.QComboBox.NoInsert)
+            editor.addItems(field.get_enums())
+            if field.get_type() != "SFEnum":
+                editor.setEditable(True)
+        else:
+            editor = QtGui.QLineEdit(parent)
+
+        return editor
+
+
+    def setEditorData(self, editor, index):
+        """Updates text in edit line"""
+        value = index.data(QtCore.Qt.DisplayRole)
+        if isinstance(editor, QtGui.QComboBox):
+            if editor.isEditable():
+                editor.setEditText(value)
+            else:
+                editor.setCurrentIndex(editor.findText(value))
+        else:
+            editor.setText(value)
+
+
+    def setModelData(self, editor, model, index):
+        """Updates field value after input"""
+        value = ""
+        if isinstance(editor, QtGui.QComboBox):
+            value = editor.currentText()
+        else:
+            value = editor.text()
+        index.model().setData(index, value, QtCore.Qt.EditRole)
+        return True
+
+    
+
 class QInspectorWidget(QtGui.QSplitter):
     """
     Widget for inspecting and editing scene grpahs. It shows the structure
@@ -794,6 +844,7 @@ class QInspectorWidget(QtGui.QSplitter):
         self._fieldView.setAlternatingRowColors(True)
         self._fieldView.setWordWrap(False)
         self._fieldView.setShowGrid(False)
+        self._fieldView.setItemDelegateForColumn(1, QFieldValueDelegate(self))
 
         QtCore.QObject.connect(self._graphView.selectionModel(), QtCore.SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.setSelection)
         QtCore.QObject.connect(self._filterEdit, QtCore.SIGNAL("textChanged(QString)"), self.setFilter)
