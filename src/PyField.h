@@ -61,5 +61,6 @@ private:
     static PyObject* get_name(Object *self);
     static PyObject* get_type(Object *self);
     static PyObject* get_container(Object *self);
+    static PyObject* get_enums(Object *self);
 };
 

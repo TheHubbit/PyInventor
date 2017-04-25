@@ -185,6 +185,12 @@ PyTypeObject *PyField::getType()
             "Returns:\n"
             "    Instance of field container that the field is part of."
         },
+        { "get_enums", (PyCFunction)get_enums, METH_NOARGS,
+            "Returns the values that an enum or bitmask field understands.\n"
+            "\n"
+            "Returns:\n"
+            "    List of strings that are valid values for this field."
+        },
         {NULL}  /* Sentinel */
 	};
 
@@ -1038,3 +1044,37 @@ PyObject* PyField::get_container(Object *self)
     return Py_None;
 }
 
+
+PyObject* PyField::get_enums(Object *self)
+{
+    if (self->field)
+    {
+        if (self->field->isOfType(SoSFEnum::getClassTypeId()))
+        {
+            SoSFEnum *enumField = (SoSFEnum*)self->field;
+            PyObject *result = PyList_New(enumField->getNumEnums());
+            for (Py_ssize_t i = 0; i < enumField->getNumEnums(); ++i)
+            {
+                SbName name;
+                enumField->getEnum(i, name);
+                PyList_SetItem(result, i, PyUnicode_FromString(name.getString()));
+            }
+            return result;
+        }
+        else if (self->field->isOfType(SoMFEnum::getClassTypeId()))
+        {
+            SoMFEnum *enumField = (SoMFEnum*)self->field;
+            PyObject *result = PyList_New(enumField->getNumEnums());
+            for (Py_ssize_t i = 0; i < enumField->getNumEnums(); ++i)
+            {
+                SbName name;
+                enumField->getEnum(i, name);
+                PyList_SetItem(result, i, PyUnicode_FromString(name.getString()));
+            }
+            return result;
+        }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
