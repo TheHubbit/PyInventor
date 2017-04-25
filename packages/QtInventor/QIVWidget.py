@@ -97,4 +97,7 @@ class QIVWidget(QtOpenGL.QGLWidget):
 
         return fbo.toImage()
 
+    def sizeHint(self):
+        """Returns default widget size"""
+        return QtCore.QSize(512, 512)
 

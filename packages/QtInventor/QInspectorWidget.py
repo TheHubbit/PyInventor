@@ -816,7 +816,7 @@ class QInspectorWidget(QtGui.QSplitter):
 
         self._proxyModel = QSceneGraphFilter(self)
         self._sceneModel = QSceneGraphModel(iv.Separator(), self)
-        self._fieldsModel = QFieldContainerModel(self._sceneModel.rootNode())
+        self._fieldsModel = None
 
         self._proxyModel.setSourceModel(self._sceneModel)
         self._proxyModel.setDynamicSortFilter(True)
@@ -826,7 +826,6 @@ class QInspectorWidget(QtGui.QSplitter):
         self._proxyModel.setFilterKeyColumn(0)
         
         self._graphView.setModel(self._proxyModel)
-        self._graphView.setColumnWidth(0, 200)
         self._graphView.setDragEnabled(True)
         self._graphView.setAcceptDrops(True)
         self._graphView.setDropIndicatorShown(True)
@@ -835,8 +834,6 @@ class QInspectorWidget(QtGui.QSplitter):
         self._graphView.setItemDelegateForColumn(0, QSceneObjectTypeDelegate(self))
         self._graphView.setSelectionMode(QtGui.QAbstractItemView.SelectionMode.ExtendedSelection)
 
-        self._fieldView.setModel(self._fieldsModel)
-        self._fieldView.setColumnWidth(0, 100)
         self._fieldView.horizontalHeader().setStretchLastSection(True)
         self._fieldView.verticalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
         self._fieldView.verticalHeader().setDefaultSectionSize(0.8 * self._fieldView.verticalHeader().defaultSectionSize())
@@ -859,12 +856,10 @@ class QInspectorWidget(QtGui.QSplitter):
 
             # create new ones
             self._sceneModel = QSceneGraphModel(rootNode, self)
-            self._fieldsModel = QFieldContainerModel(self._sceneModel.rootNode())
-            self._fieldView.setModel(self._fieldsModel)
             self._proxyModel.setSourceModel(self._sceneModel)
 
-            self._graphView.setColumnWidth(0, 200)
-            self._graphView.setColumnWidth(1, 50)
+            self._graphView.setColumnWidth(0, 360)
+            self._graphView.setColumnWidth(1, 100)
             self._graphView.header().setStretchLastSection(True)
             self._graphView.expandAll()
             self._graphView.setFocus(QtCore.Qt.OtherFocusReason)
@@ -885,9 +880,15 @@ class QInspectorWidget(QtGui.QSplitter):
     def setSelection(self, current, old):
         """Updates field editor after selection in tree view changed"""
         if current.isValid():
+            isFirst = self._fieldsModel is None
             self._fieldsModel = QFieldContainerModel(current.data(QtCore.Qt.UserRole).internalPointer())
             self._fieldView.setModel(self._fieldsModel)
             QtCore.QObject.connect(self._fieldView.model(), QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self.fieldChanged)
+
+            if isFirst:
+                self._fieldView.setColumnWidth(0, 150)
+                self._fieldView.setColumnWidth(1, 200)
+                self._fieldView.setColumnWidth(2, 100)
 
 
     def addFieldConnection(self, field, typeName, masterName):
@@ -964,7 +965,7 @@ class QInspectorWidget(QtGui.QSplitter):
 
     def sizeHint(self):
         """Returns default widget size"""
-        return QtCore.QSize(330, 500)
+        return QtCore.QSize(512, 512)
 
 
     def deleteObject(self):
