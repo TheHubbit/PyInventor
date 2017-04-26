@@ -148,7 +148,7 @@ class QSceneObjectProxy(QtCore.QObject):
 
     def changeChildType(self, position, typeName):
         """Changes the type of a child node"""
-        node = iv.create_object(typeName)
+        node = iv.create_object(typeName) if not typeName.startswith('"') else iv.create_object(name = typeName[1:-1])
         if (node is not None) and (position >= 0) and (position < len(self._children)):
             self._children[position].setSceneObject(node)
             if (self._sceneObject is not None) and (position < len(self._sceneObject)):
@@ -702,7 +702,13 @@ class QSceneObjectTypeDelegate(QtGui.QStyledItemDelegate):
         if not index.isValid():
             return False
 
-        if editor.findText(editor.currentText()) < 0:
+        typeName = editor.currentText()
+        if typeName.startswith('"') and typeName.endswith('"'):
+            # if type name is in quotes, interpret as instance name
+            sceneObject = iv.create_object(name = typeName[1:-1])
+            if sceneObject is None:
+                return False
+        elif editor.findText(typeName) < 0:
             if self._wasUninitialized:
                 # confirmed but invalid: remove row
                 index.model().removeRow(index.row(), index.parent())
@@ -710,7 +716,7 @@ class QSceneObjectTypeDelegate(QtGui.QStyledItemDelegate):
             # not a valid entry
             return False
         
-        index.model().setData(index, editor.currentText(), QtCore.Qt.EditRole)
+        index.model().setData(index, typeName, QtCore.Qt.EditRole)
         self.parent.setCurrentIndex(index)
         
         return True
