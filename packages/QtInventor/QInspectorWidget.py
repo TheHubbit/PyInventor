@@ -914,8 +914,8 @@ class QInspectorWidget(QtGui.QSplitter):
                 initString = ""
                 if typeName in ("Gate", "SelectOne", "Concatenate"):
                     initString = field.get_type().replace("SF", "MF", 1)
-
-                sceneObject = iv.create_object(type = typeName, init = initString)
+                if typeName in iv.classes("FieldContainer"):
+                    sceneObject = iv.create_object(type = typeName, init = initString)
 
         if sceneObject is not None:
             master = None
