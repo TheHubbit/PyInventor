@@ -7,7 +7,6 @@
 #
 
 from PySide import QtCore, QtGui, QtOpenGL
-from OpenGL import GL
 import inventor
 
 class QIVWidget(QtOpenGL.QGLWidget):
@@ -33,10 +32,6 @@ class QIVWidget(QtOpenGL.QGLWidget):
         self.resizeGLHeight = 512
         # timer must be started from QThread
         self.idleTimer.start()
-
-    def initializeGL(self):
-        """Performs initial OpenGL setup"""
-        GL.glEnable(GL.GL_DEPTH_TEST)
     
     def paintGL(self):
         """Renders scene"""
@@ -87,7 +82,6 @@ class QIVWidget(QtOpenGL.QGLWidget):
         self.makeCurrent()
         fbo = QtOpenGL.QGLFramebufferObject(width, height, QtOpenGL.QGLFramebufferObject.CombinedDepthStencil)
         fbo.bind()
-        self.initializeGL()
         self.sceneManager.resize(width, height)
         self.sceneManager.render()
         fbo.release()
