@@ -5,8 +5,11 @@ import os
 # Open Inventor paths and libraries:
 
 # OS X paths by default
-oivincpath = '/Library/Frameworks/Inventor.framework/Resources/include'
-oivlibpath = '/Library/Frameworks/Inventor.framework/Libraries'
+# (CMake branch of Coin installs to /usr/local/... rather than Frameworks)
+#oivincpath = '/Library/Frameworks/Inventor.framework/Resources/include'
+#oivlibpath = '/Library/Frameworks/Inventor.framework/Libraries'
+oivincpath = '/usr/local/include'
+oivlibpath = '/usr/local/lib'
 oivlibname = 'Coin'
 
 oivlibs = []
