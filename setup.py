@@ -38,6 +38,16 @@ if os.environ.get('COINDIR') is not None:
     oivincpath = os.environ.get('COINDIR') + '/include'
     oivlibpath = os.environ.get('COINDIR') + '/lib'
 
+# Paths in command line options?
+if "--incpath" in sys.argv:
+    idx = sys.argv.index("--incpath")
+    oivincpath = sys.argv[idx + 1]
+    del sys.argv[idx : idx + 2]
+if "--libpath" in sys.argv:
+    idx = sys.argv.index("--libpath")
+    oivlibpath = sys.argv[idx + 1]
+    del sys.argv[idx : idx + 2]
+
 # Additional libs
 if os.environ.get('windir') is not None:
     oivlibs += ['Opengl32', 'Gdi32', 'User32', 'Gdiplus']
