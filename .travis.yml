@@ -1,15 +1,22 @@
 language: python
 python:
-- "3.6"
-matrix:
-  include:
-  - os: osx
-    language: objective-c
+- 3.6
+#matrix:
+#  include:
+#  - os: osx
+#    language: objective-c
+addons:
+  apt:
+    sources:
+      - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
+    packages:
+      - cmake
+      - cmake-data
 install:
-- brew install python3
-- brew install --overwrite numpy --with-python3
+#- brew install python3
+#- brew install --overwrite numpy --with-python3
 - "hg clone -b CMake https://bitbucket.org/Coin3D/coin coin"
 - "cmake coin/CMakeLists.txt"
 - "make -C coin"
 script:
-- python3 setup.py --libpath ./coin/src/ --incpath ./coin/include/ build
+- python setup.py --libpath ./coin/src/ --incpath ./coin/include/ build
