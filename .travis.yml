@@ -29,11 +29,14 @@ addons:
       - cmake-data
 
 install:
+  - pyenv install 3.6.1
+  - pyenv local 3.6.1
+  - python --version
   #- brew install python3
   #- brew install --overwrite numpy --with-python3
-  - "hg clone -b CMake https://bitbucket.org/Coin3D/coin coin"
-  - "cmake coin/CMakeLists.txt"
-  - "make -C coin"
+  #- "hg clone -b CMake https://bitbucket.org/Coin3D/coin coin"
+  #- "cmake coin/CMakeLists.txt"
+  #- "make -C coin"
 
 script:
   # only build PyInventor if Python 3.x.x
