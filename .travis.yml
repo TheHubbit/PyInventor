@@ -29,10 +29,10 @@ addons:
       - cmake-data
 
 install:
-  - brew update && brew upgrade `brew outdated pyenv`
+  - brew update && brew outdated | grep -q pyenv && brew upgrade pyenv
   - pyenv install 3.6.1
-  - pyenv local 3.6.1
-  - ls -R $HOME/.pyenv/
+  #- pyenv local 3.6.1
+  - $HOME/.pyenv/versions/3.6.1/bin/python --version
   #- brew install python3
   #- brew install --overwrite numpy --with-python3
   #- "hg clone -b CMake https://bitbucket.org/Coin3D/coin coin"
