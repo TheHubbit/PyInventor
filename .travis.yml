@@ -6,6 +6,7 @@ matrix:
   - os: osx
     language: objective-c
 install:
+- python -V
 - "hg clone -b CMake https://bitbucket.org/Coin3D/coin coin"
 - "cmake coin/CMakeLists.txt"
 - "make -C coin"
