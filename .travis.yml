@@ -32,7 +32,7 @@ install:
   - brew update && brew upgrade `brew outdated pyenv`
   - pyenv install 3.6.1
   - pyenv local 3.6.1
-  - $HOME/.pyenv/bin/python --version
+  - ls -R $HOME/.pyenv/
   #- brew install python3
   #- brew install --overwrite numpy --with-python3
   #- "hg clone -b CMake https://bitbucket.org/Coin3D/coin coin"
