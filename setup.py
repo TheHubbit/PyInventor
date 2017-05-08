@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from distutils.core import setup, Extension
 from distutils.sysconfig import *
 import os
