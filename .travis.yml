@@ -30,7 +30,8 @@ addons:
 
 install:
   - pyenv install 3.6.1
-  - pyenv global 3.6.1
+  - pyenv virtualenv 3.6.1 env36
+  - pyenv activate env36
   - python --version
   #- brew install python3
   #- brew install --overwrite numpy --with-python3
