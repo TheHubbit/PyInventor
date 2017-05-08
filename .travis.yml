@@ -10,4 +10,4 @@ install:
 - "cmake coin/CMakeLists.txt"
 - "make -C coin"
 script:
-- "./setup.py --libpath ./coin/src/ --incpath ./coin/include/ build"
+- python setup.py --libpath ./coin/src/ --incpath ./coin/include/ build
