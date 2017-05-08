@@ -1,0 +1,13 @@
+language: python
+python:
+- "3.6"
+matrix:
+  include:
+  - os: osx
+    language: objective-c
+install:
+- "hg clone -b CMake https://bitbucket.org/Coin3D/coin coin"
+- "cmake coin/CMakeLists.txt"
+- "make -C coin"
+script:
+- "./setup.py --libpath ./coin/src/ --incpath ./coin/include/ build"
