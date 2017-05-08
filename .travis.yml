@@ -24,4 +24,4 @@ install:
 - "make -C coin"
 script:
 # skip building PyInventor on OSX as only python 2.7 is available
-- if [[ $(python --version 2>&1) == *3\.[0-9]+\.[0-9]+ ]]; then python setup.py --libpath ./coin/src/ --incpath ./coin/include/ build; fi
+- if [[ $(python --version 2>&1) == *3\.?\.? ]]; then python setup.py --libpath ./coin/src/ --incpath ./coin/include/ build; fi
