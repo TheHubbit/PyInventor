@@ -5,9 +5,15 @@ matrix:
     - os: linux
       python: 3.6
       compiler: gcc
+      env: 
+        - CXX="g++" 
+        - CC="gcc"
     - os: linux
       python: 3.6
       compiler: clang
+      env: 
+        - CXX="clang++" 
+        - CC="clang"
     - os: osx
       language: generic
 
