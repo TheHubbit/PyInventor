@@ -1,4 +1,5 @@
-from distutils.core import setup, Extension
+from setuptools import setup, find_packages
+from distutils.core import Extension
 from distutils.sysconfig import *
 import os
 
