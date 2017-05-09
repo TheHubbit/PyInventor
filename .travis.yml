@@ -45,4 +45,5 @@ install:
   - $PYTHON setup.py --libpath ./coin/src/ --incpath ./coin/include/ install
 
 script:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export DYLD_LIBRARY_PATH="$DYLD_LIBRARY_PATH;./coin/src/"; else export LD_LIBRARY_PATH="$LD_LIBRARY_PATH;./coin/src/"; fi
   - $PYTHON -m unittest --verbose tests/test_smoke.py
