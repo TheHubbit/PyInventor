@@ -80,4 +80,6 @@ setup (name = 'PyInventor',
        long_description = '''Python integration for Open Inventor toolkit.''',
        ext_modules = [module1],
        package_dir={'PyInventor': 'packages'},
-       packages=['PyInventor', 'PyInventor.QtInventor'])
+       packages=['PyInventor', 'PyInventor.QtInventor'],
+       setup_requires=['numpy'],
+       install_requires=['numpy'])
