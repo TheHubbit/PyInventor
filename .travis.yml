@@ -5,12 +5,14 @@ matrix:
     - os: linux
       python: 3.6
       compiler: gcc
+      sudo: required
       env: 
         - CXX="g++" 
         - CC="gcc"
     - os: linux
       python: 3.6
       compiler: clang
+      sudo: required
       env: 
         - CXX="clang++" 
         - CC="clang"
@@ -41,7 +43,7 @@ before_install:
 install:
   - hg clone -b CMake https://bitbucket.org/Coin3D/coin coin
   - cmake coin/CMakeLists.txt
-  - make -C coin install
+  - sudo make -C coin install
   - $PYTHON setup.py install
 
 script:
