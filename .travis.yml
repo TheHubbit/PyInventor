@@ -29,9 +29,9 @@ addons:
       - cmake-data
 
 install:
-  - brew update && brew outdated | grep -q pyenv && brew upgrade pyenv
+  - brew update
+  - if (brew outdated | grep pyenv > /dev/null); then brew upgrade pyenv; fi
   - pyenv install 3.6.1
-  #- pyenv local 3.6.1
   - $HOME/.pyenv/versions/3.6.1/bin/python --version
   #- brew install python3
   #- brew install --overwrite numpy --with-python3
