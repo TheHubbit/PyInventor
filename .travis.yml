@@ -29,13 +29,13 @@ addons:
       - cmake-data
 
 before_install:
-  # make sure numpy is installed
-  - $PYTHON -m pip install numpy
   # update brew and pyenv on macOS
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; if (brew outdated | grep pyenv > /dev/null); then brew upgrade pyenv; fi; fi
   # install Python 3.6.1 on macOS
   - export PYTHON=python
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install 3.6.1; export PYTHON=$HOME/.pyenv/versions/3.6.1/bin/python; fi
+  # make sure numpy is installed
+  - $PYTHON -m pip install numpy
 
 install:
   - "hg clone -b CMake https://bitbucket.org/Coin3D/coin coin"
