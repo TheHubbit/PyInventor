@@ -30,7 +30,7 @@ addons:
 
 before_install:
   # make sure numpy is installed
-  $PYTHON -m pip install numpy
+  - $PYTHON -m pip install numpy
   # update brew and pyenv on macOS
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; if (brew outdated | grep pyenv > /dev/null); then brew upgrade pyenv; fi; fi
   # install Python 3.6.1 on macOS
