@@ -34,16 +34,11 @@ before_install:
   # install Python 3.6.1 on macOS
   - export PYTHON=python
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install 3.6.1; export PYTHON=$HOME/.pyenv/versions/3.6.1/bin/python; fi
-  - echo $PYTHON
 
 install:
-  #- $HOME/.pyenv/versions/3.6.1/bin/python --version
-  - $PYTHON --version
-  #- brew install python3
-  #- brew install --overwrite numpy --with-python3
-  #- "hg clone -b CMake https://bitbucket.org/Coin3D/coin coin"
-  #- "cmake coin/CMakeLists.txt"
-  #- "make -C coin"
+  - "hg clone -b CMake https://bitbucket.org/Coin3D/coin coin"
+  - "cmake coin/CMakeLists.txt"
+  - "make -C coin"
 
 script:
   # only build PyInventor if Python 3.x.x
