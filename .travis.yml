@@ -41,9 +41,8 @@ before_install:
 install:
   - hg clone -b CMake https://bitbucket.org/Coin3D/coin coin
   - cmake coin/CMakeLists.txt
-  - make -C coin
-  - $PYTHON setup.py --libpath ./coin/src/ --incpath ./coin/include/ install
+  - make -C coin install
+  - $PYTHON setup.py install
 
 script:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export DYLD_LIBRARY_PATH="$DYLD_LIBRARY_PATH;./coin/src/"; else export LD_LIBRARY_PATH="$LD_LIBRARY_PATH;./coin/src/"; fi
   - $PYTHON -m unittest --verbose tests/test_smoke.py
