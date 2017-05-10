@@ -22,5 +22,12 @@ class SmokeTest(unittest.TestCase):
         del (group[1])
         self.assertEqual([c.get_type() for c in group], [ 'Cone', 'Cube'])
 
+    def test_compare(self):
+        c1 = inventor.Cone(name="cone1")
+        c2 = inventor.Cone(name="cone2")
+        c3 = inventor.create_object(name="cone1")
+        self.assertFalse(c1 == c2)
+        self.assertTrue(c1 == c3)
+
 if __name__ == '__main__':
     unittest.main()

@@ -194,7 +194,7 @@ PyTypeObject *PySceneObject::getFieldContainerType()
         ,   /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
-		0,                         /* tp_richcompare */
+        (richcmpfunc) tp_richcompare, /* tp_richcompare */
 		0,                         /* tp_weaklistoffset */
 		0,                         /* tp_iter */
 		0,                         /* tp_iternext */
@@ -780,6 +780,32 @@ int PySceneObject::tp_setattro(Object* self, PyObject *attrname, PyObject *value
 	}
 
 	return PyObject_GenericSetAttr((PyObject*) self, attrname, value);
+}
+
+
+PyObject *PySceneObject::tp_richcompare(Object *a, PyObject *b, int op)
+{
+    PyObject *returnObject = Py_NotImplemented;
+    if (PySceneObject_Check(b))
+    {
+        bool result = false;
+        void *otherInventorObject = ((Object*)b)->inventorObject;
+
+        switch (op)
+        {
+        case Py_LT:	result = a->inventorObject < otherInventorObject; break;
+        case Py_LE:	result = a->inventorObject <= otherInventorObject; break;
+        case Py_EQ:	result = a->inventorObject == otherInventorObject; break;
+        case Py_NE:	result = a->inventorObject != otherInventorObject; break;
+        case Py_GT:	result = a->inventorObject > otherInventorObject; break;
+        case Py_GE:	result = a->inventorObject >= otherInventorObject; break;
+        }
+
+        returnObject = result ? Py_True : Py_False;
+    }
+
+    Py_INCREF(returnObject);
+    return  returnObject;
 }
 
 
