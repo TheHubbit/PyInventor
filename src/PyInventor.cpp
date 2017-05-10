@@ -478,7 +478,7 @@ PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 }
 
 
-PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+PyObject* iv_render_buffer(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	// keep reusing same instance once created
 	static SoOffscreenRenderer *offscreenRenderer = 0;
@@ -511,7 +511,7 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 				// configure viewport
 				SbViewportRegion viewport;
 				viewport = SbViewportRegion(SbVec2s(short(width), short(height)));
-				viewport.setViewportPixels(0, 0, width, height);
+				viewport.setViewportPixels(0, 0, short(width), short(height));
 
 				if (!offscreenRenderer)
 				{
@@ -549,7 +549,7 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 					if (file)
 					{
 						// save to file
-						SbString ext(file, strlen(file) - 3, -1);
+						SbString ext(file, (int) strlen(file) - 3, -1);
 						ext = ext.lower();
 
 						#ifdef TGS_VERSION
@@ -597,6 +597,45 @@ PyObject* iv_image(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+
+
+PyObject* iv_render_image(PyObject *self, PyObject *args, PyObject *kwds)
+{
+    static PyObject *imageModule = 0, *fromArrayFunc = 0;
+
+    if (!fromArrayFunc)
+    {
+        // Load the module object
+        PyObject *moduleName = PyUnicode_FromString("PIL.Image");
+        imageModule = PyImport_Import(moduleName);
+        Py_DECREF(moduleName);
+        if (imageModule)
+        {
+            fromArrayFunc = PyObject_GetAttrString(imageModule, "fromarray");
+        }
+        else
+        {
+            PyErr_SetString(PyExc_TypeError, "PIL module could not be loaded!");
+        }
+    }
+
+    if (fromArrayFunc)
+    {
+        // create image form render buffer
+        PyObject *image = PyObject_CallFunctionObjArgs(fromArrayFunc, iv_render_buffer(self, args, kwds), NULL);
+        if (image)
+        {
+            // correct flip from OpenGL coordinate system
+            PyObject *flipped = PyObject_CallMethod(image, "transpose", "i", 1);
+            Py_DECREF(image);
+            if (flipped)
+                return flipped;
+        }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 
@@ -687,7 +726,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "Returns:\n"
             "    List of points, normals and nodes for each intersected object."
         },
-		{ "image", (PyCFunction) iv_image, METH_VARARGS | METH_KEYWORDS,
+		{ "render_buffer", (PyCFunction) iv_render_buffer, METH_VARARGS | METH_KEYWORDS,
             "Renders a scene into an offscreen buffer using the inventor\n"
 			"SoOffscreenRenderer class. Note that this class creates a private,\n"
             "none-shared OpenGL context. If you are using a GUI framework such as\n"
@@ -707,7 +746,23 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "Returns:\n"
             "    Pixel buffer of rendered scene."
         },
-		{ NULL, NULL, 0, NULL }
+        { "render_image", (PyCFunction)iv_render_image, METH_VARARGS | METH_KEYWORDS,
+                "Same as render_buffer() only that the returned buffer is wrapped in\n"
+                "an Image object of the Python Imaging Library (PIL).\n"
+                "\n"
+                "Args:\n"
+                "    applyTo: Node or SceneManager where render action is applied.\n"
+                "    width, height: Viewport size.\n"
+                "    components: LUMINANCE = 1, LUMINANCE_TRANSPARENCY = 2,\n"
+                "                RGB = 3, RGB_TRANSPARENCY = 4\n"
+                "    file: Optional file name to write image buffer into.\n"
+                "    background: Background color. Provide two colors for\n"
+                "                gradient.\n"
+                "\n"
+                "Returns:\n"
+                "    Image of rendered scene."
+        },
+        { NULL, NULL, 0, NULL }
 	};
 
 	static struct PyModuleDef iv_module = 
