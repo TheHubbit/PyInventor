@@ -77,33 +77,6 @@ Scene object instance or None.
 
 <p />
 </ul>
-<h3>image(...)</h3>
-Renders a scene into an offscreen buffer using the inventor
-SoOffscreenRenderer class. Note that this class creates a private,
-none-shared OpenGL context. If you are using a GUI framework such as
-Qt then it is better to do the offscreen rendering with classes like
-QtOpenGL.QGLFramebufferObject because the application controls the
-setup of the OpenGL context.
-
-<p />
-<p><em>Args:</em></p>
-<ul>
-<li>applyTo: Node or SceneManager where render action is applied.
-<li>width, height: Viewport size.
-<li>components: LUMINANCE = 1, LUMINANCE_TRANSPARENCY = 2,
-RGB = 3, RGB_TRANSPARENCY = 4
-<li>file: Optional file name to write image buffer into.
-<li>background: Background color. Provide two colors for
-gradient.
-
-</ul>
-</ul>
-<p><em>Returns:</em></p>
-<ul>
-Pixel buffer of rendered scene.
-
-<p />
-</ul>
 <h3>pick(...)</h3>
 Performs an intersection test of a ray with objects in a scene.
 
@@ -149,6 +122,56 @@ String containing scene itself or file path.
 <p><em>Returns:</em></p>
 <ul>
 Root node of scene or None on failure.
+
+<p />
+</ul>
+<h3>render_buffer(...)</h3>
+Renders a scene into an offscreen buffer using the inventor
+SoOffscreenRenderer class. Note that this class creates a private,
+none-shared OpenGL context. If you are using a GUI framework such as
+Qt then it is better to do the offscreen rendering with classes like
+QtOpenGL.QGLFramebufferObject because the application controls the
+setup of the OpenGL context.
+
+<p />
+<p><em>Args:</em></p>
+<ul>
+<li>applyTo: Node or SceneManager where render action is applied.
+<li>width, height: Viewport size.
+<li>components: LUMINANCE = 1, LUMINANCE_TRANSPARENCY = 2,
+RGB = 3, RGB_TRANSPARENCY = 4
+<li>file: Optional file name to write image buffer into.
+<li>background: Background color. Provide two colors for
+gradient.
+
+</ul>
+</ul>
+<p><em>Returns:</em></p>
+<ul>
+Pixel buffer of rendered scene.
+
+<p />
+</ul>
+<h3>render_image(...)</h3>
+Same as render_buffer() only that the returned buffer is wrapped in
+an Image object of the Python Imaging Library (PIL).
+
+<p />
+<p><em>Args:</em></p>
+<ul>
+<li>applyTo: Node or SceneManager where render action is applied.
+<li>width, height: Viewport size.
+<li>components: LUMINANCE = 1, LUMINANCE_TRANSPARENCY = 2,
+RGB = 3, RGB_TRANSPARENCY = 4
+<li>file: Optional file name to write image buffer into.
+<li>background: Background color. Provide two colors for
+gradient.
+
+</ul>
+</ul>
+<p><em>Returns:</em></p>
+<ul>
+Image of rendered scene.
 
 <p />
 </ul>

@@ -23,6 +23,7 @@ of a scene as a tree as well as a fields editor.
 <li>builtins.object
 </ul>
 <h2> Methods defined here:</h2>
+<h3>addFieldConnection(self, field, typeName, masterName)</h3>
 <h3>appendObject(self)</h3>
 Appends a new scene object after current selection
 
@@ -33,6 +34,10 @@ Attaches the scene and field editors to a scene graph
 <p />
 <h3>deleteObject(self)</h3>
 Deletes all scene objects currently selected in tree view
+
+<p />
+<h3>fieldChanged(self, current, old)</h3>
+Updates field editor after selection in tree view changed
 
 <p />
 <h3>insertObject(self)</h3>
