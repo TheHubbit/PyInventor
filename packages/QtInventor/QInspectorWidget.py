@@ -233,16 +233,6 @@ class QSceneObjectProxy(QtCore.QObject):
             return self._sceneObject.set(fieldName, value)
         return None
 
-    def refreshNode(self, node):
-        if (self._sceneObject is not None) and (node._sceneObject is not None):
-            if self._sceneObject is node._sceneObject:
-                self._children.clear()
-                self.initializeChildren(self._sceneObject, self.parent)
-        
-            # update all instances recursively
-            for child in self._children:
-                child.refreshNode(node)
-
 
 
 class QSceneGraphModel(QtCore.QAbstractItemModel):
@@ -260,7 +250,28 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         self._rootNode = QSceneObjectProxy(root)
         self._draggedNodes = None
 
+
+    def updateFieldConnection(self, field, master, parentIdx = QtCore.QModelIndex()):
+        for i in range(0, self.rowCount(parentIdx)):
+            idx = self.index(i, 0, parentIdx)
+
+            if (not idx.internalPointer().isChildNode()):
+                if idx.internalPointer()._connectedTo == field:
+                    # update connection of an exiting view model node
+                    idx.internalPointer()._sceneObject = master.get_container()
+                    idx.internalPointer()._connectedFrom = master
+                    self.dataChanged.emit(idx, idx)
+
+            if field in idx.internalPointer()._sceneObject.get_field() and not field in [c._connectedTo for c in idx.internalPointer()._children]:
+                # no view model node for connection exists, create one
+                self.beginInsertRows(idx, 0, 0)
+                # only create, constructor already adds child to parent
+                childNode = QSceneObjectProxy(master.get_container(), idx.internalPointer(), master, field)
+                self.endInsertRows()
+
+            self.updateFieldConnection(field, master, idx)
    
+
     def rootNode(self):
         """Returns model root node (QSceneObjectProxy)"""
         return self._rootNode
@@ -368,7 +379,7 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
 
         if role == QtCore.Qt.FontRole:
             font = QtGui.QFont()
-            font.setItalic(not node.isChildNode());
+            font.setItalic(not node.isChildNode())
             return font
         
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
@@ -456,7 +467,7 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         return self.createIndex(parentNode.row(), 0, parentNode)
     
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent = QtCore.QModelIndex()):
         """Returns a QModelIndex that corresponds to the given row, column and parent node"""
         parentNode = self.getProxyNodeFromIndex(parent)
         childItem = None
@@ -924,28 +935,17 @@ class QInspectorWidget(QtGui.QSplitter):
             if master is None:
                 master = sceneObject.get_field(masterName) if len(masterName) > 0 else sceneObject.get_field()[0] if len(sceneObject.get_field()) > 0 else None
             if field is not None and master is not None:
-                prevConnection = field.is_connected()
-                if field.connect_from(master) and not prevConnection:
+                if field.connect_from(master):
+                    self._sceneModel.updateFieldConnection(field, master)
                     return True
-            return False
+        return False
 
 
     def fieldChanged(self, current, old):
         """Updates field editor after selection in tree view changed"""
         if current.isValid() and current.column() == 2:
-            # Don't even know how I got here after a lot of try and error. This is a 
-            # massive hack for getting the graph view to update after field connection
-            # changes. Need to understand the model indices and then rework.
-            viewIndex = self._graphView.currentIndex()
-            dataIndex = viewIndex.data(QtCore.Qt.UserRole)
             connectionDetail = current.data(QtCore.Qt.UserRole)
-            if self.addFieldConnection(connectionDetail[0], connectionDetail[1], connectionDetail[2]):
-                self._sceneModel.insertRow(0, dataIndex)
-            self._sceneModel._rootNode.refreshNode(self._fieldsModel._rootNode)
-            self._sceneModel.dataChanged.emit(dataIndex, dataIndex)
-            n = dataIndex.internalPointer()
-            for i in range(0, n.childCount()):
-                self._sceneModel.dataChanged.emit(dataIndex.child(i,0), dataIndex.child(i,1))
+            self.addFieldConnection(connectionDetail[0], connectionDetail[1], connectionDetail[2])
 
 
     def keyPressEvent(self, event):
