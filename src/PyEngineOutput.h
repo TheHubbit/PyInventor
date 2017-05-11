@@ -35,6 +35,7 @@ private:
 	static void tp_dealloc(Object *self);
 	static PyObject* tp_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 	static int tp_init(Object *self, PyObject *args, PyObject *kwds);
+    static PyObject *tp_richcompare(Object *a, PyObject *b, int op);
 
 	// methods
     static PyObject* get_name(Object *self);

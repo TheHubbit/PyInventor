@@ -46,6 +46,7 @@ private:
 	static int tp_init(Object *self, PyObject *args, PyObject *kwds);
     static PyObject* tp_getattro(Object *self, PyObject *attrname);
     static int tp_setattro(Object *self, PyObject *attrname, PyObject *value);
+    static PyObject *tp_richcompare(Object *a, PyObject *b, int op);
 
 	// methods
     static PyObject* connect_from(Object *self, PyObject *args);

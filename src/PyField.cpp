@@ -223,8 +223,8 @@ PyTypeObject *PyField::getType()
         "objects to create connections to other fields or engine outputs.\n", /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
-		0,                         /* tp_richcompare */
-		0,                         /* tp_weaklistoffset */
+        (richcmpfunc)tp_richcompare, /* tp_richcompare */
+        0,                         /* tp_weaklistoffset */
 		0,                         /* tp_iter */
 		0,                         /* tp_iternext */
 		methods,                   /* tp_methods */
@@ -294,6 +294,32 @@ int PyField::tp_setattro(Object* self, PyObject *attrname, PyObject *value)
     }
 
     return PyObject_GenericSetAttr((PyObject*)self, attrname, value);
+}
+
+
+PyObject *PyField::tp_richcompare(Object *a, PyObject *b, int op)
+{
+    PyObject *returnObject = Py_NotImplemented;
+    if (PyObject_TypeCheck(b, PyField::getType()))
+    {
+        bool result = false;
+        void *otherField = ((Object*)b)->field;
+
+        switch (op)
+        {
+        case Py_LT:	result = a->field < otherField; break;
+        case Py_LE:	result = a->field <= otherField; break;
+        case Py_EQ:	result = a->field == otherField; break;
+        case Py_NE:	result = a->field != otherField; break;
+        case Py_GT:	result = a->field > otherField; break;
+        case Py_GE:	result = a->field >= otherField; break;
+        }
+
+        returnObject = result ? Py_True : Py_False;
+    }
+
+    Py_INCREF(returnObject);
+    return  returnObject;
 }
 
 

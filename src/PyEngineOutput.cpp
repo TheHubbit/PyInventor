@@ -85,8 +85,8 @@ PyTypeObject *PyEngineOutput::getType()
         "Use this object type to create connections to fields.\n", /* tp_doc */
 		0,                         /* tp_traverse */
 		0,                         /* tp_clear */
-		0,                         /* tp_richcompare */
-		0,                         /* tp_weaklistoffset */
+        (richcmpfunc)tp_richcompare, /* tp_richcompare */
+        0,                         /* tp_weaklistoffset */
 		0,                         /* tp_iter */
 		0,                         /* tp_iternext */
 		methods,                   /* tp_methods */
@@ -134,6 +134,32 @@ int PyEngineOutput::tp_init(Object *self, PyObject * /*args*/, PyObject * /*kwds
 	Py_INCREF(Py_None);
 
 	return 0;
+}
+
+
+PyObject *PyEngineOutput::tp_richcompare(Object *a, PyObject *b, int op)
+{
+    PyObject *returnObject = Py_NotImplemented;
+    if (PyObject_TypeCheck(b, PyEngineOutput::getType()))
+    {
+        bool result = false;
+        void *otherOutput = ((Object*)b)->output;
+
+        switch (op)
+        {
+        case Py_LT:	result = a->output < otherOutput; break;
+        case Py_LE:	result = a->output <= otherOutput; break;
+        case Py_EQ:	result = a->output == otherOutput; break;
+        case Py_NE:	result = a->output != otherOutput; break;
+        case Py_GT:	result = a->output > otherOutput; break;
+        case Py_GE:	result = a->output >= otherOutput; break;
+        }
+
+        returnObject = result ? Py_True : Py_False;
+    }
+
+    Py_INCREF(returnObject);
+    return  returnObject;
 }
 
 
