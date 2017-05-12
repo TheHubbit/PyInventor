@@ -98,8 +98,11 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     window = Window()
     if (len(app.arguments()) > 1):
-        # load scene from fiel if argument is given
-        window.loadScene(app.arguments()[2])
+        # load scene from file if argument is given
+        try:
+            window.loadScene(app.arguments()[2])
+        except:
+            print("Failed to load graph passed as argument!")
     window.show()
     sys.exit(app.exec_())
 
