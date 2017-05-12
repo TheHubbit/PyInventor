@@ -56,7 +56,8 @@ private:
 	static int tp_setattro(Object* self, PyObject *attrname, PyObject *value);
 
 	// methods
-	static PyObject* render(Object *self, PyObject *args);
+    static PyObject* init_gl(Object *self, PyObject *args);
+    static PyObject* render(Object *self, PyObject *args);
 	static PyObject* resize(Object *self, PyObject *args);
 	static PyObject* mouse_button(Object *self, PyObject *args);
 	static PyObject* mouse_move(Object *self, PyObject *args);

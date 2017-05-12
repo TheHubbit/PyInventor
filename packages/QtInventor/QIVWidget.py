@@ -33,6 +33,10 @@ class QIVWidget(QtOpenGL.QGLWidget):
         # timer must be started from QThread
         self.idleTimer.start()
     
+    def initializeGL(self):
+        """Performs initial OpenGL setup"""
+        self.sceneManager.init_gl()
+    
     def paintGL(self):
         """Renders scene"""
         self.sceneManager.render()

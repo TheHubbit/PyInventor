@@ -79,7 +79,10 @@ PyTypeObject *PySceneManager::getType()
 
 	static PyMethodDef methods[] = 
 	{
-		{"render", (PyCFunction) render, METH_VARARGS,
+        { "init_gl", (PyCFunction)init_gl, METH_VARARGS,
+            "Initializes an OpenGL context for rendering.\n"
+        },
+        {"render", (PyCFunction) render, METH_VARARGS,
             "Renders the scene into an OpenGL context.\n"
             "\n"
             "Args:\n"
@@ -332,6 +335,15 @@ int PySceneManager::tp_setattro(Object* self, PyObject *attrname, PyObject *valu
     }
 
 	return result;
+}
+
+
+PyObject* PySceneManager::init_gl(Object * /*self*/, PyObject * /*args*/)
+{
+    glEnable(GL_DEPTH_TEST);
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 
