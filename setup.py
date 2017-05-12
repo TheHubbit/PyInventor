@@ -70,10 +70,11 @@ module1 = Extension('inventor',
                                'src/PySceneObject.cpp', 
                                'src/PySensor.cpp',
 							   'src/PyField.cpp',
-                               'src/PyEngineOutput.cpp'])
+                               'src/PyEngineOutput.cpp'],
+                               'src/PyPath.cpp'])
 
 setup (name = 'PyInventor',
-       version = '1.1',
+       version = '1.2',
        description = 'Python integration for Open Inventor toolkit',
        author = 'Thomas Moeller',
        author_email = '',

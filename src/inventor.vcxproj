@@ -241,6 +241,7 @@
   <ItemGroup>
     <ClInclude Include="PyEngineOutput.h" />
     <ClInclude Include="PyField.h" />
+    <ClInclude Include="PyPath.h" />
     <ClInclude Include="PySceneManager.h" />
     <ClInclude Include="PySceneObject.h" />
     <ClInclude Include="PySensor.h" />
@@ -249,6 +250,7 @@
     <ClCompile Include="PyEngineOutput.cpp" />
     <ClCompile Include="PyField.cpp" />
     <ClCompile Include="PyInventor.cpp" />
+    <ClCompile Include="PyPath.cpp" />
     <ClCompile Include="PySceneManager.cpp" />
     <ClCompile Include="PySceneObject.cpp" />
     <ClCompile Include="PySensor.cpp" />

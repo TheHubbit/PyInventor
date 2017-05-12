@@ -28,6 +28,7 @@
 #include "PySensor.h"
 #include "PyField.h"
 #include "PyEngineOutput.h"
+#include "PyPath.h"
 
 #include <numpy/ndarrayobject.h>
 
@@ -306,10 +307,10 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	PyObject *applyTo = NULL;
 	char *type = NULL, *name = NULL;
-	int searchAll = false, first = false, parent = false;
-	static char *kwlist[] = { "applyTo", "type", "name", "searchAll", "first", "parent", NULL};
+	int searchAll = false, first = false;
+	static char *kwlist[] = { "applyTo", "type", "name", "searchAll", "first", NULL};
 
-	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|ssppp", kwlist, &applyTo, &type, &name, &searchAll, &first, &parent))
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|sspp", kwlist, &applyTo, &type, &name, &searchAll, &first))
 	{
 		if (PyNode_Check(applyTo))
 		{
@@ -327,20 +328,7 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 				{
 					if (sa.getPath())
 					{
-						SoNode *node = sa.getPath()->getTail();
-						if (parent)
-						{
-							node = sa.getPath()->getNodeFromTail(1);
-						}
-
-						if (node)
-						{
-							PyObject *found = PySceneObject::createWrapper(node);
-							if (found)
-							{
-								return found;
-							}
-						}
+                        return PyPath::createWrapper(sa.getPath());
 					}
 				}
 				else
@@ -349,30 +337,11 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 					PyObject *found = PyList_New(pl.getLength());
 					for (int i = 0; i < pl.getLength(); ++i)
 					{
-						SoNode *node = pl[i]->getTail();
-						if (parent)
-						{
-							node = pl[i]->getNodeFromTail(1);
-						}
-
-						if (node)
-						{
-							PyObject *obj = PySceneObject::createWrapper(node);
-							if (obj)
-							{
-								PyList_SetItem(found, i, obj);
-							}
-						}
+                        PyList_SetItem(found, i, PyPath::createWrapper(pl[i]));
 					}
 					return found;
 				}
 			}
-		}
-
-		if (!first)
-		{
-			// need to return empty list
-			return PyList_New(0);
 		}
 	}
 
@@ -705,11 +674,10 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "    first: If true search returns only the first child found that\n"
             "           matches the search criteria. By default all matching\n"
             "           children are returned.\n"
-            "    parent: If true search returns the parent of the found node. This\n"
-            "            is useful for example when replacing nodes in a scene.\n"
             "\n"
             "Returns:\n"
-            "    List of nodes matching search criteria or first node found."
+            "    List of paths matching search criteria or single path to matching\n"
+            "    node if first is set to true.\n"
         },
 		{ "pick", (PyCFunction) iv_pick, METH_VARARGS | METH_KEYWORDS,
             "Performs an intersection test of a ray with objects in a scene.\n"
@@ -803,6 +771,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
 			PySensor::getType(),
             PyField::getType(),
             PyEngineOutput::getType(),
+            PyPath::getType(),
 			NULL,
 		};
 
