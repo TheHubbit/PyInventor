@@ -11,6 +11,7 @@
 
 
 #include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/manips/SoTransformManip.h>
 #include <Inventor/engines/SoEngines.h>
 #include <Inventor/fields/SoFields.h>
 #include <Inventor/actions/SoSearchAction.h>
@@ -31,6 +32,7 @@
 #include "PySceneObject.h"
 #include "PyField.h"
 #include "PyEngineOutput.h"
+#include "PyPath.h"
 
 #pragma warning ( disable : 4127 ) // conditional expression is constant in Py_DECREF
 
@@ -50,7 +52,7 @@ void __declspec( dllimport ) PRESODBINIT();
 
 
 // reports all Inventor errors with PyErr_SetString()
-static void inventorErrorCallback(const SoError *error, void *data)
+static void inventorErrorCallback(const SoError *error, void * /*data*/)
 {
 	SbString str = error->getDebugString();
 
@@ -246,6 +248,23 @@ PyTypeObject *PySceneObject::getNodeType()
             "Returns:\n"
             "    Unique node identifier, which changes with each change of the node\n"
             "    or one of its children.\n"
+        },
+		{"replace_node", (PyCFunction) replace_node, METH_VARARGS,
+            "Replaces the node at the end of given path with this manipulator\n"
+            "instance, which must be derived from SoTransformManip.\n"
+            "\n"
+            "Args:\n"
+            "    Path to transform node that will be replaced with manipulator.\n"
+        },
+		{"replace_manip", (PyCFunction) replace_manip, METH_VARARGS,
+            "Replaces this manipulator from the position identified by the\n"
+            "given path with a transform node. This instance must be derived\n"
+            "from SoTransformManip.\n"
+            "\n"
+            "Args:\n"
+            "    Path to manipulator to be replaced and optionally instance of\n"
+            "    transformation node to be inserted. If none is given an instance\n"
+            "    of Transform will be created."
         },
 		{NULL}  /* Sentinel */
 	};
@@ -899,7 +918,7 @@ PyObject *PySceneObject::sq_item(Object *self, Py_ssize_t idx)
 	{
 		if (idx < ((SoGroup*) self->inventorObject)->getNumChildren())
 		{
-			SoNode *node = ((SoGroup*) self->inventorObject)->getChild(idx);
+			SoNode *node = ((SoGroup*) self->inventorObject)->getChild(int(idx));
 			PyObject *obj = createWrapper(node);
 			if (obj)
 			{
@@ -928,7 +947,7 @@ int PySceneObject::sq_ass_item(Object *self, Py_ssize_t idx, PyObject *item)
 		if (item == NULL)
 		{
 			// remove
-			((SoGroup*) self->inventorObject)->removeChild(idx);
+			((SoGroup*) self->inventorObject)->removeChild(int(idx));
 			return 0;
 		}
 		else if (PySceneObject_Check(item))
@@ -938,7 +957,7 @@ int PySceneObject::sq_ass_item(Object *self, Py_ssize_t idx, PyObject *item)
 				if (idx < ((SoGroup*) self->inventorObject)->getNumChildren())
 				{
 					// replace
-					((SoGroup*) self->inventorObject)->replaceChild(idx, (SoNode*) ((Object*) item)->inventorObject);
+					((SoGroup*) self->inventorObject)->replaceChild(int(idx), (SoNode*) ((Object*) item)->inventorObject);
 				}
 				else
 				{
@@ -1466,3 +1485,53 @@ PyObject* PySceneObject::internal_pointer(Object* self)
 	return Py_None;
 }
 
+
+
+
+PyObject* PySceneObject::replace_node(Object *self, PyObject *args)
+{
+    PyObject *pathObj = 0;
+    if (self->inventorObject && self->inventorObject->isOfType(SoTransformManip::getClassTypeId()) && PyArg_ParseTuple(args, "O", &pathObj))
+    {
+        if (PyObject_TypeCheck(pathObj, PyPath::getType()))
+        {
+            SoPath *path = PyPath::getInstance(pathObj);
+            ((SoTransformManip*)self->inventorObject)->replaceNode(path);
+        }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+PyObject* PySceneObject::replace_manip(Object *self, PyObject *args)
+{
+    PyObject *pathObj = 0, *transformObj = 0;
+    if (self->inventorObject && self->inventorObject->isOfType(SoTransformManip::getClassTypeId()) && PyArg_ParseTuple(args, "O|O", &pathObj, &transformObj))
+    {
+        if (PyObject_TypeCheck(pathObj, PyPath::getType()))
+        {
+            SoPath *path = PyPath::getInstance(pathObj);
+            SoFieldContainer *transform = 0;
+
+            if (transformObj && PyNode_Check(transformObj))
+            {
+                transform = ((PySceneObject::Object*)transformObj)->inventorObject;
+                if (!transform->isOfType(SoTransform::getClassTypeId()))
+                {
+                    // only SoTransform derived objects or NULL can be used
+                    transform = 0;
+                }
+            }
+
+            if (path)
+            {
+                ((SoTransformManip*)self->inventorObject)->replaceManip(path, (SoTransform*)transform);
+            }
+        }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}

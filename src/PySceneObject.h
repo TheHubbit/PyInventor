@@ -101,6 +101,10 @@ private:
     // generic field container
     static PyObject* internal_pointer(Object *self);
 
+    // SoTransformManip
+    static PyObject* replace_node(Object *self, PyObject *args);
+    static PyObject* replace_manip(Object *self, PyObject *args);
+
 	// internal methods
 	static void setInstance(Object *self, SoFieldContainer *obj);
 };
