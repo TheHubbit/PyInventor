@@ -371,10 +371,10 @@ bool PyField::getFloatsFromPyObject(PyObject *obj, int size, float *value_out)
             if (PyArray_SIZE(arr) == size)
             {
                 memcpy(value_out, PyArray_BYTES(arr), sizeof(float) * size);
+                Py_DECREF(arr);
+                return true;
             }
             Py_DECREF(arr);
-
-            return true;
         }
     }
 
