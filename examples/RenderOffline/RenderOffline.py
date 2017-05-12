@@ -21,6 +21,7 @@ def makeRandomScene(n):
     root =  iv.Separator()
     root += iv.DirectionalLight()
     root += iv.OrthographicCamera("position 0 0 100 nearDistance 20 focalDistance 60 farDistance 100 height 80")
+    root += iv.ShapeHints("vertexOrdering COUNTERCLOCKWISE shapeType SOLID faceType CONVEX")
     root += iv.Complexity("value 1")
     shape = iv.Sphere()
 
