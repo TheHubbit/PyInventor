@@ -14,6 +14,7 @@
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoKeyboardEvent.h>
+#include <Inventor/events/SoMotion3Event.h>
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/engines/SoEngine.h>
@@ -111,6 +112,14 @@ PyTypeObject *PySceneManager::getType()
             "\n"
             "Note:\n"
             "    Pass this function to glutMotionFunc() in GLUT applications.\n"
+        },
+		{"motion3", (PyCFunction) motion3, METH_VARARGS,
+            "Sends a 3D motion event into the scene for processing.\n"
+            "\n"
+            "Args:\n"
+            "    translation: 3D translation as tuple or array.\n"
+            "    axis: Rotation axis as tuple or array.\n"
+            "    angle: Rotation angle.\n"
         },
 		{"key", (PyCFunction) key, METH_VARARGS,
             "Sends keyboard event into the scene for processing.\n"
@@ -523,6 +532,34 @@ PyObject* PySceneManager::mouse_move(Object *self, PyObject *args)
 		processEvent(self, &ev);
 	}
 
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+PyObject* PySceneManager::motion3(Object *self, PyObject *args)
+{
+    float vector[3], radians = 0.f;
+ 
+    PyObject *translationObj = NULL, *rotationObj = NULL;
+    if (PyArg_ParseTuple(args, "OOf", &translationObj, &rotationObj, &radians))
+    {
+        SoMotion3Event ev;
+
+        if (PyField::getFloatsFromPyObject(translationObj, 3, vector))
+        {
+            ev.setTranslation(SbVec3f(vector[0], vector[1], vector[2]));
+        }
+
+        if (PyField::getFloatsFromPyObject(rotationObj, 3, vector))
+        {
+            ev.setRotation(SbRotation(SbVec3f(vector[0], vector[1], vector[2]), radians));
+        }
+
+        ev.setTime(SbTime::getTimeOfDay());
+        processEvent(self, &ev);
+    }
+    
     Py_INCREF(Py_None);
     return Py_None;
 }
