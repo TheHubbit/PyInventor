@@ -414,19 +414,9 @@ PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
                     PyList_SetItem(point, 0, PyField::getPyObjectArrayFromData(NPY_FLOAT32, p->getPoint().getValue(), 3));
                     PyList_SetItem(point, 1, PyField::getPyObjectArrayFromData(NPY_FLOAT32, p->getNormal().getValue(), 3));
 
-					SoNode *node = 0;
 					if (p->getPath())
 					{
-						node = p->getPath()->getTail();
-					}
-
-					if (node)
-					{
-						PyObject *obj = PySceneObject::createWrapper(p->getPath()->getTail());
-						if (obj)
-						{
-							PyList_SetItem(point, 2, obj);
-						}
+						PyList_SetItem(point, 2, PyPath::createWrapper(p->getPath()));
 					}
 					else
 					{
@@ -692,7 +682,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "             By default only first intersection is returned.\n"
             "\n"
             "Returns:\n"
-            "    List of points, normals and nodes for each intersected object."
+            "    List of points, normals and paths for each intersected object.\n"
         },
 		{ "render_buffer", (PyCFunction) iv_render_buffer, METH_VARARGS | METH_KEYWORDS,
             "Renders a scene into an offscreen buffer using the inventor\n"

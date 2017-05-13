@@ -66,7 +66,7 @@ class QMyPickWidget(QtInventor.QIVWidget):
         self.sceneManager.mouse_button(self.qtButtonIndex.index(event.button()), 0, event.x(), event.y())
         points = iv.pick(self.sceneManager, event.x(), event.y(), pickAll=True)
         for p in points:
-            p[2].appearance.material.diffuseColor = (1, 1, 1)
+            p[2][-1].appearance.material.diffuseColor = (1, 1, 1)
 
 
 class Window(QtGui.QWidget):
