@@ -739,6 +739,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
         "- Sensor: Utility class for observing node, field or time changes.\n"
         "- Field: Represents a field instance (needed for connections).\n"
         "- EngineOutput: Represents an output (needed for connections).\n"
+        "- Path: Represents a traversal path (return type of search and pick methods).\n"
         "\n"
         "Furthermore this module creates Python classes for all registered engines\n"
         "and nodes dynamically, thereby enabling access to scene object fields via\n"
