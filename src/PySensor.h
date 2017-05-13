@@ -15,6 +15,7 @@
 #include "PySceneObject.h"
 
 class SoSensor;
+class SoSelection;
 
 
 class PySensor
@@ -27,7 +28,14 @@ private:
 	{
 		PyObject_HEAD
 		SoSensor *sensor;
-		PyObject *callback;
+        SoSelection *selection;
+        enum {
+            CB_SELECTION,
+            CB_DESELECTION,
+            CB_START,
+            CB_FINISH
+        } selectionCB;
+        PyObject *callback;
 	} Object;
 
 	// type implementations
@@ -46,6 +54,10 @@ private:
 	static PyObject* is_scheduled(Object *self);
 
 	// internal
-	static void sensorCBFunc(void *userdata, SoSensor *sensor);
+    static void unregisterSelectionCB(Object *self);
+    
+    static void sensorCBFunc(void *userdata, SoSensor *sensor);
+    static void selectionPathCB(void * data, SoPath * path);
+    static void selectionClassCB(void * data, SoSelection * sel);
 };
 

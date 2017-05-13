@@ -12,7 +12,9 @@
 
 #include <Inventor/sensors/SoSensors.h>
 #include <Inventor/fields/SoFieldContainer.h>
+#include <Inventor/nodes/SoSelection.h>
 #include "PySensor.h"
+#include "PyPath.h"
 
 #pragma warning ( disable : 4127 ) // conditional expression is constant in Py_DECREF
 #pragma warning ( disable : 4244 ) // possible loss of data when converting int to short in SbVec2s
@@ -35,13 +37,19 @@ PyTypeObject *PySensor::getType()
 	static PyMethodDef methods[] = 
 	{
 		{"attach", (PyCFunction) attach, METH_VARARGS,
-            "Attaches sensor to node or field.\n"
+            "Attaches sensor/callback to node or field. The callback is triggered\n"
+            "when the attached node or field changes. If only a Node instance is\n"
+            "given then the sensor triggers on any change of that node or children.\n"
+            "If both a scene object instance and a field or callback name are passed,\n"
+            "the sensor triggers on field changes only.\n"
+            "For Selection nodes the names 'selection', 'deselection', 'start'\n"
+            "'finish' are also accepted to register the corresponding callbacks.\n"
             "\n"
             "Args:\n"
-            "    If only a Node instance is given then the sensor triggers on any\n"
-            "    change of that node or children. If both a scene object instance\n"
-            "    and a field name are passed, the sensor triggers on field changes\n"
-            "    only.\n"
+            "    - node: Scene object instance to attach to.\n"
+            "    - name: Optional field name (or callback for Selection node).\n"
+            "    - func: The callback function can also be passed as argument\n"
+            "            instead of assigning the callback property.\n"
         },
 		{"detach", (PyCFunction) detach, METH_NOARGS,
             "Deactivates a sensor.\n"
@@ -123,6 +131,23 @@ PyTypeObject *PySensor::getType()
 }
 
 
+void PySensor::unregisterSelectionCB(Object *self)
+{
+    if (self->selection)
+    {
+        switch (self->selectionCB)
+        {
+        case Object::CB_SELECTION: self->selection->removeSelectionCallback(selectionPathCB, self); break;
+        case Object::CB_DESELECTION: self->selection->removeDeselectionCallback(selectionPathCB, self); break;
+        case Object::CB_START: self->selection->removeStartCallback(selectionClassCB, self); break;
+        case Object::CB_FINISH: self->selection->removeFinishCallback(selectionClassCB, self); break;
+        }
+        self->selection->unref();
+        self->selection = 0;
+    }
+}
+
+
 void PySensor::tp_dealloc(Object* self)
 {
 	if (self->sensor)
@@ -130,6 +155,8 @@ void PySensor::tp_dealloc(Object* self)
 		delete self->sensor;
 	}
 
+    unregisterSelectionCB(self);
+    
 	Py_XDECREF(self->callback);
 
 	Py_TYPE(self)->tp_free((PyObject*)self);
@@ -145,16 +172,20 @@ PyObject* PySensor::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObject* /*k
 	{
 		self->callback = 0;
 		self->sensor = 0;
-	}
+        self->selection = 0;
+        self->selectionCB = Object::CB_SELECTION;
+    }
 
 	return (PyObject *) self;
 }
 
 
-int PySensor::tp_init(Object *self, PyObject * /*args*/, PyObject * /*kwds*/)
+int PySensor::tp_init(Object *self, PyObject *args, PyObject * /*kwds*/)
 {
 	Py_INCREF(Py_None);
 	self->callback = Py_None;
+
+    attach(self, args);
 
 	return 0;
 }
@@ -174,24 +205,90 @@ void PySensor::sensorCBFunc(void *userdata, SoSensor* /*sensor*/)
 }
 
 
+void PySensor::selectionPathCB(void * userdata, SoPath * path)
+{
+    Object *self = (Object *)userdata;
+    if ((self != NULL) && (self->callback != NULL) && PyCallable_Check(self->callback))
+    {
+        PyObject *value = PyObject_CallObject(self->callback, Py_BuildValue("(O)", PyPath::createWrapper(path)));
+        if (value != NULL)
+        {
+            Py_DECREF(value);
+        }
+    }
+}
+
+
+void PySensor::selectionClassCB(void * userdata, SoSelection * sel)
+{
+    Object *self = (Object *)userdata;
+    if ((self != NULL) && (self->callback != NULL) && PyCallable_Check(self->callback))
+    {
+        PyObject *value = PyObject_CallObject(self->callback, Py_BuildValue("(O)", PySceneObject::createWrapper(sel)));
+        if (value != NULL)
+        {
+            Py_DECREF(value);
+        }
+    }
+}
+
+
 PyObject* PySensor::attach(Object *self, PyObject *args)
 {
-	PyObject *node = 0;
+	PyObject *node = 0, *callback = 0;
 	char *fieldName = 0;
-	if (PyArg_ParseTuple(args, "O|s", &node, &fieldName))
+	if (PyArg_ParseTuple(args, "O|sO", &node, &fieldName, &callback))
 	{
 		SoFieldContainer *fc = 0;
 		SoField *field = 0;
 
-		if (node && PyNode_Check(node))
+		if (node && PySceneObject_Check(node))
 		{
 			fc = ((PySceneObject::Object*) node)->inventorObject;
 		}
 
-		if (fc && fieldName)
-		{
-			field = fc->getField(fieldName);
-		}
+        if (fc && fieldName && fc->isOfType(SoSelection::getClassTypeId()))
+        {
+            unregisterSelectionCB(self);
+
+            if (SbString("selection") == fieldName)
+            {
+                self->selectionCB = Object::CB_SELECTION;
+                self->selection = (SoSelection*) fc;
+                self->selection->ref();
+                self->selection->addSelectionCallback(selectionPathCB, self);
+                fc = 0;
+            }
+            else if (SbString("deselection") == fieldName)
+            {
+                self->selectionCB = Object::CB_DESELECTION;
+                self->selection = (SoSelection*) fc;
+                self->selection->ref();
+                self->selection->addDeselectionCallback(selectionPathCB, self);
+                fc = 0;
+            }
+            else if (SbString("start") == fieldName)
+            {
+                self->selectionCB = Object::CB_START;
+                self->selection = (SoSelection*) fc;
+                self->selection->ref();
+                self->selection->addStartCallback(selectionClassCB, self);
+                fc = 0;
+            }
+            else if (SbString("finish") == fieldName)
+            {
+                self->selectionCB = Object::CB_FINISH;
+                self->selection = (SoSelection*)fc;
+                self->selection->ref();
+                self->selection->addFinishCallback(selectionClassCB, self);
+                fc = 0;
+            }
+        }
+
+        if (fc && fieldName)
+        {
+            field = fc->getField(fieldName);
+        }
 
 		if ((fc && !fieldName) || field)
 		{
