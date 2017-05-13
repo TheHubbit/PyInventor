@@ -64,6 +64,31 @@ Removes a scene object from a group node.
 Index or child node to be removed from group.
 
 <p />
+</ul>
+<h3>replace_manip(...)</h3>
+Replaces this manipulator from the position identified by the
+given path with a transform node. This instance must be derived
+from SoTransformManip.
+
+<p />
+<p><em>Args:</em></p>
+<ul>
+Path to manipulator to be replaced and optionally instance of
+transformation node to be inserted. If none is given an instance
+of Transform will be created.
+
+<p />
+</ul>
+<h3>replace_node(...)</h3>
+Replaces the node at the end of given path with this manipulator
+instance, which must be derived from SoTransformManip.
+
+<p />
+<p><em>Args:</em></p>
+<ul>
+Path to transform node that will be replaced with manipulator.
+
+<p />
 
 </ul>
 <h2> Methods inherited from FieldContainer:</h2>
@@ -179,6 +204,8 @@ Name for scene object instance.
 Marks a scene object as modified.
 
 <p />
+
+<br />
 </div>
 <div id='footer_wrap' class='outer'><footer class='inner'>
 <p class='copyright'>PyInventor maintained by <a href='https://github.com/TheHubbit'>TheHubbit</a></p>

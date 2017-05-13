@@ -95,7 +95,7 @@ By default only first intersection is returned.
 </ul>
 <p><em>Returns:</em></p>
 <ul>
-List of points, normals and nodes for each intersected object.
+List of points, normals and paths for each intersected object.
 
 <p />
 </ul>
@@ -189,14 +189,13 @@ traversed (hidden by switch).
 <li>first: If true search returns only the first child found that
 matches the search criteria. By default all matching
 children are returned.
-<li>parent: If true search returns the parent of the found node. This
-is useful for example when replacing nodes in a scene.
 
 </ul>
 </ul>
 <p><em>Returns:</em></p>
 <ul>
-List of nodes matching search criteria or first node found.
+List of paths matching search criteria or single path to matching
+node if first is set to true.
 
 <p />
 </ul>

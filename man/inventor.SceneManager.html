@@ -17,6 +17,10 @@ GLUT for example).
 
 <p />
 <h2> Methods defined here:</h2>
+<h3>init_gl(...)</h3>
+Initializes an OpenGL context for rendering.
+
+<p />
 <h3>interaction(...)</h3>
 Sets the mouse interaction mode.
 
@@ -45,6 +49,18 @@ Pressed keyboard character.
 Pass this function to glutKeyboardFunc() in GLUT applications.
 
 <p />
+</ul>
+<h3>motion3(...)</h3>
+Sends a 3D motion event into the scene for processing.
+
+<p />
+<p><em>Args:</em></p>
+<ul>
+<li>translation: 3D translation as tuple or array.
+<li>axis: Rotation axis as tuple or array.
+<li>angle: Rotation angle.
+
+</ul>
 </ul>
 <h3>mouse_button(...)</h3>
 Sends mouse button event into the scene for processing.

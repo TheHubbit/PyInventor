@@ -17,17 +17,27 @@ at given times.
 <p />
 <h2> Methods defined here:</h2>
 <h3>attach(...)</h3>
-Attaches sensor to node or field.
+Attaches sensor/callback to node or field. The callback is triggered
+when the attached node or field changes. If only a Node instance is
+given then the sensor triggers on any change of that node or children.
+If both a scene object instance and a field or callback name are passed,
+the sensor triggers on field changes only.
+For Selection nodes the names 'selection', 'deselection', 'start'
+'finish' are also accepted to register the corresponding callbacks.
 
 <p />
 <p><em>Args:</em></p>
 <ul>
-If only a Node instance is given then the sensor triggers on any
-change of that node or children. If both a scene object instance
-and a field name are passed, the sensor triggers on field changes
-only.
+<ul>
+<li>node:
+Scene object instance to attach to.
+<li>name:
+Optional field name (or callback for Selection node).
+<li>func:
+The callback function can also be passed as argument
+instead of assigning the callback property.
 
-<p />
+</ul>
 </ul>
 <h3>detach(...)</h3>
 Deactivates a sensor.
