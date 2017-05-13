@@ -7,6 +7,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "packages", "packages\packag
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "examples", "examples\examples.pyproj", "{A6DFB059-B3AC-414C-8FE3-DF12178812A1}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "tests", "tests\tests.pyproj", "{F03A43B1-D254-481D-AFE0-8B9FC230C881}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

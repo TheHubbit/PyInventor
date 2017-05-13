@@ -20,7 +20,6 @@
 #pragma warning ( disable : 4244 ) // possible loss of data when converting int to short in SbVec2s
 
 
-
 PyTypeObject *PySensor::getType()
 {
 	static PyMemberDef members[] = 
