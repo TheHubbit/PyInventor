@@ -309,6 +309,14 @@ PyObject* PySensor::attach(Object *self, PyObject *args)
 				((SoNodeSensor*) self->sensor)->attach((SoNode*) fc);
 			}
 		}
+
+        // set callback attribute based on option third argument
+        if (callback)
+        {
+            Py_XDECREF(self->callback);
+            self->callback = callback;
+            Py_INCREF(self->callback);
+        }
 	}
 
 	Py_INCREF(Py_None);
@@ -323,6 +331,8 @@ PyObject* PySensor::detach(Object *self)
 		delete self->sensor;
 		self->sensor = 0;
 	}
+
+    unregisterSelectionCB(self);
 
 	Py_INCREF(Py_None);
 	return Py_None;
