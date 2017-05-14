@@ -1,0 +1,141 @@
+#Inventor V2.1 ascii
+
+
+Separator {
+
+  DirectionalLight {
+    intensity 0.33000001
+    direction 0 0 -1
+
+  }
+  PerspectiveCamera {
+    position -0.58766371 -18.600456 13.158527
+    orientation 0.99999547 -0.0030917507 -0.00043601482  0.88295311
+    nearDistance 10
+    farDistance 100
+    focalDistance 60
+    heightAngle 0.96962756
+
+  }
+  Selection {
+
+    ShadowGroup {
+      quality 1
+
+      ShadowStyle {
+        style NO_SHADOWING
+
+      }
+      SpotLight {
+        location -16 -16 14
+        direction 1 1 -1
+        dropOffRate 0.69999999
+        cutOffAngle 0.34999999
+
+      }
+      ShadowStyle {
+        style CASTS_SHADOW_AND_SHADOWED
+
+      }
+      Separator {
+
+        Complexity {
+          value 1
+
+        }
+        Material {
+          diffuseColor 1 0 0
+          specularColor 1 1 1
+          shininess 0.89999998
+
+        }
+        Translation {
+          translation 0 0 0
+
+        }
+        RotationXYZ {
+          angle 1.5700001
+
+        }
+        Cone {
+          bottomRadius 2
+          height 4
+
+        }
+      }
+      Separator {
+
+        Material {
+          diffuseColor 1 1 0
+          specularColor 1 1 1
+          shininess 0.89999998
+
+        }
+        Translation {
+          translation -7 0 0
+
+        }
+        Cube {
+          width 4
+          height 4
+          depth 4
+
+        }
+      }
+      Separator {
+
+        Material {
+          diffuseColor 0 1 0
+          specularColor 1 1 1
+          shininess 0.89999998
+
+        }
+        Translation {
+          translation 7 0 0
+
+        }
+        Sphere {
+          radius 2
+
+        }
+      }
+      ShadowStyle {
+        style SHADOWED
+
+      }
+      Scale {
+        scaleFactor 6 6 1
+
+      }
+      Coordinate3 {
+        point [ -10 -10 -3,
+            10 -10 -3,
+            10 10 -3,
+            -10 10 -3 ]
+
+      }
+      Material {
+        specularColor 1 1 1
+        shininess 0.89999998
+
+      }
+      Complexity {
+        textureQuality 0.1
+
+      }
+      Texture2 {
+        image 2 2 3
+        0xffffff 0x225588 0x225588 0xffffff 
+
+      }
+      Texture2Transform {
+        scaleFactor 10 10
+
+      }
+      FaceSet {
+        numVertices 4
+
+      }
+    }
+  }
+}

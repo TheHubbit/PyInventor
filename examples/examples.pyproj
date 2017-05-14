@@ -24,6 +24,7 @@
   <ItemGroup>
     <Compile Include="HelloCone\HelloCone_GLUT.py" />
     <Compile Include="HelloCone\HelloCone_PySide.py" />
+    <Compile Include="Manipulators\Manipulators.py" />
     <Compile Include="RandomDiscs\RandomDiscs.py" />
     <Compile Include="RenderOffline\RenderOffline.py" />
     <Compile Include="RenderOffline\SceneTexture.py" />
@@ -32,10 +33,14 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HelloCone\" />
+    <Folder Include="Manipulators\" />
     <Folder Include="RandomDiscs\" />
     <Folder Include="RenderOffline\" />
     <Folder Include="SphericalHarmonics\" />
     <Folder Include="VolumeRendering\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Manipulators\Manipulators.iv" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />

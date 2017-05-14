@@ -293,12 +293,12 @@ PyObject* iv_write(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 
 PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
-	PyObject *applyTo = NULL;
+	PyObject *applyTo = NULL, *node = NULL;
 	char *type = NULL, *name = NULL;
-	int searchAll = false, first = false;
-	static char *kwlist[] = { "applyTo", "type", "name", "searchAll", "first", NULL};
+	int searchAll = false, first = true;
+	static char *kwlist[] = { "applyTo", "type", "node", "name", "searchAll", "first", NULL};
 
-	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|sspp", kwlist, &applyTo, &type, &name, &searchAll, &first))
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O|sOspp", kwlist, &applyTo, &type, &node, &name, &searchAll, &first))
 	{
 		if (PyNode_Check(applyTo))
 		{
@@ -310,6 +310,10 @@ PyObject* iv_search(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 				if (name) sa.setName(name);
 				if (searchAll) sa.setSearchingAll(TRUE);
 				sa.setInterest(first ? SoSearchAction::FIRST : SoSearchAction::ALL);
+                if (node && PyNode_Check(node))
+                {
+                    sa.setNode((SoNode*) ((PySceneObject::Object*) node)->inventorObject);
+                }
 				sa.apply((SoNode*) sceneObj->inventorObject);
 
 				if (first)
@@ -589,27 +593,27 @@ PyObject* iv_render_image(PyObject *self, PyObject *args, PyObject *kwds)
 // External inventor module creation function.
 PyMODINIT_FUNC PyInit_inventor(void)
 {
-	static PyMethodDef iv_methods[] = 
-	{
-		{ "process_queues", iv_process_queues, METH_VARARGS,
+    static PyMethodDef iv_methods[] =
+    {
+        { "process_queues", iv_process_queues, METH_VARARGS,
             "Processes inventor timer and delay queues.\n"
             "\n"
             "Args:\n"
             "    Boolean flag indicating if application is idle.\n"
         },
-		{ "create_classes", iv_create_classes, METH_VARARGS,
+        { "create_classes", iv_create_classes, METH_VARARGS,
             "Creates Python classes for all registered Inventor scene objects."
         },
-		{ "classes", iv_classes, METH_VARARGS,
+        { "classes", iv_classes, METH_VARARGS,
             "Returns all class names registered as Inventor scene objects."
             "\n"
             "Args:\n"
-			"    Type name of base class to filter for (optional).\n"
+            "    Type name of base class to filter for (optional).\n"
             "\n"
             "Returns:\n"
             "    Type names of all classes matching the given filter."
         },
-		{ "create_object", (PyCFunction) iv_create_object, METH_VARARGS | METH_KEYWORDS,
+        { "create_object", (PyCFunction)iv_create_object, METH_VARARGS | METH_KEYWORDS,
             "Creates a scene object instance for a given type, scene object name\n"
             "or existing native pointer.\n"
             "\n"
@@ -621,7 +625,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "Returns:\n"
             "    Scene object instance or None."
         },
-		{ "read", (PyCFunction) iv_read, METH_VARARGS,
+        { "read", (PyCFunction)iv_read, METH_VARARGS,
             "Reads a scene graph from string or file.\n"
             "\n"
             "Args:\n"
@@ -630,7 +634,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "Returns:\n"
             "    Root node of scene or None on failure."
         },
-		{ "write", (PyCFunction) iv_write, METH_VARARGS | METH_KEYWORDS,
+        { "write", (PyCFunction)iv_write, METH_VARARGS | METH_KEYWORDS,
             "Writes scene graph to file or string.\n"
             "\n"
             "Args:\n"
@@ -640,18 +644,19 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "Returns:\n"
             "    Written scene as string or None is file argument was provided."
         },
-		{ "search", (PyCFunction) iv_search, METH_VARARGS | METH_KEYWORDS,
+        { "search", (PyCFunction)iv_search, METH_VARARGS | METH_KEYWORDS,
             "Searches for children in a scene with given name or type.\n"
             "\n"
             "Args:\n"
             "    applyTo: Node where action is applied.\n"
             "    type: Search for nodes of given type.\n"
+            "    node: Search for a specific node in the scene.\n"
             "    name: Search for node of given name.\n"
             "    searchAll: If True search includes children that are normally not\n"
             "               traversed (hidden by switch).\n"
             "    first: If true search returns only the first child found that\n"
-            "           matches the search criteria. By default all matching\n"
-            "           children are returned.\n"
+            "           matches the search criteria. Otherwise all matching\n"
+            "           children are returned. The default is True.\n"
             "\n"
             "Returns:\n"
             "    List of paths matching search criteria or single path to matching\n"
