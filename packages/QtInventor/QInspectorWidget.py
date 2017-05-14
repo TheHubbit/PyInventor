@@ -42,11 +42,21 @@ class QSceneObjectProxy(QtCore.QObject):
         if parent is not None:
             parent._children.append(self)
 
-        self.initializeChildren(sceneObject, parent)
+        if sceneObject is not None:
+            self.initializeChildren(sceneObject, parent)
 
 
     def createChildProxy(self, sceneObject, parent=None, connectedFrom=None, connectedTo=None):
-        node = QSceneObjectProxy(sceneObject, parent, connectedFrom, connectedTo)
+        if not self.isInPath(sceneObject):
+            node = QSceneObjectProxy(sceneObject, parent, connectedFrom, connectedTo)
+
+
+    def isInPath(self, sceneObject):
+        if self._sceneObject == sceneObject:
+            return True
+        if self.parent() is not None:
+            return self.parent().isInPath(sceneObject)
+        return False
 
 
     def initializeChildren(self, sceneObject, parent=None, connectedFrom=None, connectedTo=None):
@@ -59,7 +69,8 @@ class QSceneObjectProxy(QtCore.QObject):
             # add all objects connected through fields
             for field in sceneObject.get_field():
                 for conn in field.get_connections():
-                    self.createChildProxy(conn.get_container(), self, conn, field)
+                    if conn.get_container() is not None:
+                        self.createChildProxy(conn.get_container(), self, conn, field)
                 if field.get_connected_engine() is not None:
                     output = field.get_connected_engine()
                     self.createChildProxy(output.get_container(), self, output, field)
