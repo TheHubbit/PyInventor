@@ -129,7 +129,7 @@ PyObject* PyEngineOutput::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObjec
 }
 
 
-int PyEngineOutput::tp_init(Object *self, PyObject * /*args*/, PyObject * /*kwds*/)
+int PyEngineOutput::tp_init(Object * /*self*/, PyObject * /*args*/, PyObject * /*kwds*/)
 {
 	Py_INCREF(Py_None);
 

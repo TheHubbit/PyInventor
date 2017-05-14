@@ -267,7 +267,7 @@ PyObject* PyField::tp_new(PyTypeObject *type, PyObject* /*args*/, PyObject* /*kw
 }
 
 
-int PyField::tp_init(Object *self, PyObject * /*args*/, PyObject * /*kwds*/)
+int PyField::tp_init(Object * /*self*/, PyObject * /*args*/, PyObject * /*kwds*/)
 {
 	Py_INCREF(Py_None);
 
@@ -425,7 +425,7 @@ PyObject *PyField::getFieldValue(SoField *field)
     else if (field->isOfType(SoMFNode::getClassTypeId()))
     {
         SoMFNode *nodeField = (SoMFNode*)field;
-        PyObject *result = PyList_New(nodeField->getNum());
+        result = PyList_New(nodeField->getNum());
         for (Py_ssize_t i = 0; i < nodeField->getNum(); ++i)
         {
             SoNode *node = (SoNode*)*nodeField->getValues(i);
@@ -782,18 +782,18 @@ int PyField::setFieldValue(SoField *field, PyObject *value)
 
             if (!valueWasSet)
             {
-                float value[16];
-                if (getFloatsFromPyObject(axis, 16, value))
+                float rotValue[16];
+                if (getFloatsFromPyObject(axis, 16, rotValue))
                 {
                     // matrix
                     SbMatrix m;
-                    m.setValue(value);
+                    m.setValue(rotValue);
                     ((SoSFRotation*)field)->setValue(SbRotation(m));
                 }
-                else if (getFloatsFromPyObject(axis, 4, value))
+                else if (getFloatsFromPyObject(axis, 4, rotValue))
                 {
                     // quaternion
-                    ((SoSFRotation*)field)->setValue(value);
+                    ((SoSFRotation*)field)->setValue(rotValue);
                 }
             }
         }
