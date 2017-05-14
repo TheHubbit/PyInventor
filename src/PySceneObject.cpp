@@ -534,7 +534,7 @@ PyTypeObject *PySceneObject::getWrapperType(const char *typeName)
     {
         return getEngineType();
     }
-    else if (SbName("FieldContainer") == typeName)
+    else if ((SbName("FieldContainer") == typeName) || (SbName("GlobalField") == typeName))
     {
         return getFieldContainerType();
     }
