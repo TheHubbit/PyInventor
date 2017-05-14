@@ -29,8 +29,8 @@
 #include "PyField.h"
 #include "PyEngineOutput.h"
 #include "PyPath.h"
-
 #include <numpy/ndarrayobject.h>
+#include <set>
 
 
 #ifndef _WIN32
@@ -67,28 +67,16 @@ static PyObject* iv_process_queues(PyObject * /*self*/, PyObject * args)
 static PyObject* iv_create_classes(PyObject *self, PyObject * /*args*/)
 {
 	PySceneObject::initSoDB();
+    std::set<SbName> sCreatedWrappers;
 
 	SoTypeList lst;
-	SoType::getAllDerivedFrom(SoType::fromName("Node"), lst);
+	SoType::getAllDerivedFrom(SoType::fromName("FieldContainer"), lst);
 	for (int i = 0; i < lst.getLength(); ++i)
 	{
-		if (lst[i].canCreateInstance() && !PySceneObject::getWrapperType(lst[i].getName().getString()))
+		if (lst[i].canCreateInstance() && (sCreatedWrappers.find(lst[i].getName()) == sCreatedWrappers.end()))
 		{
-			PyTypeObject *type = PySceneObject::getWrapperType(lst[i].getName().getString(), PySceneObject::getNodeType());
-			if (PyType_Ready(type) >= 0)
-			{
-				Py_INCREF(type);
-				PyModule_AddObject(self, type->tp_name, (PyObject *) type);
-			}
-		}
-	}
-
-	SoType::getAllDerivedFrom(SoType::fromName("Engine"), lst);
-	for (int i = 0; i < lst.getLength(); ++i)
-	{
-		if (lst[i].canCreateInstance() && !PySceneObject::getWrapperType(lst[i].getName().getString()))
-		{
-			PyTypeObject *type = PySceneObject::getWrapperType(lst[i].getName().getString(), PySceneObject::getEngineType());
+            sCreatedWrappers.insert(lst[i].getName());
+			PyTypeObject *type = PySceneObject::getWrapperType(lst[i].getName().getString());
 			if (PyType_Ready(type) >= 0)
 			{
 				Py_INCREF(type);

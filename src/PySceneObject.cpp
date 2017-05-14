@@ -522,13 +522,45 @@ PyTypeObject *PySceneObject::getEngineType()
 }
 
 
-PyTypeObject *PySceneObject::getWrapperType(const char *typeName, PyTypeObject *baseType)
+PyTypeObject *PySceneObject::getWrapperType(const char *typeName)
 {
 	static WrapperTypes sceneObjectTypes;
 
+    if (SbName("Node") == typeName)
+    {
+        return getNodeType();
+    }
+    else if (SbName("Engine") == typeName)
+    {
+        return getEngineType();
+    }
+    else if (SbName("FieldContainer") == typeName)
+    {
+        return getFieldContainerType();
+    }
+
 	if (sceneObjectTypes.find(typeName) == sceneObjectTypes.end())
 	{
-		if (!baseType) return NULL;
+        SoType type = SoType::fromName(typeName);
+        if (type.isBad())
+        {
+            return NULL;
+        }
+
+        PyTypeObject *baseType = getFieldContainerType();
+        SoType parentType = type.getParent();
+        if (parentType.canCreateInstance())
+        {
+            baseType = PySceneObject::getWrapperType(parentType.getName());
+        }
+        else if (parentType.isDerivedFrom(SoNode::getClassTypeId()))
+        {
+            baseType = getNodeType();
+        }
+        else if (parentType.isDerivedFrom(SoEngine::getClassTypeId()))
+        {
+            baseType = getEngineType();
+        }
 
 		PyTypeObject wrapperType = 
 		{
@@ -592,7 +624,7 @@ PyObject *PySceneObject::createWrapper(SoFieldContainer *instance, bool createCl
         SbName typeName = instance->getTypeId().getName();
         if (getWrapperType(typeName.getString()))
         {
-            obj = PyObject_CallObject((PyObject*)getWrapperType(typeName.getString(), getNodeType()), NULL);
+            obj = PyObject_CallObject((PyObject*)getWrapperType(typeName.getString()), NULL);
         }
         else
         {

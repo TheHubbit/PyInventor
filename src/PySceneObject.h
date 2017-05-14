@@ -38,7 +38,7 @@ public:
 	static PyTypeObject *getFieldContainerType();
 	static PyTypeObject *getNodeType();
 	static PyTypeObject *getEngineType();
-	static PyTypeObject *getWrapperType(const char *typeName, PyTypeObject *baseType = 0);
+	static PyTypeObject *getWrapperType(const char *typeName);
 	
 	static PyObject *createWrapper(SoFieldContainer *instance, bool createClone = false);
 
