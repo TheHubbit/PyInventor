@@ -12,6 +12,10 @@
 
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/manips/SoTransformManip.h>
+#include <Inventor/manips/SoClipPlaneManip.h>
+#include <Inventor/manips/SoDirectionalLightManip.h>
+#include <Inventor/manips/SoPointLightManip.h>
+#include <Inventor/manips/SoSpotLightManip.h>
 #include <Inventor/nodes/SoShape.h>
 #include <Inventor/nodes/SoCamera.h>
 #include <Inventor/nodes/SoLight.h>
@@ -1642,17 +1646,36 @@ PyObject* PySceneObject::internal_pointer(Object* self)
 PyObject* PySceneObject::replace_node(Object *self, PyObject *args)
 {
     PyObject *pathObj = 0;
-    if (self->inventorObject && self->inventorObject->isOfType(SoTransformManip::getClassTypeId()) && PyArg_ParseTuple(args, "O", &pathObj))
+    if (self->inventorObject && PyArg_ParseTuple(args, "O", &pathObj))
     {
         if (PyObject_TypeCheck(pathObj, PyPath::getType()))
         {
             SoPath *path = PyPath::getInstance(pathObj);
             if (path)
             {
-                SoPath *transformPath = createTransformPath(path);
-                transformPath->ref();
-                ((SoTransformManip*)self->inventorObject)->replaceNode(transformPath);
-                transformPath->unref();
+                if (self->inventorObject->isOfType(SoTransformManip::getClassTypeId()))
+                {
+                    SoPath *transformPath = createTransformPath(path);
+                    transformPath->ref();
+                    ((SoTransformManip*)self->inventorObject)->replaceNode(transformPath);
+                    transformPath->unref();
+                }
+                if (self->inventorObject->isOfType(SoClipPlaneManip::getClassTypeId()))
+                {
+                    ((SoClipPlaneManip*)self->inventorObject)->replaceNode(path);
+                }
+                if (self->inventorObject->isOfType(SoDirectionalLightManip::getClassTypeId()))
+                {
+                    ((SoDirectionalLightManip*)self->inventorObject)->replaceNode(path);
+                }
+                if (self->inventorObject->isOfType(SoPointLightManip::getClassTypeId()))
+                {
+                    ((SoPointLightManip*)self->inventorObject)->replaceNode(path);
+                }
+                if (self->inventorObject->isOfType(SoSpotLightManip::getClassTypeId()))
+                {
+                    ((SoSpotLightManip*)self->inventorObject)->replaceNode(path);
+                }
             }
         }
     }
@@ -1664,27 +1687,46 @@ PyObject* PySceneObject::replace_node(Object *self, PyObject *args)
 
 PyObject* PySceneObject::replace_manip(Object *self, PyObject *args)
 {
-    PyObject *pathObj = 0, *transformObj = 0;
-    if (self->inventorObject && self->inventorObject->isOfType(SoTransformManip::getClassTypeId()) && PyArg_ParseTuple(args, "O|O", &pathObj, &transformObj))
+    PyObject *pathObj = 0, *nodeObj = 0;
+    if (self->inventorObject && PyArg_ParseTuple(args, "O|O", &pathObj, &nodeObj))
     {
         if (PyObject_TypeCheck(pathObj, PyPath::getType()))
         {
             SoPath *path = PyPath::getInstance(pathObj);
-            SoFieldContainer *transform = 0;
+            SoFieldContainer *node = 0;
 
-            if (transformObj && PyNode_Check(transformObj))
+            if (nodeObj && PyNode_Check(nodeObj))
             {
-                transform = ((PySceneObject::Object*)transformObj)->inventorObject;
-                if (!transform->isOfType(SoTransform::getClassTypeId()))
+                node = ((PySceneObject::Object*)nodeObj)->inventorObject;
+                if (!node->isOfType(SoTransform::getClassTypeId()))
                 {
                     // only SoTransform derived objects or NULL can be used
-                    transform = 0;
+                    node = 0;
                 }
             }
 
             if (path)
             {
-                ((SoTransformManip*)self->inventorObject)->replaceManip(path, (SoTransform*)transform);
+                if (self->inventorObject->isOfType(SoTransformManip::getClassTypeId()))
+                {
+                    ((SoTransformManip*)self->inventorObject)->replaceManip(path, (SoTransform*)node);
+                }
+                if (self->inventorObject->isOfType(SoClipPlaneManip::getClassTypeId()))
+                {
+                    ((SoClipPlaneManip*)self->inventorObject)->replaceManip(path, (SoClipPlane*)node);
+                }
+                if (self->inventorObject->isOfType(SoDirectionalLightManip::getClassTypeId()))
+                {
+                    ((SoDirectionalLightManip*)self->inventorObject)->replaceManip(path, (SoDirectionalLight*)node);
+                }
+                if (self->inventorObject->isOfType(SoPointLightManip::getClassTypeId()))
+                {
+                    ((SoPointLightManip*)self->inventorObject)->replaceManip(path, (SoPointLight*)node);
+                }
+                if (self->inventorObject->isOfType(SoSpotLightManip::getClassTypeId()))
+                {
+                    ((SoSpotLightManip*)self->inventorObject)->replaceManip(path, (SoSpotLight*)node);
+                }
             }
         }
     }
