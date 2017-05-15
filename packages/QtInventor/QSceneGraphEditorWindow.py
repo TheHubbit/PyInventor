@@ -76,9 +76,9 @@ class QSceneGraphEditorWindow(QtGui.QWidget):
             del self.previewWidget.sceneManager.scene[:]
             resetCamera = False
 
-            if (len(iv.search(self._root, type="DirectionalLight")) == 0):
+            if (iv.search(self._root, type="DirectionalLight") is None):
                 self.previewWidget.sceneManager.scene += iv.DirectionalLight()
-            if (len(iv.search(self._root, type="Camera")) == 0):
+            if (iv.search(self._root, type="Camera") is None):
                 self.previewWidget.sceneManager.scene += [ iv.OrthographicCamera(), self._root ]
                 resetCamera = True
 
