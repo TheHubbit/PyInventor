@@ -175,8 +175,11 @@ SoPath *PyPath::getInstance(PyObject *self)
 
 PyObject *PyPath::createWrapper(SoPath *path)
 {
-    PyObject *obj = PyObject_CallObject((PyObject*)getType(), NULL);
-    ((PyPath*)obj)->setInstance(path);
+    PyObject *obj = PyObject_CallObject((PyObject*) getType(), NULL);
+    if (obj)
+    {
+        ((PyPath*)obj)->setInstance(path);
+    }
     return obj;
 }
 
