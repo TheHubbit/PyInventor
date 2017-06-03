@@ -29,6 +29,7 @@
 #include "PyField.h"
 #include "PyEngineOutput.h"
 #include "PyPath.h"
+#include "PyNodekitCatalog.h"
 #include <numpy/ndarrayobject.h>
 #include <set>
 
@@ -756,6 +757,7 @@ PyMODINIT_FUNC PyInit_inventor(void)
             PyField::getType(),
             PyEngineOutput::getType(),
             PyPath::getType(),
+            PyNodekitCatalog::getType(),
 			NULL,
 		};
 

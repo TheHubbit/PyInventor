@@ -71,6 +71,7 @@ module1 = Extension('inventor',
                                'src/PySensor.cpp',
 							   'src/PyField.cpp',
                                'src/PyEngineOutput.cpp',
+                               'src/PyNodekitCatalog.cpp',
                                'src/PyPath.cpp'])
 
 setup (name = 'PyInventor',

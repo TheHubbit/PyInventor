@@ -40,6 +40,7 @@
 #include "PyField.h"
 #include "PyEngineOutput.h"
 #include "PyPath.h"
+#include "PyNodekitCatalog.h"
 
 #pragma warning ( disable : 4127 ) // conditional expression is constant in Py_DECREF
 
@@ -390,6 +391,13 @@ PyTypeObject *PySceneObject::getNodeType()
             "    Path to manipulator to be replaced and optionally instance of\n"
             "    transformation node to be inserted. If none is given an instance\n"
             "    of Transform will be created."
+        },
+		{"get_nodekit_catalog", (PyCFunction) get_nodekit_catalog, METH_NOARGS,
+            "Returns catalog entries of a nodekit instance.\n"
+            "\n"
+            "Returns:\n"
+            "    NodekitCatalog object, which is a list of dictionaries with\n"
+            "    details about each nodekit part."
         },
 		{NULL}  /* Sentinel */
 	};
@@ -1729,6 +1737,19 @@ PyObject* PySceneObject::replace_manip(Object *self, PyObject *args)
                 }
             }
         }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+PyObject* PySceneObject::get_nodekit_catalog(Object *self)
+{
+    PyObject *pathObj = 0, *nodeObj = 0;
+    if (self->inventorObject && self->inventorObject->isOfType(SoBaseKit::getClassTypeId()))
+    {
+        return PyNodekitCatalog::createWrapper(((SoBaseKit*)self->inventorObject)->getNodekitCatalog());
     }
 
     Py_INCREF(Py_None);

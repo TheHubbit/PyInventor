@@ -105,6 +105,9 @@ private:
     static PyObject* replace_node(Object *self, PyObject *args);
     static PyObject* replace_manip(Object *self, PyObject *args);
 
+    // SoBaseKit
+    static PyObject* get_nodekit_catalog(Object *self);
+
 	// internal methods
 	static void setInstance(Object *self, SoFieldContainer *obj);
 };
