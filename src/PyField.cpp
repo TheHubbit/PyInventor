@@ -554,32 +554,39 @@ int PyField::setFieldValue(SoField *field, PyObject *value)
     if (field->isOfType(SoSFNode::getClassTypeId()))
     {
         SoSFNode *nodeField = (SoSFNode*)field;
+
+        // check if nodekit part
+        SoBaseKit *baseKit = 0;
+        SbName partName;
+        if (field->getContainer() && field->getContainer()->isOfType(SoBaseKit::getClassTypeId()))
+        {
+            baseKit = (SoBaseKit *)field->getContainer();
+            if (baseKit->getFieldName(field, partName))
+            {
+                if (baseKit->getNodekitCatalog()->getPartNumber(partName) == SO_CATALOG_NAME_NOT_FOUND)
+                {
+                    baseKit = 0;
+                }
+            }
+        }
+
+        SoNode *node = 0;
         if (PyNode_Check(value))
         {
             PySceneObject::Object *child = (PySceneObject::Object *)value;
             if (child->inventorObject && child->inventorObject->isOfType(SoNode::getClassTypeId()))
             {
-                if (field->getContainer() && field->getContainer()->isOfType(SoBaseKit::getClassTypeId()))
-                {
-                    SoBaseKit *baseKit = (SoBaseKit *)field->getContainer();
-                    SbName fieldName;
-                    if (baseKit->getFieldName(field, fieldName))
-                    {
-                        if (baseKit->getNodekitCatalog()->getPartNumber(fieldName) >= 0)
-                        {
-                            // update part of a node kit
-                            baseKit->setPart(fieldName, (SoNode*)child->inventorObject);
-                            return result;
-                        }
-                    }
-                }
-
-                nodeField->setValue((SoNode*)child->inventorObject);
+                node = (SoNode*)child->inventorObject;
             }
+        }
+
+        if (baseKit)
+        {
+            baseKit->setPart(partName, node);
         }
         else
         {
-            nodeField->setValue(0);
+            nodeField->setValue(node);
         }
     }
     else if (field->isOfType(SoMFNode::getClassTypeId()))
