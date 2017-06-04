@@ -1468,16 +1468,34 @@ PyObject* PySceneObject::set(Object *self, PyObject *args)
         }
         else
         {
-            SoField *field = self->inventorObject->getField(name);
-            if (field)
+            SoNode *part = 0;
+
+            if (self->inventorObject->isOfType(SoBaseKit::getClassTypeId()))
             {
-                if (!field->isOfType(SoSFTrigger::getClassTypeId()))
+                SoBaseKit *baseKit = (SoBaseKit *)self->inventorObject;
+                if (baseKit->getNodekitCatalog()->getPartNumber(SbName(name)) != SO_CATALOG_NAME_NOT_FOUND)
                 {
-                    field->set(value);
+                    part = baseKit->getPart(name, TRUE);
                 }
-                else
+            }
+
+            if (part)
+            {
+                part->set(value);
+            }
+            else
+            {
+                SoField *field = self->inventorObject->getField(name);
+                if (field)
                 {
-                    field->touch();
+                    if (!field->isOfType(SoSFTrigger::getClassTypeId()))
+                    {
+                        field->set(value);
+                    }
+                    else
+                    {
+                        field->touch();
+                    }
                 }
             }
         }
