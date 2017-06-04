@@ -66,6 +66,13 @@ class QSceneObjectProxy(QtCore.QObject):
                 for child in sceneObject:
                     self.createChildProxy(child, self)
 
+            # add nodekit parts
+            if isinstance(sceneObject, iv.BaseKit):
+                publicParts = [p["Name"] for p in sceneObject.get_nodekit_catalog() if p["Public"]]
+                for part in publicParts:
+                    if (sceneObject.get_field(part).value is not None):
+                        self.createChildProxy(sceneObject.get_field(part).value, self, None, sceneObject.get_field(part))
+
             # add all objects connected through fields
             for field in sceneObject.get_field():
                 for conn in field.get_connections():
@@ -161,6 +168,9 @@ class QSceneObjectProxy(QtCore.QObject):
         """Changes the type of a child node"""
         node = iv.create_object(typeName) if not typeName.startswith('"') else iv.create_object(name = typeName[1:-1])
         if (node is not None) and (position >= 0) and (position < len(self._children)):
+            if isinstance(self._sceneObject, iv.BaseKit) and self._children[position]._connectedTo is not None:
+                self._children[position]._connectedTo.value = node
+
             self._children[position].setSceneObject(node)
             if (self._sceneObject is not None) and (position < len(self._sceneObject)):
                 # before replacing child of Inventor object copy children if both are groups
@@ -194,13 +204,19 @@ class QSceneObjectProxy(QtCore.QObject):
         """Removes child"""
         if position < 0 or position > len(self._children):
             return False
-        
-        # also remove child from scene object
-        if (self._sceneObject is not None) and isinstance(self._sceneObject, iv.Node) and (position < len(self._sceneObject)):
-            del self._sceneObject[position]
-        
+
         child = self._children.pop(position)
         child._parent = None
+
+        if self._sceneObject is not None:
+            # delete nodekit part
+            if isinstance(self._sceneObject, iv.BaseKit):
+                child._connectedTo.value = None
+        
+            # remove child from scene object
+            if isinstance(self._sceneObject, iv.Group) and (position < len(self._sceneObject)):
+                del self._sceneObject[position]
+
 
         # disconnect field if it was a field connection
         if (child._connectedFrom is not None) and (child._connectedTo is not None):
