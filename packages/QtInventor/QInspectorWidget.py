@@ -43,7 +43,7 @@ class QSceneObjectProxy(QtCore.QObject):
             parent._children.append(self)
 
         if sceneObject is not None:
-            self.initializeChildren(sceneObject, parent)
+            self.initializeChildren(sceneObject)
 
 
     def createChildProxy(self, sceneObject, parent=None, connectedFrom=None, connectedTo=None):
@@ -59,7 +59,7 @@ class QSceneObjectProxy(QtCore.QObject):
         return False
 
 
-    def initializeChildren(self, sceneObject, parent=None, connectedFrom=None, connectedTo=None):
+    def initializeChildren(self, sceneObject, connectedFrom=None, connectedTo=None):
         if sceneObject is not None:
             # add all child nodes
             if isinstance(sceneObject, iv.Node):
