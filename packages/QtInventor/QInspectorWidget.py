@@ -923,7 +923,7 @@ class QInspectorWidget(QtGui.QSplitter):
 
     def setSelection(self, current, old):
         """Updates field editor after selection in tree view changed"""
-        if current.isValid():
+        if current.isValid() and current.data(QtCore.Qt.UserRole) is not None:
             isFirst = self._fieldsModel is None
             self._fieldsModel = QFieldContainerModel(current.data(QtCore.Qt.UserRole).internalPointer())
             self._fieldView.setModel(self._fieldsModel)
