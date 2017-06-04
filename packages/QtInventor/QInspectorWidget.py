@@ -164,20 +164,15 @@ class QSceneObjectProxy(QtCore.QObject):
         self._sceneObject = node
 
 
-    def changeChildType(self, position, typeName):
+    def changeChildType(self, position, node):
         """Changes the type of a child node"""
-        node = iv.create_object(typeName) if not typeName.startswith('"') else iv.create_object(name = typeName[1:-1])
         if (node is not None) and (position >= 0) and (position < len(self._children)):
             if isinstance(self._sceneObject, iv.BaseKit) and self._children[position]._connectedTo is not None:
                 self._children[position]._connectedTo.value = node
-
             self._children[position].setSceneObject(node)
-            if (self._sceneObject is not None) and (position < len(self._sceneObject)):
-                # before replacing child of Inventor object copy children if both are groups
-                if self._sceneObject[position].check_type("Group") and node.check_type("Group"):
-                    node += self._sceneObject[position][:]
-                # now update child of scene object
+            if isinstance(self._sceneObject, iv.Group):
                 self._sceneObject[position] = node
+            self._children[position].initializeChildren(node)
 
 
     def insertChild(self, position, child):
@@ -448,15 +443,23 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
                 if (index.column() == 0) and (index.parent() is not None):
                     # type changes: need to call changeChildType on parent so old
                     # scene object can be replaced by new one
+
+                    newSceneObject = iv.create_object(value) if not value.startswith('"') else iv.create_object(name = value[1:-1])
+                    if newSceneObject is None:
+                        return False
+
+                    # add chilren from previous type
+                    if index.internalPointer()._sceneObject is not None:
+                        childNodes = index.internalPointer()._sceneObject[:]
+                        if isinstance(newSceneObject, iv.Group):
+                            newSceneObject += childNodes
+                        else:
+                            self.removeRows(0, len(childNodes), index)
+
                     parentGroup = self._rootNode
-                    if index.internalPointer().isChildNode():
-                        if index.parent().internalPointer() is not None:
-                            parentGroup = index.parent().internalPointer()
-                        parentGroup.changeChildType(index.row(), value)
-                        if (not node.isGroup()) and (node.childCount() > 0):
-                            # if previous node was a group but new one isn't all children
-                            # must be removed
-                            self.removeRows(0, node.childCount(), index)
+                    if index.parent().internalPointer() is not None:
+                        parentGroup = index.parent().internalPointer()
+                    parentGroup.changeChildType(index.row(), newSceneObject)
                 
                 if index.column() == 1:
                     node.setName(value)
