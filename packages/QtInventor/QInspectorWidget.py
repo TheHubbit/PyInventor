@@ -278,6 +278,23 @@ class QSceneGraphModel(QtCore.QAbstractItemModel):
         self._draggedNodes = None
 
 
+    def updateNodekit(self, field, parentIdx = QtCore.QModelIndex()):
+        for i in range(0, self.rowCount(parentIdx)):
+            idx = self.index(i, 0, parentIdx)
+            sceneObject = idx.internalPointer()._sceneObject
+
+            if isinstance(sceneObject, iv.BaseKit):
+                publicParts = [p["Name"] for p in sceneObject.get_nodekit_catalog() if p["Public"]]
+                if field in idx.internalPointer()._sceneObject.get_field() and not field in [c._connectedTo for c in idx.internalPointer()._children]:
+                    if field.get_name() in publicParts and field.value is not None:
+                        self.beginInsertRows(idx, 0, 0)
+                        # only create, constructor already adds child to parent
+                        childNode = QSceneObjectProxy(field.value, idx.internalPointer(), None, field)
+                        self.endInsertRows()
+
+            self.updateNodekit(field, idx)
+
+
     def updateFieldConnection(self, field, master, parentIdx = QtCore.QModelIndex()):
         for i in range(0, self.rowCount(parentIdx)):
             idx = self.index(i, 0, parentIdx)
@@ -970,9 +987,12 @@ class QInspectorWidget(QtGui.QSplitter):
 
     def fieldChanged(self, current, old):
         """Updates field editor after selection in tree view changed"""
-        if current.isValid() and current.column() == 2:
-            connectionDetail = current.data(QtCore.Qt.UserRole)
-            self.addFieldConnection(connectionDetail[0], connectionDetail[1], connectionDetail[2])
+        if current.isValid():
+            if current.column() == 2:
+                connectionDetail = current.data(QtCore.Qt.UserRole)
+                self.addFieldConnection(connectionDetail[0], connectionDetail[1], connectionDetail[2])
+            elif current.column() == 1:
+                self._sceneModel.updateNodekit(current.data(QtCore.Qt.UserRole))
 
 
     def keyPressEvent(self, event):
