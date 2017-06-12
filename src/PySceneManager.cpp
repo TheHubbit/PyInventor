@@ -22,6 +22,7 @@
 #include <Inventor/fields/SoMFColor.h>
 #include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
+#include <Inventor/actions/SoHandleEventAction.h>
 #include <Inventor/projectors/SbSphereSheetProjector.h>
 #include <Inventor/SoDB.h>
 
@@ -148,6 +149,12 @@ PyTypeObject *PySceneManager::getType()
             "    are forwarded to the scene graph for processing. Setting the mode\n"
             "    to 1 allows rotating the camera around the focal point and zooming\n"
             "    with the scroll wheel.\n"
+        },
+		{"is_grabbing", (PyCFunction) is_grabbing, METH_NOARGS,
+            "Returns if a node is currently grabbing events.\n"
+            "\n"
+            "Return:\n"
+            "    True if a node is grabbing events. Otherwise False.\n"
         },
 		{NULL}  /* Sentinel */
 	};
@@ -568,6 +575,7 @@ PyObject* PySceneManager::motion3(Object *self, PyObject *args)
             ev.setRotation(SbRotation(SbVec3f(vector[0], vector[1], vector[2]), radians));
         }
 
+        ev.setPosition(SbVec2s(0, 0));
         ev.setTime(SbTime::getTimeOfDay());
         processEvent(self, &ev);
     }
@@ -786,3 +794,19 @@ SbBool PySceneManager::getBackgroundFromObject(PyObject *object, SbColor &color_
 	return FALSE;
 }
 
+
+PyObject* PySceneManager::is_grabbing(Object *self)
+{
+    bool isGrabbing = false;
+
+    if (PyObject_TypeCheck(self, PySceneManager::getType()))
+    {
+        PySceneManager::Object *sm = (PySceneManager::Object *) self;
+        if (sm->sceneManager)
+        {
+            isGrabbing = sm->sceneManager->getHandleEventAction()->getGrabber() != NULL;
+        }
+    }
+
+    return PyBool_FromLong(isGrabbing);
+}

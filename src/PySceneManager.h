@@ -65,6 +65,7 @@ private:
 	static PyObject* key(Object *self, PyObject *args);
 	static PyObject* view_all(Object *self, PyObject *args);
 	static PyObject* interaction(Object *self, PyObject *args);
+    static PyObject* is_grabbing(Object *self);
 
 	// internal
 	static void renderCBFunc(void *userdata, SoSceneManager *mgr);
