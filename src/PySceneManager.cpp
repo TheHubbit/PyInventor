@@ -156,7 +156,13 @@ PyTypeObject *PySceneManager::getType()
             "Return:\n"
             "    True if a node is grabbing events. Otherwise False.\n"
         },
-		{NULL}  /* Sentinel */
+        { "release_grabber", (PyCFunction) release_grabber, METH_NOARGS,
+            "Releases event grabber on handle event action.\n"
+            "\n"
+            "Return:\n"
+            "    True if a node was grabbing events. Otherwise False.\n"
+        },
+        {NULL}  /* Sentinel */
 	};
 
 	static PyTypeObject managerType = 
@@ -805,6 +811,27 @@ PyObject* PySceneManager::is_grabbing(Object *self)
         if (sm->sceneManager)
         {
             isGrabbing = sm->sceneManager->getHandleEventAction()->getGrabber() != NULL;
+        }
+    }
+
+    return PyBool_FromLong(isGrabbing);
+}
+
+
+PyObject* PySceneManager::release_grabber(Object *self)
+{
+    bool isGrabbing = false;
+
+    if (PyObject_TypeCheck(self, PySceneManager::getType()))
+    {
+        PySceneManager::Object *sm = (PySceneManager::Object *) self;
+        if (sm->sceneManager)
+        {
+            isGrabbing = sm->sceneManager->getHandleEventAction()->getGrabber() != NULL;
+            if (isGrabbing)
+            {
+                sm->sceneManager->getHandleEventAction()->releaseGrabber();
+            }
         }
     }
 
