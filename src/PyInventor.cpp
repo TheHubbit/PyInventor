@@ -17,6 +17,7 @@
 #include <Inventor/SoPickedPoint.h>
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
+#include <Inventor/actions/SoGetMatrixAction.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/SoInput.h>
 #include <Inventor/SoOffscreenRenderer.h>
@@ -430,6 +431,43 @@ PyObject* iv_pick(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 }
 
 
+PyObject* iv_get_matrix(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+{
+	PyObject *applyTo = NULL;
+
+	static char *kwlist[] = { "applyTo", NULL};
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &applyTo))
+	{
+        SbViewportRegion vp;
+        SoGetMatrixAction matrixAction(vp);
+
+        if (PyNode_Check(applyTo))
+        {
+            PySceneObject::Object *sceneObj = (PySceneObject::Object *)	applyTo;
+            SoNode *node = (SoNode*)sceneObj->inventorObject;
+            if (node)
+            {
+                matrixAction.apply(node);
+            }
+        }
+        else if (PyObject_TypeCheck(applyTo, PyPath::getType()))
+        {
+            SoPath *path = PyPath::getInstance(applyTo);
+            if (path)
+            {
+                matrixAction.apply(path);
+            }
+        }
+
+        SbMatrix matrix = matrixAction.getMatrix();
+        return PyField::getPyObjectArrayFromData(NPY_FLOAT32, matrix.getValue(), 4, 4);
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
 PyObject* iv_render_buffer(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	// keep reusing same instance once created
@@ -677,6 +715,15 @@ PyMODINIT_FUNC PyInit_inventor(void)
             "\n"
             "Returns:\n"
             "    List of points, normals and paths for each intersected object.\n"
+        },
+        { "get_matrix", (PyCFunction)iv_get_matrix, METH_VARARGS | METH_KEYWORDS,
+            "Returns the accumulated transforms in a graph or path.\n"
+            "\n"
+            "Args:\n"
+            "    applyTo: Node or path where action is applied.\n"
+            "\n"
+            "Returns:\n"
+            "    Accumulated transformation matrix."
         },
 		{ "render_buffer", (PyCFunction) iv_render_buffer, METH_VARARGS | METH_KEYWORDS,
             "Renders a scene into an offscreen buffer using the inventor\n"
