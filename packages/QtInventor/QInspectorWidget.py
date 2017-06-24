@@ -224,8 +224,15 @@ class QSceneObjectProxy(QtCore.QObject):
         """Returns field instances for this scene object"""
         if self._sceneObject is None:
             return []
-
-        return self._sceneObject.get_field()
+        allFields = self._sceneObject.get_field()
+        # remove private parts of node kit from field list
+        if isinstance(self._sceneObject, iv.BaseKit):
+            privateParts = [p["Name"] for p in self._sceneObject.get_nodekit_catalog() if not p["Public"]]
+            for part in privateParts:
+                field = next((f for f in allFields if f.get_name() == part), None)
+                if field is not None:
+                    allFields.remove(field)
+        return allFields
 
 
     def fieldValue(self, index):
@@ -233,7 +240,7 @@ class QSceneObjectProxy(QtCore.QObject):
         if self._sceneObject is None:
             return None
 
-        fields = self._sceneObject.get_field()
+        fields = self.fields()
         if len(fields) > index:
             fieldName = fields[index].get_name()
             # don't serialize value if SFNode or MFNode field
@@ -249,7 +256,7 @@ class QSceneObjectProxy(QtCore.QObject):
         if self._sceneObject is None:
             return None
 
-        fields = self._sceneObject.get_field()
+        fields = self.fields()
         if len(fields) > index:
             fieldName = fields[index].get_name()
             return self._sceneObject.set(fieldName, value)
@@ -581,12 +588,7 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
             parentNode = self._rootNode
         else:
             parentNode = parent.internalPointer()
-
-        fields = parentNode.fields()
-        if fields is not None:
-            return len(parentNode.fields())
-
-        return 0
+        return len(parentNode.fields())
     
 
     def columnCount(self, parent):
@@ -647,7 +649,7 @@ class QFieldContainerModel(QtCore.QAbstractTableModel):
                 objAndField = value.split(" ")
                 if len(objAndField) > 0:
                     # trigger that connection field was edited to request the connection to be made
-                    self._connectionRequest = (self._rootNode._sceneObject.get_field()[index.row()], objAndField[0], objAndField[1] if len(objAndField) > 1 else "")
+                    self._connectionRequest = (self._rootNode.fields()[index.row()], objAndField[0], objAndField[1] if len(objAndField) > 1 else "")
                     self.dataChanged.emit(index, index)
                     return True
 
