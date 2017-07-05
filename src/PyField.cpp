@@ -766,38 +766,43 @@ int PyField::setFieldValue(SoField *field, PyObject *value)
             PyObject *axis = 0, *fromVec = 0, *toVec = 0;
             float angle = 0.;
 
-            if (PyArg_ParseTuple(value, "Of", &axis, &angle))
+            if (PyTuple_Check(value))
             {
-                // axis plus angle
-                float axisValue[3];
-                if (getFloatsFromPyObject(axis, 3, axisValue))
+                if (PyArg_ParseTuple(value, "Of", &axis, &angle))
                 {
-                    ((SoSFRotation*)field)->setValue(SbVec3f(axisValue), angle);
-                    valueWasSet = true;
+                    // axis plus angle
+                    float axisValue[3];
+                    if (getFloatsFromPyObject(axis, 3, axisValue))
+                    {
+                        ((SoSFRotation*)field)->setValue(SbVec3f(axisValue), angle);
+                        valueWasSet = true;
+                    }
                 }
-            }
-            else if (PyArg_ParseTuple(value, "OO", &fromVec, &toVec))
-            {
-                // from & to vectors
-                float fromValue[3], toValue[3];
-                if (getFloatsFromPyObject(fromVec, 3, fromValue) && getFloatsFromPyObject(toVec, 3, toValue))
+                else if (PyArg_ParseTuple(value, "OO", &fromVec, &toVec))
                 {
-                    ((SoSFRotation*)field)->setValue(SbRotation(SbVec3f(fromValue), SbVec3f(toValue)));
-                    valueWasSet = true;
+                    // from & to vectors
+                    float fromValue[3], toValue[3];
+                    if (getFloatsFromPyObject(fromVec, 3, fromValue) && getFloatsFromPyObject(toVec, 3, toValue))
+                    {
+                        ((SoSFRotation*)field)->setValue(SbRotation(SbVec3f(fromValue), SbVec3f(toValue)));
+                        valueWasSet = true;
+                    }
                 }
             }
 
             if (!valueWasSet)
             {
+                PyErr_Clear();
+
                 float rotValue[16];
-                if (getFloatsFromPyObject(axis, 16, rotValue))
+                if (getFloatsFromPyObject(value, 16, rotValue))
                 {
                     // matrix
                     SbMatrix m;
                     m.setValue(rotValue);
                     ((SoSFRotation*)field)->setValue(SbRotation(m));
                 }
-                else if (getFloatsFromPyObject(axis, 4, rotValue))
+                else if (getFloatsFromPyObject(value, 4, rotValue))
                 {
                     // quaternion
                     ((SoSFRotation*)field)->setValue(rotValue);
