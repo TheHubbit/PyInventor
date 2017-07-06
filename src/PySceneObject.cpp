@@ -738,7 +738,13 @@ int PySceneObject::setFields(SoFieldContainer *fieldContainer, char *value)
 	if (fieldContainer->isOfType(SoBaseKit::getClassTypeId()))
 	{
 		SoBaseKit *kit = (SoBaseKit *) fieldContainer;
-		return kit->set(value);		
+        if (kit->set(value))
+        {
+            // string contained part names and subgraphs
+            return TRUE;
+        }
+
+        // proceed with setting fields if setting parts failed
 	}
 
 	return fieldContainer->set(value);
