@@ -27,5 +27,7 @@ if os.environ.get('IV_LIBS') is not None:
     import ctypes
     import inventor
     for lib in os.environ.get('IV_LIBS').split(";"):
-        ctypes.cdll.LoadLibrary(lib).initAllClasses()
+        dll = ctypes.cdll.LoadLibrary(lib)
+        if hasattr(dll, 'initAllClasses'):
+            dll.initAllClasses()
     inventor.create_classes()
