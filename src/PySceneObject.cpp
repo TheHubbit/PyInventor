@@ -1770,7 +1770,6 @@ PyObject* PySceneObject::replace_manip(Object *self, PyObject *args)
 
 PyObject* PySceneObject::get_nodekit_catalog(Object *self)
 {
-    PyObject *pathObj = 0, *nodeObj = 0;
     if (self->inventorObject && self->inventorObject->isOfType(SoBaseKit::getClassTypeId()))
     {
         return PyNodekitCatalog::createWrapper(((SoBaseKit*)self->inventorObject)->getNodekitCatalog());
