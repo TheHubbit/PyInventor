@@ -260,7 +260,10 @@ class QSceneObjectProxy(QtCore.QObject):
         if len(fields) > index:
             fieldName = fields[index].get_name()
             if fields[index].get_type() == "SFNode":
-                fields[index].value = iv.create_object(value) if not value.startswith('"') else iv.create_object(name = value[1:-1])
+                # this will create the part of a node kit if needed
+                self._sceneObject.get(fieldName)
+                if not value.startswith("..."):
+                    fields[index].value = iv.create_object(value) if not value.startswith('"') else iv.create_object(name = value[1:-1])
                 return True
             return self._sceneObject.set(fieldName, value)
         return None
