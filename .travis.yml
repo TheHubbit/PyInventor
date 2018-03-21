@@ -42,9 +42,10 @@ before_install:
 
 install:
   - hg clone https://bitbucket.org/Coin3D/coin coin
-  - cmake coin/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$TRAVIS_BUILD_DIR/inst
+  - export COINDIR=$TRAVIS_BUILD_DIR/inst
+  - cmake coin/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$COINDIR
   - make -C coin install
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/inst/lib
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COINDIR/lib
   - $PYTHON setup.py install
 
 script:
