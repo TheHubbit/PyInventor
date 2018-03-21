@@ -42,10 +42,11 @@ before_install:
 
 install:
   - hg clone https://bitbucket.org/Coin3D/coin coin
-  - cmake coin/CMakeLists.txt
+  - cmake coin/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$TRAVIS_BUILD_DIR/inst
   - make -C coin install
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/inst/lib
   - $PYTHON setup.py install
 
 script:
+  - coin/testsuite/CoinTests
   - $PYTHON -m unittest --verbose tests/test_smoke.py
