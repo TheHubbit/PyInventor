@@ -48,9 +48,10 @@ install:
   - hg clone https://bitbucket.org/Coin3D/coin coin
   - cmake coin/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$COINDIR
   - make -C coin install
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COINDIR/lib
   - $PYTHON setup.py install
 
 script:
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COINDIR/lib
+  - export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$COINDIR/lib
   - coin/testsuite/CoinTests
   - $PYTHON -m unittest --verbose tests/test_smoke.py
