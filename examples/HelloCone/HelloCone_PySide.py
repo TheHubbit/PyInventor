@@ -51,7 +51,7 @@ class GLWidget(QtOpenGL.QGLWidget):
     qtButtonIndex = (QtCore.Qt.LeftButton, QtCore.Qt.MiddleButton, QtCore.Qt.RightButton)
     
     def __init__(self, parent=None):
-        QtOpenGL.QGLWidget.__init__(self, parent)
+        QtOpenGL.QGLWidget.__init__(self, QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers), parent)
         self.sceneManager = iv.SceneManager()
         self.sceneManager.redisplay = self.updateGL
     
