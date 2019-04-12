@@ -2,20 +2,20 @@ language: python
 
 matrix:
   include:
-    - os: linux
-      python: 3.6
-      compiler: gcc
-      sudo: required
-      env: 
-        - CXX="g++" 
-        - CC="gcc"
-    - os: linux
-      python: 3.6
-      compiler: clang
-      sudo: required
-      env: 
-        - CXX="clang++" 
-        - CC="clang"
+    #- os: linux
+    #  python: 3.6
+    #  compiler: gcc
+    #  sudo: required
+    #  env: 
+    #    - CXX="g++" 
+    #    - CC="gcc"
+    #- os: linux
+    #  python: 3.6
+    #  compiler: clang
+    #  sudo: required
+    #  env: 
+    #    - CXX="clang++" 
+    #    - CC="clang"
     - os: osx
       language: generic
     - os: osx
@@ -43,12 +43,12 @@ before_install:
 
 install:
   - export COINDIR=inst
-  - hg clone --insecure --config ui.clonebundles=false https://bitbucket.org/Coin3D/simage simage
-  - cmake simage/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$COINDIR -DCOIN_BUILD_DOCUMENTATION=OFF
+  - hg clone --insecure https://bitbucket.org/Coin3D/simage simage
+  - cmake simage/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$COINDIR
   - make -C simage install
-  - hg clone --insecure --config ui.clonebundles=false https://bitbucket.org/Coin3D/coin coin
+  - hg clone --insecure https://bitbucket.org/Coin3D/coin coin
   - mkdir coin_build
-  - cmake -Bcoin_build -Hcoin -DCMAKE_INSTALL_PREFIX=$COINDIR
+  - cmake -Bcoin_build -Hcoin -DCMAKE_INSTALL_PREFIX=$COINDIR -DCOIN_BUILD_DOCUMENTATION=OFF
   - make -C coin_build install
   - $PYTHON setup.py install
 
