@@ -46,7 +46,7 @@ install:
   - export COINLIB=inst/lib
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export COININC=inst/Inventor.framework/Resources/include; export COINLIB=inst/Inventor.framework/Libraries; fi; 
   - hg clone --insecure https://bitbucket.org/Coin3D/simage simage
-  - cmake simage/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$COINDIR
+  - cmake simage/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=inst
   - make -C simage install 
   - hg clone --insecure https://bitbucket.org/Coin3D/coin coin
   - mkdir coin_build
