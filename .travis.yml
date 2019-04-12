@@ -42,18 +42,20 @@ before_install:
   - $PYTHON -m pip install numpy
 
 install:
-  - export COINDIR=inst
+  - export COININC=inst/include
+  - export COINLIB=inst/lib
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export COININC=inst/Inventor.framework/Resources/include; export COINLIB=inst/Inventor.framework/Libraries; fi; 
   - hg clone --insecure https://bitbucket.org/Coin3D/simage simage
   - cmake simage/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$COINDIR
-  - make -C simage install
+  - make -C simage install 
   - hg clone --insecure https://bitbucket.org/Coin3D/coin coin
   - mkdir coin_build
-  - cmake -Bcoin_build -Hcoin -DCMAKE_INSTALL_PREFIX=$COINDIR -DCOIN_BUILD_DOCUMENTATION=OFF
+  - cmake -Bcoin_build -Hcoin -DCMAKE_INSTALL_PREFIX=inst -DCOIN_BUILD_DOCUMENTATION=OFF
   - make -C coin_build install
-  - $PYTHON setup.py install
+  - $PYTHON setup.py install --incpath $COININC --libpath $COINLIB
 
 script:
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COINDIR/lib
-  - export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$COINDIR/lib
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COINLIB
+  - export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$COINLIB
   - coin/testsuite/CoinTests
   - $PYTHON -m unittest --verbose tests/test_smoke.py
