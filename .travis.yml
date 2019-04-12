@@ -42,15 +42,15 @@ before_install:
 
 install:
   - export COINDIR=inst
+  - echo [ui]>~/.hgrc
+  - echo tls = False>>~/.hgrc
   - hg clone https://bitbucket.org/Coin3D/simage simage
   - cmake simage/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$COINDIR
   - make -C simage install
   - hg clone https://bitbucket.org/Coin3D/coin coin
   - mkdir coin_build
-  - cd coin_build
-  - cmake ../coin/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$COINDIR
-  - make install
-  - cd ..
+  - cmake -Bcoin_build -Hcoin -DCMAKE_INSTALL_PREFIX=$COINDIR
+  - make -C coin_build install
   - $PYTHON setup.py install
 
 script:
