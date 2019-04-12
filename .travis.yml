@@ -24,12 +24,13 @@ matrix:
 
 addons:
   apt:
-    # linux workers have very outdated cmake installed, need to update
+    # linux workers have very outdated cmake and mercurial installed, need to update
     sources:
       - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
     packages:
       - cmake
       - cmake-data
+      - mercurial
 
 before_install:
   # update brew and pyenv on macOS
@@ -42,10 +43,8 @@ before_install:
 
 install:
   - export COINDIR=inst
-  - echo [ui]>~/.hgrc
-  - echo tls = False>>~/.hgrc
   - hg clone https://bitbucket.org/Coin3D/simage simage
-  - cmake simage/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$COINDIR
+  - cmake simage/CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$COINDIR -DCOIN_BUILD_DOCUMENTATION=OFF
   - make -C simage install
   - hg clone https://bitbucket.org/Coin3D/coin coin
   - mkdir coin_build
