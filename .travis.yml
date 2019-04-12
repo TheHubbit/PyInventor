@@ -57,5 +57,5 @@ install:
 script:
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COINLIB
   - export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$COINLIB
-  - coin/testsuite/CoinTests
+  - coin_build/testsuite/CoinTests
   - $PYTHON -m unittest --verbose tests/test_smoke.py
