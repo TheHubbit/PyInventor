@@ -57,4 +57,5 @@ install:
 script:
   - cd coin_build/bin
   - ./CoinTests
-  - $PYTHON -m unittest --verbose ../../tests/test_smoke.py
+  # run unit tests (note that "-m unittest ../../tests/test_smoke.py" doesn't work as '.' is interpreted as class name)
+  - $PYTHON ../../tests/test_smoke.py
