@@ -55,7 +55,7 @@ install:
   - $PYTHON setup.py install --incpath $COININC --libpath $COINLIB
 
 script:
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COINLIB
-  - export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$COINLIB
-  - coin_build/testsuite/CoinTests
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:coin_build/bin:$COINLIB
+  - export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:coin_build/bin:$COINLIB
+  - coin_build/bin/CoinTests
   - $PYTHON -m unittest --verbose tests/test_smoke.py
