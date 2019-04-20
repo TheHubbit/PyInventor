@@ -9,13 +9,13 @@ matrix:
     #  env: 
     #    - CXX="g++" 
     #    - CC="gcc"
-    - os: linux
-      python: 3.6
-      compiler: clang
-      sudo: required
-      env: 
-        - CXX="clang++" 
-        - CC="clang"
+    #- os: linux
+    #  python: 3.6
+    #  compiler: clang
+    #  sudo: required
+    #  env: 
+    #    - CXX="clang++" 
+    #    - CC="clang"
     - os: osx
       language: generic
     - os: osx
