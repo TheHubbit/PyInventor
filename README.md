@@ -3,8 +3,6 @@ PyInventor
 
 http://thehubbit.github.io/PyInventor
 
-[![Build Status](https://travis-ci.org/TheHubbit/PyInventor.svg?branch=master)](https://travis-ci.org/TheHubbit/PyInventor)
-
 PyInventor provides a Python binding for the Open Inventor 3D graphics toolkit. The main drivers for this project are:
 - Enable the creation, modification and viewing of scene graphs with Python
 - Offer a flexible yet easy to use "Python-like" interface to Open Inventor
